@@ -11,6 +11,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/docker/docker v1.4.2-0.20180625184442-8e610b2b55bf
+	github.com/dop251/goja v0.0.0-20200106141417-aaec0e7bde29
 	github.com/edsrzf/mmap-go v1.0.0
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/fatih/color v1.6.0
@@ -34,7 +35,6 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/prometheus v1.7.2-0.20170814170113-3101606756c5
 	github.com/rjeczalik/notify v0.9.2
-	github.com/robertkrimen/otto v0.2.1
 	github.com/rs/cors v1.6.0
 	github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570
 	github.com/stretchr/testify v1.8.1
@@ -53,8 +53,12 @@ require (
 )
 
 require (
+	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/elastic/gosigar v0.10.5 // indirect
+	github.com/dlclark/regexp2 v1.10.0 // indirect
+	github.com/elastic/gosigar v0.8.1-0.20180330100440-37f05ff46ffa // indirect
+	github.com/go-ole/go-ole v1.2.1 // indirect
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/google/uuid v1.0.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/text v0.1.0 // indirect
@@ -72,5 +76,5 @@ require (
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
