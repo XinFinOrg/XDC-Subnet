@@ -38,7 +38,6 @@ import (
 	"github.com/XinFinOrg/XDPoSChain/consensus"
 	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS"
 	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS/utils"
-	contractValidator "github.com/XinFinOrg/XDPoSChain/contracts/validator/contract"
 	"github.com/XinFinOrg/XDPoSChain/core/state"
 	"github.com/XinFinOrg/XDPoSChain/core/types"
 	"github.com/XinFinOrg/XDPoSChain/core/vm"
@@ -2488,36 +2487,20 @@ func (bc *BlockChain) UpdateM1() error {
 	}
 	log.Info("It's time to update new set of masternodes for the next epoch...")
 	// get masternodes information from smart contract
-	client, err := bc.GetClient()
-	if err != nil {
-		return err
-	}
-	addr := common.HexToAddress(common.MasternodeVotingSMC)
-	validator, err := contractValidator.NewXDCValidator(addr, client)
-	if err != nil {
-		return err
-	}
-	opts := new(bind.CallOpts)
 
 	var candidates []common.Address
 	// get candidates from slot of stateDB
 	// if can't get anything, request from contracts
 	stateDB, err := bc.State()
 	if err != nil {
-		candidates, err = validator.GetCandidates(opts)
-		if err != nil {
-			return err
-		}
-	} else {
-		candidates = state.GetCandidates(stateDB)
+		log.Error("update masternodes has statedb error", "error", err)
+		return err
 	}
+	candidates = state.GetCandidates(stateDB)
 
 	var ms []utils.Masternode
 	for _, candidate := range candidates {
-		v, err := validator.GetCandidateCap(opts, candidate)
-		if err != nil {
-			return err
-		}
+		v := state.GetCandidateCap(stateDB, candidate)
 		//TODO: smart contract shouldn't return "0x0000000000000000000000000000000000000000"
 		if candidate.String() != "xdc0000000000000000000000000000000000000000" {
 			ms = append(ms, utils.Masternode{Address: candidate, Stake: v})

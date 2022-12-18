@@ -167,6 +167,10 @@ func (x *XDPoS_v2) sendTimeout(chain consensus.ChainReader) error {
 		// Notice this +1 is because we expect a block whos is the child of currentHeader
 		currentNumber := currentBlockHeader.Number.Uint64() + 1
 		gapNumber = currentNumber - currentNumber%x.config.Epoch - x.config.Gap
+		// prevent overflow
+		if currentNumber-currentNumber%x.config.Epoch < x.config.Gap {
+			gapNumber = 0
+		}
 		log.Debug("[sendTimeout] is epoch switch when sending out timeout message", "currentNumber", currentNumber, "gapNumber", gapNumber)
 	} else {
 		epochSwitchInfo, err := x.getEpochSwitchInfo(chain, currentBlockHeader, currentBlockHeader.Hash())
@@ -174,6 +178,10 @@ func (x *XDPoS_v2) sendTimeout(chain consensus.ChainReader) error {
 			log.Error("[sendTimeout] Error when trying to get current epoch switch info for a non-epoch block", "currentRound", x.currentRound, "currentBlockNum", currentBlockHeader.Number, "currentBlockHash", currentBlockHeader.Hash(), "epochNum", epochNum)
 		}
 		gapNumber = epochSwitchInfo.EpochSwitchBlockInfo.Number.Uint64() - epochSwitchInfo.EpochSwitchBlockInfo.Number.Uint64()%x.config.Epoch - x.config.Gap
+		// prevent overflow
+		if epochSwitchInfo.EpochSwitchBlockInfo.Number.Uint64()-epochSwitchInfo.EpochSwitchBlockInfo.Number.Uint64()%x.config.Epoch < x.config.Gap {
+			gapNumber = 0
+		}
 		log.Debug("[sendTimeout] non-epoch-switch block found its epoch block and calculated the gapNumber", "epochSwitchInfo.EpochSwitchBlockInfo.Number", epochSwitchInfo.EpochSwitchBlockInfo.Number.Uint64(), "gapNumber", gapNumber)
 	}
 
