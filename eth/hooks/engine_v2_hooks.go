@@ -225,6 +225,11 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 	signers := make(map[common.Address]*contracts.RewardLog)
 	mapBlkHash := map[uint64]common.Hash{}
 
+	// avoid overflow
+	if number == 0 {
+		return signers, nil
+	}
+
 	data := make(map[common.Hash][]common.Address)
 	epochCount := 0
 	var masternodes []common.Address
@@ -259,6 +264,10 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 			blkHash := common.BytesToHash(tx.Data()[len(tx.Data())-32:])
 			from := *tx.From()
 			data[blkHash] = append(data[blkHash], from)
+		}
+		// avoid overflow
+		if i == 0 {
+			break
 		}
 	}
 
