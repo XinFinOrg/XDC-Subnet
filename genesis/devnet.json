@@ -17,7 +17,7 @@
         "foudationWalletAddr": "xdc0000000000000000000000000000000000000068",
         "SkipV1Validation": false,
         "v2": {
-          "switchBlock": 1,
+          "switchBlock": 0,
           "config": {
             "waitPeriod": 2,
             "minePeriod": 2,
