@@ -17,6 +17,7 @@
 package XDPoS
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/XinFinOrg/XDPoSChain/common"
@@ -324,8 +325,11 @@ func (x *XDPoS) GetPeriod() uint64 {
 func (x *XDPoS) IsAuthorisedAddress(chain consensus.ChainReader, header *types.Header, address common.Address) bool {
 	switch x.config.BlockConsensusVersion(header.Number, header.Extra, ExtraFieldCheck) {
 	case params.ConsensusEngineVersion2:
+		fmt.Println("params.ConsensusEngineVersion2")
 		return x.EngineV2.IsAuthorisedAddress(chain, header, address)
 	default: // Default "v1"
+		fmt.Println("params.ConsensusEngineVersion1")
+
 		return x.EngineV1.IsAuthorisedAddress(chain, header, address)
 	}
 }

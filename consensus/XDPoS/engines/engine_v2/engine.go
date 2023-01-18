@@ -465,6 +465,7 @@ func (x *XDPoS_v2) IsAuthorisedAddress(chain consensus.ChainReader, header *type
 		return false
 	}
 	for _, mn := range snap.NextEpochMasterNodes {
+		fmt.Println("mn", mn)
 		if mn == address {
 			return true
 		}
