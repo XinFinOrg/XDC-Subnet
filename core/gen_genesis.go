@@ -5,6 +5,7 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/XinFinOrg/XDPoSChain/common"
@@ -82,14 +83,15 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 	if dec.ExtraData != nil {
 		g.ExtraData = *dec.ExtraData
 	}
-	if dec.GasLimit == nil {
-		return errors.New("missing required field 'gasLimit' for Genesis")
-	}
-	g.GasLimit = uint64(*dec.GasLimit)
+	fmt.Println("LIAMMMMM",dec.Difficulty ,dec.GasLimit)
 	if dec.Difficulty == nil {
 		return errors.New("missing required field 'difficulty' for Genesis")
 	}
 	g.Difficulty = (*big.Int)(dec.Difficulty)
+	if dec.GasLimit == nil {
+		return errors.New("missing required field 'gasLimit' for Genesis")
+	}
+	g.GasLimit = uint64(*dec.GasLimit)
 	if dec.Mixhash != nil {
 		g.Mixhash = *dec.Mixhash
 	}
