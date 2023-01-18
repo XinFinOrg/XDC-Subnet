@@ -19,14 +19,23 @@
         "v2": {
           "switchBlock": 1,
           "config": {
-            "waitPeriod": 2
-            "minePeriod": 2
-            "switchBlock": 1
-            "timeoutSyncThreshold":
-            "timeoutPeriod":
-            "certificateThreshold"
-          }
-          "allConfigs"
+            "waitPeriod": 2,
+            "minePeriod": 2,
+            "switchRound": 0,
+            "timeoutSyncThreshold": 3,
+            "timeoutPeriod": 10,
+            "certificateThreshold": 2
+          },
+          "allConfigs": [
+            {
+              "waitPeriod": 2,
+              "minePeriod": 2,
+              "switchRound": 0,
+              "timeoutSyncThreshold": 3,
+              "timeoutPeriod": 10,
+              "certificateThreshold": 2
+            }
+          ]
         }
       }
     },
