@@ -4,10 +4,11 @@ data template_file devnet_container_definition {
 
   vars = {
     xdc_environment = "devnet"
+    image_tag = "${lookup(each.value, "imageTag", "latest")}"
     node_name = "${each.key}"
     private_keys = "${each.value.pk}"
     cloudwatch_group = "tf-${each.key}"
-    log_level = "${local.logLevel}"
+    log_level = "${lookup(each.value, "logLevel", "${local.logLevel}")}"
   }
 }
 
@@ -27,8 +28,8 @@ resource "aws_ecs_task_definition" "devnet_task_definition_group" {
   # Please set it back to cpu 256 and memory of 2048 after sync is done to save the cost
   # cpu = 256
   # memory = 2048
-  cpu = 512
-  memory = 4096
+  cpu = 256
+  memory = 2048
   volume {
     name = "efs"
 

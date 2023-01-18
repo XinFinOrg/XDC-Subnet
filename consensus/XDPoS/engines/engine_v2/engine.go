@@ -116,9 +116,26 @@ func New(config *params.XDPoSConfig, db ethdb.Database, waitPeriodCh chan int) *
 	timeoutTimer.OnTimeoutFn = engine.OnCountdownTimeout
 
 	engine.periodicJob()
-	config.BuildConfigIndex()
+	config.V2.BuildConfigIndex()
 
 	return engine
+}
+
+func (x *XDPoS_v2) UpdateParams(header *types.Header) {
+	_, round, _, err := x.getExtraFields(header)
+	if err != nil {
+		log.Error("[UpdateParams] retrieve round failed", "block", header.Number.Uint64(), "err", err)
+	}
+	x.config.V2.UpdateConfig(uint64(round))
+
+	// Setup timeoutTimer
+	duration := time.Duration(x.config.V2.CurrentConfig.TimeoutPeriod) * time.Second
+	x.timeoutWorker.SetTimeoutDuration(duration)
+
+	// avoid deadlock
+	go func() {
+		x.waitPeriodCh <- x.config.V2.CurrentConfig.WaitPeriod
+	}()
 }
 
 /* V2 Block
@@ -130,18 +147,6 @@ sigHash returns the hash which is used as input for the delegated-proof-of-stake
 signing. It is the hash of the entire header apart from the 65 byte signature
 contained at the end of the extra data.
 */
-
-func (x *XDPoS_v2) UpdateParams() {
-	// Setup timeoutTimer
-	duration := time.Duration(x.config.V2.CurrentConfig.TimeoutPeriod) * time.Second
-	x.timeoutWorker.SetTimeoutDuration(duration)
-
-	// avoid deadlock
-	go func() {
-		x.waitPeriodCh <- x.config.V2.CurrentConfig.WaitPeriod
-	}()
-}
-
 func (x *XDPoS_v2) SignHash(header *types.Header) (hash common.Hash) {
 	return sigHash(header)
 }
@@ -163,7 +168,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	var quorumCert *types.QuorumCert
 	var err error
 
-	if header.Number.Int64() == x.config.V2.FirstSwitchBlock.Int64() {
+	if header.Number.Int64() == x.config.V2.SwitchBlock.Int64() {
 		log.Info("[initial] highest QC for consensus v2 first block")
 		blockInfo := &types.BlockInfo{
 			Hash:   header.Hash(),
@@ -197,9 +202,9 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	}
 
 	// Initial first v2 snapshot
-	lastGapNum := x.config.V2.FirstSwitchBlock.Uint64() - x.config.Gap
+	lastGapNum := x.config.V2.SwitchBlock.Uint64() - x.config.Gap
 	// prevent overflow
-	if x.config.V2.FirstSwitchBlock.Uint64() < x.config.Gap {
+	if x.config.V2.SwitchBlock.Uint64() < x.config.Gap {
 		lastGapNum = 0
 	}
 	lastGapHeader := chain.GetHeaderByNumber(lastGapNum)
@@ -207,7 +212,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	snap, _ := loadSnapshot(x.db, lastGapHeader.Hash())
 
 	if snap == nil {
-		checkpointHeader := chain.GetHeaderByNumber(x.config.V2.FirstSwitchBlock.Uint64())
+		checkpointHeader := chain.GetHeaderByNumber(x.config.V2.SwitchBlock.Uint64())
 
 		log.Info("[initial] init first snapshot")
 		_, _, masternodes, err := x.getExtraFields(checkpointHeader)
@@ -254,8 +259,10 @@ func (x *XDPoS_v2) YourTurn(chain consensus.ChainReader, parent *types.Header, s
 	}
 
 	waitedTime := time.Now().Unix() - parent.Time.Int64()
-	if waitedTime < int64(x.config.V2.CurrentConfig.MinePeriod) {
-		log.Trace("[YourTurn] wait after mine period", "minePeriod", x.config.V2.CurrentConfig.MinePeriod, "waitedTime", waitedTime)
+	_, parentRound, _, err := x.getExtraFields(parent)
+	minePeriod := x.config.V2.Config(uint64(parentRound) + 1).MinePeriod // plus 1 means current block
+	if waitedTime < int64(minePeriod) {
+		log.Trace("[YourTurn] wait after mine period", "minePeriod", minePeriod, "waitedTime", waitedTime)
 		return false, nil
 	}
 
@@ -726,7 +733,7 @@ func (x *XDPoS_v2) VerifyBlockInfo(blockChainReader consensus.ChainReader, block
 	}
 
 	// Switch block is a v1 block, there is no valid extra to decode, nor its round
-	if blockInfo.Number.Cmp(x.config.V2.FirstSwitchBlock) == 0 {
+	if blockInfo.Number.Cmp(x.config.V2.SwitchBlock) == 0 {
 		if blockInfo.Round != 0 {
 			log.Error("[VerifyBlockInfo] Switch block round is not 0", "BlockInfoHash", blockInfo.Hash.Hex(), "BlockInfoNum", blockInfo.Number, "BlockInfoRound", blockInfo.Round, "blockHeaderNum", blockHeader.Number)
 			return fmt.Errorf("[VerifyBlockInfo] switch block round have to be 0")
@@ -759,6 +766,12 @@ func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *
 		4. Verify gapNumber = epochSwitchNumber - epochSwitchNumber%Epoch - Gap
 		5. Verify blockInfo
 	*/
+
+	if quorumCert == nil {
+		log.Warn("[verifyQC] QC is Nil")
+		return utils.ErrInvalidQC
+	}
+
 	epochInfo, err := x.getEpochSwitchInfo(blockChainReader, parentHeader, quorumCert.ProposedBlockInfo.Hash)
 	if err != nil {
 		log.Error("[verifyQC] Error when getting epoch switch Info to verify QC", "Error", err)
@@ -771,13 +784,13 @@ func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *
 			log.Warn("[verifyQC] duplicated signature in QC", "duplicate", common.Bytes2Hex(d))
 		}
 	}
-	if quorumCert == nil {
-		log.Warn("[verifyQC] QC is Nil")
-		return utils.ErrInvalidQC
-	} else if (quorumCert.ProposedBlockInfo.Number.Uint64() > x.config.V2.FirstSwitchBlock.Uint64()) && (signatures == nil || (len(signatures) < x.config.V2.CurrentConfig.CertThreshold)) {
+
+	qcRound := quorumCert.ProposedBlockInfo.Round
+	certThreshold := x.config.V2.Config(uint64(qcRound)).CertThreshold
+	if (qcRound > 0) && (signatures == nil || (len(signatures) < certThreshold)) {
 		//First V2 Block QC, QC Signatures is initial nil
-		log.Warn("[verifyHeader] Invalid QC Signature is nil or empty", "QC", quorumCert, "QCNumber", quorumCert.ProposedBlockInfo.Number, "Signatures len", len(signatures))
-		return utils.ErrInvalidQC
+		log.Warn("[verifyHeader] Invalid QC Signature is nil or less then config", "QC", quorumCert, "QCNumber", quorumCert.ProposedBlockInfo.Number, "Signatures len", len(signatures), "CertThreshold", certThreshold)
+		return utils.ErrInvalidQCSignatures
 	}
 	start := time.Now()
 
@@ -806,7 +819,7 @@ func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *
 	}
 	wg.Wait()
 	elapsed := time.Since(start)
-	log.Info("[verifyQC] time verify message signatures of qc", "elapsed", elapsed)
+	log.Debug("[verifyQC] time verify message signatures of qc", "elapsed", elapsed)
 	if haveError != nil {
 		return haveError
 	}
@@ -838,7 +851,7 @@ func (x *XDPoS_v2) processQC(blockChainReader consensus.ChainReader, incomingQuo
 		log.Error("[processQC] Block not found using the QC", "quorumCert.ProposedBlockInfo.Hash", incomingQuorumCert.ProposedBlockInfo.Hash, "incomingQuorumCert.ProposedBlockInfo.Number", incomingQuorumCert.ProposedBlockInfo.Number)
 		return fmt.Errorf("block not found, number: %v, hash: %v", incomingQuorumCert.ProposedBlockInfo.Number, incomingQuorumCert.ProposedBlockInfo.Hash)
 	}
-	if proposedBlockHeader.Number.Cmp(x.config.V2.FirstSwitchBlock) > 0 {
+	if proposedBlockHeader.Number.Cmp(x.config.V2.SwitchBlock) > 0 {
 		// Extra field contain parent information
 		proposedBlockQuorumCert, round, _, err := x.getExtraFields(proposedBlockHeader)
 		if err != nil {
@@ -894,7 +907,7 @@ func (x *XDPoS_v2) getSyncInfo() *types.SyncInfo {
 //Find parent and grandparent, check round number, if so, commit grandparent(grandGrandParent of currentBlock)
 func (x *XDPoS_v2) commitBlocks(blockChainReader consensus.ChainReader, proposedBlockHeader *types.Header, proposedBlockRound *types.Round, incomingQc *types.QuorumCert) (bool, error) {
 	// XDPoS v1.0 switch to v2.0, skip commit
-	if big.NewInt(0).Sub(proposedBlockHeader.Number, big.NewInt(2)).Cmp(x.config.V2.FirstSwitchBlock) <= 0 {
+	if big.NewInt(0).Sub(proposedBlockHeader.Number, big.NewInt(2)).Cmp(x.config.V2.SwitchBlock) <= 0 {
 		return false, nil
 	}
 	// Find the last two parent block and check their rounds are the continuous
@@ -971,7 +984,7 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 	}
 	candidates := snap.NextEpochMasterNodes
 
-	if blockNum.Uint64() == x.config.V2.FirstSwitchBlock.Uint64()+1 {
+	if blockNum.Uint64() == x.config.V2.SwitchBlock.Uint64()+1 {
 		log.Info("[calcMasternodes] examing first v2 block")
 		return candidates, []common.Address{}, nil
 	}
