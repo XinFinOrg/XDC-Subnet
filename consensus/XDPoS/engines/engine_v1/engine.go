@@ -323,7 +323,7 @@ func (x *XDPoS_v1) IsAuthorisedAddress(chain consensus.ChainReader, header *type
 		return false
 	}
 	for a := range snap.Signers {
-		fmt.Println("signer", a)
+		fmt.Println("signer", a.Hex())
 	}
 	if _, ok := snap.Signers[address]; ok {
 		return true
