@@ -317,6 +317,7 @@ func startNode(ctx *cli.Context, stack *node.Node, cfg XDCConfig) {
 					utils.Fatalf("Can't verify masternode permission: %v", err)
 				}
 			}
+			fmt.Println("LIAM", ok, err)
 			if ok {
 				if slaveMode {
 					log.Info("Masternode slave mode found.")
