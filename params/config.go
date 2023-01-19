@@ -63,7 +63,7 @@ var (
 	DevnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        common.MaxMasternodesV2*2/3 + 1,
+			CertThreshold:        2,
 			TimeoutSyncThreshold: 5,
 			TimeoutPeriod:        25,
 			WaitPeriod:           10,
