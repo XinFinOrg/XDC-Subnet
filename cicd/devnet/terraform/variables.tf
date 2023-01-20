@@ -12,8 +12,8 @@ locals {
     envs = { for tuple in regexall("(.*)=(.*)", file(".env")) : tuple[0] => tuple[1] }
     logLevel = local.envs["log_level"]
     keyNames =[for i in range(tonumber(local.envs["num_of_nodes"])) : "xdc${i}"]
-    devnetNodeKyes = {
+    devnetNodeKeys = {
       for i in local.keyNames: i => local.predefinedNodesConfig[i]
     }
-    s3BucketName = "tf-devnet-bucket"
+    s3BucketName = "tf-subnet-devnet-bucket"
 }
