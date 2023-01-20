@@ -8,7 +8,7 @@ locals {
     }
     Note: No `n` is allowed in the node name
   **/
-    predefinedNodesConfig = jsondecode(data.aws_s3_bucket_object.devnet_xdc_node_config.body)
+    predefinedNodesConfig = jsondecode(data.aws_s3_object.devnet_xdc_node_config.body)
     envs = { for tuple in regexall("(.*)=(.*)", file(".env")) : tuple[0] => tuple[1] }
     logLevel = local.envs["log_level"]
     keyNames =[for i in range(tonumber(local.envs["num_of_nodes"])) : "xdc${i}"]

@@ -11,7 +11,7 @@ terraform {
   }
 }
 
-data "aws_s3_bucket_object" "devnet_xdc_node_config" {
-  bucket = aws_s3_object.s3BucketName
+data "aws_s3_object" "devnet_xdc_node_config" {
+  bucket = local.s3BucketName
   key    = "node-config.json"
 }
