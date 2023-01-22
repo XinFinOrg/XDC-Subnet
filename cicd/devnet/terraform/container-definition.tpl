@@ -1,6 +1,6 @@
 [
   {
-    "name": "tfXdcNode",
+    "name": "tfXdcSubnetNode",
     "image": "xinfinorg/${xdc_environment}:${image_tag}",
     "environment": [
       {"name": "PRIVATE_KEYS", "value": "${private_keys}"},
