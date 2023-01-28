@@ -157,6 +157,7 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig) *backends.S
 		big.NewInt(99),
 		big.NewInt(100),
 		big.NewInt(100),
+		candidates, //use candidates as grandMasters too
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)

@@ -129,9 +129,24 @@ func (w *wizard) makeGenesis() {
 		fmt.Println("Who own the first masternodes? (mandatory)")
 		owner := *w.readAddress()
 
+		// We also need the grand master address
+		fmt.Println()
+		fmt.Println("Which accounts are allowed to regulate masternodes (grand master nodes)? (mandatory at least one)")
+
+		var grandMasters []common.Address
+		for {
+			if address := w.readAddress(); address != nil {
+				grandMasters = append(grandMasters, *address)
+				continue
+			}
+			if len(grandMasters) > 0 {
+				break
+			}
+		}
+
 		// We also need the initial list of signers
 		fmt.Println()
-		fmt.Println("Which accounts are allowed to seal (signers)? (mandatory at least one)")
+		fmt.Println("Which accounts are masternodes? (mandatory at least one)")
 
 		var signers []common.Address
 		for {
@@ -180,7 +195,7 @@ func (w *wizard) makeGenesis() {
 		contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig)
 		transactOpts := bind.NewKeyedTransactor(pKey)
 
-		validatorAddress, _, err := validatorContract.DeployValidator(transactOpts, contractBackend, signers, validatorCaps, owner)
+		validatorAddress, _, err := validatorContract.DeployValidator(transactOpts, contractBackend, signers, validatorCaps, owner, grandMasters)
 		if err != nil {
 			fmt.Println("Can't deploy root registry")
 		}

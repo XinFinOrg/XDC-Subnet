@@ -49,6 +49,9 @@ contract XDCValidator {
     uint256 public candidateWithdrawDelay;
     uint256 public voterWithdrawDelay;
 
+    address[] public grandMasters;
+    mapping(address => bool) public grandMasterMap;
+
     modifier onlyValidCandidateCap {
         // anyone can deposit X XDC to become a candidate
         require(msg.value >= minCandidateCap);
@@ -102,6 +105,11 @@ contract XDCValidator {
         _;
     }
 
+    modifier onlyGrandMaster() {
+        require(grandMasterMap[msg.sender] == true);
+        _;
+    }
+
     function XDCValidator (
         address[] _candidates,
         uint256[] _caps,
@@ -110,7 +118,8 @@ contract XDCValidator {
         uint256 _minVoterCap,
         uint256 _maxValidatorNumber,
         uint256 _candidateWithdrawDelay,
-        uint256 _voterWithdrawDelay
+        uint256 _voterWithdrawDelay,
+        address[] _grandMasters
     ) public {
         minCandidateCap = _minCandidateCap;
         minVoterCap = _minVoterCap;
@@ -131,6 +140,12 @@ contract XDCValidator {
             ownerToCandidate[_firstOwner].push(_candidates[i]);
             validatorsState[_candidates[i]].voters[_firstOwner] = minCandidateCap;
         }
+        string memory grandMasterKYC = "grandmaster";
+        for (i = 0; i < _grandMasters.length; i++) {
+            grandMasters.push(_grandMasters[i]);
+            grandMasterMap[_grandMasters[i]] = true;
+            KYCString[_grandMasters[i]].push(grandMasterKYC);
+        }
     }
 
 
@@ -141,7 +156,7 @@ contract XDCValidator {
     }
 
     // propose : any non-candidate who has uploaded its KYC can become an owner by proposing a candidate.
-    function propose(address _candidate) external payable onlyValidCandidateCap onlyKYCWhitelisted onlyNotCandidate(_candidate) {
+    function propose(address _candidate) external payable onlyValidCandidateCap onlyKYCWhitelisted onlyNotCandidate(_candidate) onlyGrandMaster {
         uint256 cap = validatorsState[_candidate].cap.add(msg.value);
         candidates.push(_candidate);
         validatorsState[_candidate] = ValidatorState({
@@ -160,7 +175,7 @@ contract XDCValidator {
         emit Propose(msg.sender, _candidate, msg.value);
     }
 
-    function vote(address _candidate) external payable onlyValidVoterCap onlyValidCandidate(_candidate) {
+    function vote(address _candidate) external payable onlyValidVoterCap onlyValidCandidate(_candidate) onlyGrandMaster {
         validatorsState[_candidate].cap = validatorsState[_candidate].cap.add(msg.value);
         if (validatorsState[_candidate].voters[msg.sender] == 0) {
             voters[_candidate].push(msg.sender);
@@ -171,6 +186,10 @@ contract XDCValidator {
 
     function getCandidates() public view returns(address[]) {
         return candidates;
+    }
+
+    function getGrandMasters() public view returns(address[]) {
+        return grandMasters;
     }
 
     function getCandidateCap(address _candidate) public view returns(uint256) {
