@@ -48,14 +48,6 @@ var (
 			WaitPeriod:           10,
 			MinePeriod:           10,
 		},
-		9999999999: {
-			SwitchRound:          9999999999,
-			CertThreshold:        common.MaxMasternodesV2*2/3 + 1,
-			TimeoutSyncThreshold: 3,
-			TimeoutPeriod:        60,
-			WaitPeriod:           10,
-			MinePeriod:           10,
-		},
 	}
 	TestV2Configs = map[uint64]*V2Config{
 		Default: {
@@ -66,68 +58,12 @@ var (
 			WaitPeriod:           1,
 			MinePeriod:           2,
 		},
-		10: {
-			SwitchRound:          10,
-			CertThreshold:        5,
-			TimeoutSyncThreshold: 2,
-			TimeoutPeriod:        4,
-			WaitPeriod:           2,
-			MinePeriod:           3,
-		},
-		899: {
-			SwitchRound:          899,
-			CertThreshold:        5,
-			TimeoutSyncThreshold: 4,
-			TimeoutPeriod:        5,
-			WaitPeriod:           2,
-			MinePeriod:           3,
-		},
 	}
 
 	DevnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        common.MaxMasternodesV2*2/3 + 1,
-			TimeoutSyncThreshold: 5,
-			TimeoutPeriod:        25,
-			WaitPeriod:           10,
-			MinePeriod:           10,
-		},
-		151919: {
-			SwitchRound:          151919,
-			CertThreshold:        common.MaxMasternodesV2*1/2 + 1,
-			TimeoutSyncThreshold: 8,
-			TimeoutPeriod:        50,
-			WaitPeriod:           5,
-			MinePeriod:           20,
-		},
-		171000: {
-			SwitchRound:          171000,
-			CertThreshold:        common.MaxMasternodesV2*2/3 + 1,
-			TimeoutSyncThreshold: 5,
-			TimeoutPeriod:        25,
-			WaitPeriod:           10,
-			MinePeriod:           10,
-		},
-		270000: {
-			SwitchRound:          270000,
-			CertThreshold:        common.MaxMasternodesV2*1/5 + 1,
-			TimeoutSyncThreshold: 3,
-			TimeoutPeriod:        10,
-			WaitPeriod:           2,
-			MinePeriod:           2,
-		},
-		300000: {
-			SwitchRound:          300000,
-			CertThreshold:        common.MaxMasternodesV2*4/5 + 1,
-			TimeoutSyncThreshold: 3,
-			TimeoutPeriod:        60,
-			WaitPeriod:           20,
-			MinePeriod:           20,
-		},
-		310000: {
-			SwitchRound:          310000,
-			CertThreshold:        common.MaxMasternodesV2*2/3 + 1,
+			CertThreshold:        2,
 			TimeoutSyncThreshold: 5,
 			TimeoutPeriod:        25,
 			WaitPeriod:           10,
@@ -222,29 +158,6 @@ var (
 				SwitchBlock:   big.NewInt(7074000),
 				CurrentConfig: DevnetV2Configs[0],
 				AllConfigs:    DevnetV2Configs,
-			},
-		},
-	}
-
-	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.
-	RinkebyChainConfig = &ChainConfig{
-		ChainId:             big.NewInt(4),
-		HomesteadBlock:      big.NewInt(1),
-		DAOForkBlock:        nil,
-		DAOForkSupport:      true,
-		EIP150Block:         big.NewInt(2),
-		EIP150Hash:          common.HexToHash("0x9b095b36c15eaf13044373aef8ee0bd3a382a5abb92e402afa44b8249c3a90e9"),
-		EIP155Block:         big.NewInt(3),
-		EIP158Block:         big.NewInt(3),
-		ByzantiumBlock:      big.NewInt(1035301),
-		ConstantinopleBlock: nil,
-		XDPoS: &XDPoSConfig{
-			Period: 15,
-			Epoch:  30000,
-			V2: &V2{
-				SwitchBlock:   big.NewInt(9999999999),
-				CurrentConfig: MainnetV2Configs[0],
-				AllConfigs:    MainnetV2Configs,
 			},
 		},
 	}
