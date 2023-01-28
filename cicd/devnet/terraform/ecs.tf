@@ -1,21 +1,21 @@
 data template_file devnet_container_definition {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
   template = "${file("${path.module}/container-definition.tpl")}"
 
   vars = {
-    xdc_environment = "devnet"
+    xdc_environment = "subnet-devnet"
     image_tag = "${lookup(each.value, "imageTag", "latest")}"
     node_name = "${each.key}"
     private_keys = "${each.value.pk}"
-    cloudwatch_group = "tf-${each.key}"
+    cloudwatch_group = "tf-subnet-${each.key}"
     log_level = "${lookup(each.value, "logLevel", "${local.logLevel}")}"
   }
 }
 
 resource "aws_ecs_task_definition" "devnet_task_definition_group" {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
   
-  family = "devnet-${each.key}"
+  family = "subnet-devnet-${each.key}"
   requires_compatibilities = ["FARGATE"]
   network_mode = "awsvpc"
   container_definitions = data.template_file.devnet_container_definition[each.key].rendered
@@ -45,24 +45,24 @@ resource "aws_ecs_task_definition" "devnet_task_definition_group" {
   }
   
   tags = {
-       Name = "TfDevnetEcs-${each.key}"
+       Name = "TfSubnetDevnetEcs-${each.key}"
    }
 }
 
 data "aws_ecs_task_definition" "devnet_ecs_task_definition" {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
   task_definition = aws_ecs_task_definition.devnet_task_definition_group[each.key].family
 }
 
 resource "aws_ecs_cluster" "devnet_ecs_cluster" {
-  name = "devnet-xdcnode-cluster"
+  name = "subnet-devnet-xdcnode-cluster"
   tags = {
-    Name        = "TfDevnetEcsCluster"
+    Name        = "TfSubnetDevnetEcsCluster"
   }
 }
 
 resource "aws_ecs_service" "devnet_ecs_service" {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
   name                 = "ecs-service-${each.key}"
   cluster              = aws_ecs_cluster.devnet_ecs_cluster.id
   task_definition      = "${aws_ecs_task_definition.devnet_task_definition_group[each.key].family}:${max(aws_ecs_task_definition.devnet_task_definition_group[each.key].revision, data.aws_ecs_task_definition.devnet_ecs_task_definition[each.key].revision)}"
@@ -85,6 +85,6 @@ resource "aws_ecs_service" "devnet_ecs_service" {
   }
 
   tags = {
-    Name        = "TfDevnetEcsService-${each.key}"
+    Name        = "TfSubnetDevnetEcsService-${each.key}"
   }
 }

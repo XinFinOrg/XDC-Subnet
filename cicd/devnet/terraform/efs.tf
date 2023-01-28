@@ -1,8 +1,8 @@
 
 # EFS
 resource "aws_security_group" "devnet_efs_security_group" {
-  name = "TfDevnetEfsSecurityGroup"
-  description = "Allow HTTP in and out of devnet EFS"
+  name = "TfSubnetDevnetEfsSecurityGroup"
+  description = "Allow HTTP in and out of subnet devnet EFS"
   vpc_id = aws_vpc.devnet_vpc.id
 
   ingress {
@@ -19,13 +19,13 @@ resource "aws_security_group" "devnet_efs_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "TfDevnetEfs"
+    Name = "TfSubnetDevnetEfs"
   }
 }
 
 resource "aws_efs_file_system" "devnet_efs" {
-  for_each = local.devnetNodeKyes
-  creation_token = "efs-${each.key}"
+  for_each = local.devnetNodeKeys
+  creation_token = "efs-subnet-${each.key}"
   performance_mode = "generalPurpose"
   throughput_mode = "bursting"
   encrypted = "true"
@@ -33,19 +33,19 @@ resource "aws_efs_file_system" "devnet_efs" {
     transition_to_ia = "AFTER_30_DAYS"
   }
   tags = {
-    Name = "TfDevnetEfs${each.key}"
+    Name = "TfSubnetDevnetEfs${each.key}"
   }
  }
 
 resource "aws_efs_mount_target" "devnet_efs_efs_mount_target" {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
   file_system_id = aws_efs_file_system.devnet_efs[each.key].id
   subnet_id      = aws_subnet.devnet_subnet.id
   security_groups = [aws_security_group.devnet_efs_security_group.id]
 }
 
 resource "aws_efs_access_point" "devnet_efs_access_point" {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
   file_system_id = aws_efs_file_system.devnet_efs[each.key].id
   root_directory {
     path = "/${each.key}/database"
@@ -62,6 +62,6 @@ resource "aws_efs_access_point" "devnet_efs_access_point" {
   }
   
   tags = {
-       Name = "TfDevnetEfsAccessPoint${each.key}"
+       Name = "TfSubnetDevnetEfsAccessPoint${each.key}"
    }
 }

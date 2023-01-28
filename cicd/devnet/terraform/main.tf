@@ -14,23 +14,23 @@ provider "aws" {
 }
 
 resource "aws_vpc" "devnet_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "10.2.0.0/16"
   instance_tenancy = "default"
   enable_dns_hostnames = true
   
   tags = {
-    Name = "TfDevnetVpc"
+    Name = "TfSubnetDevnetVpc"
   }
 }
 
 resource "aws_subnet" "devnet_subnet" {
   vpc_id = aws_vpc.devnet_vpc.id
-  cidr_block = "10.0.0.0/20"
+  cidr_block = "10.2.0.0/20"
   map_public_ip_on_launch = true
   availability_zone = "us-east-1a"
   
   tags = {
-    Name = "TfDevnetVpcSubnet"
+    Name = "TfSubnetDevnetVpcSubnet"
   }
 }
 
@@ -38,7 +38,7 @@ resource "aws_internet_gateway" "devnet_gatewat" {
   vpc_id = aws_vpc.devnet_vpc.id
 
   tags = {
-    Name = "TfDevnetGateway"
+    Name = "TfSubnetDevnetGateway"
   }
 }
 
@@ -51,7 +51,7 @@ resource "aws_route_table" "devnet_route_table" {
   }
 
   tags = {
-    Name = "TfDevnetVpcRoutingTable"
+    Name = "TfSubnetDevnetVpcRoutingTable"
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_default_security_group" "devnet_xdcnode_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "TfDevnetNode"
+    Name = "TfSubnetDevnetNode"
   }
 }
 
@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "xdc_ecs_tasks_execution_role" {
 
 # Create the role
 resource "aws_iam_role" "devnet_xdc_ecs_tasks_execution_role" {
-  name               = "devnet-xdc-ecs-task-execution-role"
+  name               = "subnet-devnet-xdc-ecs-task-execution-role"
   assume_role_policy = "${data.aws_iam_policy_document.xdc_ecs_tasks_execution_role.json}"
 }
 
@@ -112,11 +112,11 @@ resource "aws_iam_role_policy_attachment" "devnet_xdc_ecs_tasks_execution_role" 
 
 # Logs
 resource "aws_cloudwatch_log_group" "devnet_cloud_watch_group" {
-  for_each = local.devnetNodeKyes
+  for_each = local.devnetNodeKeys
 
-  name = "tf-${each.key}"
+  name = "tf-subnet-${each.key}"
   retention_in_days = 14 # Logs are only kept for 14 days
   tags = {
-    Name = "TfDevnetCloudWatchGroup${each.key}"
+    Name = "TfSubnetDevnetCloudWatchGroup${each.key}"
   }
 }

@@ -5,11 +5,11 @@ This directory contains CI/CD scripts used for each of the XDC environments.
 Adjust the number of variable `num_of_nodes` under file `.env`. (**Maximum supported is 58**)
 
 ## Devnet
-Each PR merged into `dev-upgrade` will trigger below actions:
+Each PR merged into `main` will trigger below actions:
 - Tests
 - Terraform to apply infrascture changes(if any)
 - Docker build of XDC with devnet configurations with tag of `:latest`
-- Docker push to docker hub. https://hub.docker.com/repository/docker/xinfinorg/devnet
+- Docker push to docker hub. https://hub.docker.com/repository/docker/xinfinorg/subnet-devnet
 - Deployment of the latest XDC image(from above) to devnet run by AWS ECS
 
 ### First time set up an new environment
@@ -26,7 +26,7 @@ Each PR merged into `dev-upgrade` will trigger below actions:
   "xdc{{NUMBER}}: {...}
 }
 ```
-2. Access to aws console, create a bucket with name `tf-devnet-bucket`:
+2. Access to aws console, create a bucket with name `tf-subnet-devnet-bucket`:
   - You can choose any name, just make sure update the name in the s3 bucket name variable in `variables.tf`
   - And update the name of the terraform.backend.s3.bucket from `s3.tf`
 3. Upload the file from step 1 into the above bucket with name `node-config.json`
