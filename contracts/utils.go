@@ -320,6 +320,7 @@ func DecryptRandomizeFromSecretsAndOpening(secrets [][32]byte, opening [32]byte)
 
 // Calculate reward for reward checkpoint.
 func GetRewardForCheckpoint(c *XDPoS.XDPoS, chain consensus.ChainReader, header *types.Header, rCheckpoint uint64, totalSigner *uint64) (map[common.Address]*RewardLog, error) {
+	log.Info("[GetRewardForCheckpoint]")
 	// Not reward for singer of genesis block and only calculate reward at checkpoint block.
 	number := header.Number.Uint64()
 	prevCheckpoint := number - (rCheckpoint * 2)
@@ -330,6 +331,7 @@ func GetRewardForCheckpoint(c *XDPoS.XDPoS, chain consensus.ChainReader, header 
 
 	data := make(map[common.Hash][]common.Address)
 	for i := prevCheckpoint + (rCheckpoint * 2) - 1; i >= startBlockNumber; i-- {
+		log.Info("[GetRewardForCheckpoint] for loop", "prevCheckpoint", prevCheckpoint, "rCheckpoint", rCheckpoint, "startBlockNumber", startBlockNumber, "i", i)
 		header = chain.GetHeader(header.ParentHash, i)
 		mapBlkHash[i] = header.Hash()
 		signData, ok := c.GetCachedSigningTxs(header.Hash())
@@ -346,6 +348,8 @@ func GetRewardForCheckpoint(c *XDPoS.XDPoS, chain consensus.ChainReader, header 
 		}
 		txs := signData.([]*types.Transaction)
 		for _, tx := range txs {
+			log.Info("[GetRewardForCheckpoint] txs", "tx", tx)
+
 			blkHash := common.BytesToHash(tx.Data()[len(tx.Data())-32:])
 			from := *tx.From()
 			data[blkHash] = append(data[blkHash], from)
@@ -355,6 +359,7 @@ func GetRewardForCheckpoint(c *XDPoS.XDPoS, chain consensus.ChainReader, header 
 	masternodes := c.GetMasternodesFromCheckpointHeader(header)
 
 	for i := startBlockNumber; i <= endBlockNumber; i++ {
+		log.Info("[GetRewardForCheckpoint] for loop", "startBlockNumber", startBlockNumber, "endBlockNumber", endBlockNumber, "i", i)
 		if i%common.MergeSignRange == 0 || !chain.Config().IsTIP2019(big.NewInt(int64(i))) {
 			addrs := data[mapBlkHash[i]]
 			// Filter duplicate address.
@@ -362,6 +367,8 @@ func GetRewardForCheckpoint(c *XDPoS.XDPoS, chain consensus.ChainReader, header 
 				addrSigners := make(map[common.Address]bool)
 				for _, masternode := range masternodes {
 					for _, addr := range addrs {
+						log.Info("[GetRewardForCheckpoint] addr", "addr", addr, "masternode", masternode)
+
 						if addr == masternode {
 							if _, ok := addrSigners[addr]; !ok {
 								addrSigners[addr] = true
@@ -372,6 +379,7 @@ func GetRewardForCheckpoint(c *XDPoS.XDPoS, chain consensus.ChainReader, header 
 				}
 
 				for addr := range addrSigners {
+					log.Info("[GetRewardForCheckpoint] addrSigners", "addr", addr)
 					_, exist := signers[addr]
 					if exist {
 						signers[addr].Sign++
