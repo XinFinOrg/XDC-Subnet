@@ -277,6 +277,7 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 	}
 
 	for i := startBlockNumber; i <= endBlockNumber; i++ {
+		log.Info("[GetSigningTxCount] for loop", "startBlockNumber", startBlockNumber, "endBlockNumber", endBlockNumber, "i", i)
 		if i%common.MergeSignRange == 0 {
 			addrs := data[mapBlkHash[i]]
 			// Filter duplicate address.
@@ -284,8 +285,8 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 				addrSigners := make(map[common.Address]bool)
 				for _, masternode := range masternodes {
 					for _, addr := range addrs {
+						log.Info("[GetSigningTxCount] addr", "addr", addr, "masternode", masternode)
 						if addr == masternode {
-							log.Info("[GetSigningTxCount] addr", "addr", addr, "masternode", masternode)
 							if _, ok := addrSigners[addr]; !ok {
 								addrSigners[addr] = true
 							}
