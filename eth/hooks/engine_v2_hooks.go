@@ -218,6 +218,7 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 
 // get signing transaction sender count
 func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *types.Header, totalSigner *uint64) (map[common.Address]*contracts.RewardLog, error) {
+	log.Info("[GetSigningTxCount]")
 	// header should be a new epoch switch block
 	number := header.Number.Uint64()
 	rewardEpochCount := 2
@@ -235,6 +236,8 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 	var masternodes []common.Address
 	var startBlockNumber, endBlockNumber uint64
 	for i := number - 1; ; i-- {
+		log.Info("[GetSigningTxCount] for loop", "number", number, "i", i)
+
 		header = chain.GetHeader(header.ParentHash, i)
 		isEpochSwitch, _, err := c.IsEpochSwitch(header)
 		if err != nil {
@@ -261,12 +264,14 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 		}
 		txs := signData.([]*types.Transaction)
 		for _, tx := range txs {
+			log.Info("[GetSigningTxCount] txs", "tx", tx)
 			blkHash := common.BytesToHash(tx.Data()[len(tx.Data())-32:])
 			from := *tx.From()
 			data[blkHash] = append(data[blkHash], from)
 		}
 		// avoid overflow
 		if i == 0 {
+			log.Info("[GetSigningTxCount] break 0")
 			break
 		}
 	}
@@ -280,6 +285,7 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 				for _, masternode := range masternodes {
 					for _, addr := range addrs {
 						if addr == masternode {
+							log.Info("[GetSigningTxCount] addr", "addr", addr, "masternode", masternode)
 							if _, ok := addrSigners[addr]; !ok {
 								addrSigners[addr] = true
 							}
@@ -289,6 +295,7 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 				}
 
 				for addr := range addrSigners {
+					log.Info("[GetSigningTxCount] addrSigners", "addr", addr)
 					_, exist := signers[addr]
 					if exist {
 						signers[addr].Sign++
