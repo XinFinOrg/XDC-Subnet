@@ -267,7 +267,7 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 		}
 		// avoid overflow
 		if i == 0 {
-			break
+			return signers, nil
 		}
 	}
 
