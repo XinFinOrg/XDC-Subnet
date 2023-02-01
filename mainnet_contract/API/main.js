@@ -1,0 +1,189 @@
+const fs = require('fs');
+const Web3 = require("web3");
+const RLP = require("rlp");
+const assert = require('assert');
+
+class SubnetAPI {
+
+  constructor(devnet_ip, privKey, subnetContractAddress, subnetContractABI) {
+    this.web3 = new Web3(devnet_ip);
+    this.account = this.web3.eth.accounts.privateKeyToAccount(privKey);
+    this.subnetContract = new this.web3.eth.Contract(subnetContractABI, subnetContractAddress);
+  }
+
+
+  // Complete transaction that modify contract status
+  async send(transaction) {
+    const options = {
+      to      : transaction._parent._address,
+      data    : transaction.encodeABI(),
+      gas     : await transaction.estimateGas({from: this.account.address}),
+      gasPrice: 250000000
+    };
+    const signed  = await this.web3.eth.accounts.signTransaction(options, this.account.privateKey);
+    const receipt = await this.web3.eth.sendSignedTransaction(signed.rawTransaction);
+    return receipt
+  }
+
+  /*
+  *******************************************************
+  ************* Dealing with masters ********************
+  *******************************************************
+  */
+
+  // Verify whether address is in the master list
+  // TODO: there is some modification to the current contract. At the devnet now, it is using masters which
+  //       should not be allowed because of non-restricted access
+  async verifyMaster(address) {
+    return await this.subnetContract.methods.isMaster(address).call();
+  }
+
+
+  async addMaster(address) {
+    let transaction = this.subnetContract.methods.addMaster(address);
+    const receipt = await send(transaction);
+    return receipt;
+  }
+
+  async removeMaster(address) {
+    let transaction = this.subnetContract.methods.removeMaster(address);
+    const receipt = await send(transaction);
+    return receipt;
+  }
+
+  /*
+  *******************************************************
+  ************* Dealing with validators *****************
+  *******************************************************
+  */
+
+  // Update validator information
+  // validators: [address] => list of validator address
+  // threshold: int => number of validators to pass verification
+  // block_height: int => the height in mainnet where the validators become valid
+  async updateValidators(validators, threshold, block_height) {
+    let transaction = this.subnetContract.methods.reviseValidatorSet(validators, threshold, block_height);
+    const receipt = await this.send(transaction);
+    return receipt;
+  }
+
+  // Get validator set at a block height
+  async getValidatorSet(block_height) {
+    return await this.subnetContract.methods.getValidatorSet(block_height).call();
+  }
+
+  // Get validators threshold at a block height
+  async getValidatorThreshold(block_height) {
+    return await this.subnetContract.methods.getValidatorThreshold(block_height).call();
+  }
+
+  /*
+  *******************************************************
+  ************* Dealing with block headers **************
+  *******************************************************
+  */
+
+  // Send subnet block header to mainnet
+  // header: RLP encoded bytes of subnet header.
+  async submitHeaderInBytes(header) {
+    let transaction = this.subnetContract.methods.receiveHeader(header);
+    const receipt = await send(transaction);
+    return receipt;
+  }
+
+  // Send subnet block header to mainnet
+  // header: subnet header in struct.
+  // TODO: not sure if this is needed. 
+  async submitHeaderInStruct(header) {
+    let transaction = this.subnetContract.methods.receiveHeader(header);
+    const receipt = await send(transaction);
+    return receipt;
+  }
+
+  // Return latest finalized subnet block header in RLP encoded bytes
+  async getLatestHeader() {
+    let latestFinalizedBlockHash = await this.subnetContract.methods.getLatestFinalizedBlock().call();
+    const blockInfo = await this.subnetContract.methods.getHeader(latestFinalizedBlockHash).call();
+    return blockInfo;
+  }
+
+  // Return latest finalized subnet block hash
+  async getLatestBlockHash() {
+    const latestFinalizedBlockHash = await this.subnetContract.methods.getLatestFinalizedBlock().call();
+    return latestFinalizedBlockHash;
+  }
+
+  // Return the boolean of whether the block is finalized in the mainnet
+  async getBlockConfirmationStatus(blockHash) {
+    return await this.subnetContract.methods.getHeaderConfirmationStatus(blockHash).call();
+  }
+
+  // Return the mainnet block height that receives the subnet block
+  async getMainnetNumber(blockHash) {
+    return await this.subnetContract.methods.getMainnetBlockNumber(blockHash).call();
+  }
+
+}
+
+// const newLibAddress = "0x91A91e5E6b130e5549a11e0904E9d3A7a90804C0";
+// const oldLibAddress1 = "0x1E871879B6cD47A28AE57f14005966A35179722b";
+// const oldLibAddress2 = "0xC320F9f75C684D83b7d1ff37eE9684A6c205eD95";
+// const oldLibAddress3 = "0x049b5E200e31041eA81848A6E90810e96c5E970c";
+// const devnet = "http://194.233.77.19:8545";
+// const oldSubnetContractAddress1 = "0x1C0391882fB2979e90d81d4f72B3D0B3BBD449C0";
+// const oldSubnetContractAddress2 = "0x8D0120C86202939d2A5f56497c905B19d0A2CbA6";
+// const oldSubnetContractAddress3 = "0x8646DD101BA87de663aA4153B650aC8A3B620456";
+// const subnetContractJson = JSON.parse(fs.readFileSync("../build/contracts/Subnet.json"))
+// const web3 = new Web3(devnet);
+// const account = web3.eth.accounts.privateKeyToAccount(fs.readFileSync("../.env", "utf-8").trim());
+// const subnetContract = new web3.eth.Contract(subnetContractJson["abi"], subnetContractAddress);
+
+if (require.main === module) {
+  (async() => {
+    const subnet = new SubnetAPI(
+      "http://184.73.28.205:8545",
+      fs.readFileSync("../.env", "utf-8").trim(),
+      "0x122D02d11A682D05Da1cb701Fa659C16F58D96DA",
+      JSON.parse(fs.readFileSync("../build/contracts/Subnet.json"))["abi"]
+    );
+
+    //pk: 0x1d2df3be09a495a628a848381253d24b2ab66e282ecc4a4d508f809cbf4ad1b7 address: 0x281845121519129d3d2D5eB547E77E4e980a2725
+    //pk: 0xa1b9443d727933eda527714fa632767b25698e23e8703493d2a11102839c80f5 address: 0xceA057D9e467B4b32A5d905FaaA6FB625Fa366c1
+    //pk: 0x54a6baf83b71e127f9f3dc9d299bc11530655bb60f03f527bda66ecfc8fedcb6 address: 0xdc988bC88541199696AF395AdB460f28CE73411F
+    // await subnet.updateValidators(
+    //   ["0x281845121519129d3d2D5eB547E77E4e980a2725", "0xceA057D9e467B4b32A5d905FaaA6FB625Fa366c1", "0xdc988bC88541199696AF395AdB460f28CE73411F"],
+    //   2,
+    //   1
+    // );
+
+    // By default only this account is the master of the contract
+    if (subnet.account.address == "0x377B97484925d616886816754c6CD4FB2004D4C1") {
+      let isMaster = await subnet.verifyMaster(subnet.account.address);
+      assert.equal(isMaster, true);
+    } else {
+      let isMaster = await subnet.verifyMaster(subnet.account.address);
+      assert.equal(isMaster, false);
+    }
+    
+    // The validator at block1 has been updated according to the prerun updateValidator function above
+    let validatorSets = await subnet.getValidatorSet(0);
+    assert.deepEqual(validatorSets, [
+      "0x1e702e18c9B70328c593D79ba9cae2189184f2Ac",
+      "0x247E30050AA6eF2d0E2Df55189c0b7BC23e638Be",
+      "0xee2e7a6479Cf0477B97A9f4705E23411f31404a3"
+    ]);
+    let validatorThreshold = await subnet.getValidatorThreshold(1);
+    assert.equal(validatorThreshold, 2);
+
+    // The latest finalized block is the genesis which equals to the one we have defined previously
+    const initJson = JSON.parse(fs.readFileSync("../subnet_initialization.json"));
+    let genesis = await subnet.getLatestHeader();
+    assert.equal(genesis, initJson["genesis_header_encoded"]);
+    let genesis_hash = subnet.web3.utils.sha3(genesis);
+    let finalized_hash = await subnet.getLatestBlockHash();
+    assert.equal(finalized_hash, genesis_hash);
+    
+    console.log("No assertion failure, verification complete!");
+
+  })();
+}
