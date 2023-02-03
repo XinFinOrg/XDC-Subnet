@@ -982,6 +982,7 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 		log.Error("[calcMasternodes] Adaptor v2 getSnapshot has error", "err", err)
 		return nil, nil, err
 	}
+	// candidates are masternodes
 	candidates := snap.NextEpochMasterNodes
 
 	if blockNum.Uint64() == x.config.V2.SwitchBlock.Uint64()+1 {
@@ -993,14 +994,13 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 		log.Info("[calcMasternodes] no hook penalty defined")
 		return candidates, []common.Address{}, nil
 	}
-
+	//penalties just for information
 	penalties, err := x.HookPenalty(chain, blockNum, parentHash, candidates)
 	if err != nil {
 		log.Error("[calcMasternodes] Adaptor v2 HookPenalty has error", "err", err)
 		return nil, nil, err
 	}
-	masternodes := common.RemoveItemFromArray(candidates, penalties)
-	return masternodes, penalties, nil
+	return candidates, penalties, nil
 
 }
 
