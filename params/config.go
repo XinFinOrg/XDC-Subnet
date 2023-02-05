@@ -42,7 +42,7 @@ var (
 	MainnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        common.MaxMasternodesV2*2/3 + 1,
+			CertThreshold:        5, // To be confirmed once mainnet is ready
 			TimeoutSyncThreshold: 3,
 			TimeoutPeriod:        60,
 			WaitPeriod:           10,
@@ -437,13 +437,6 @@ func (c *ChainConfig) IsTIPSigning(num *big.Int) bool {
 
 func (c *ChainConfig) IsTIPRandomize(num *big.Int) bool {
 	return isForked(common.TIPRandomize, num)
-}
-
-// IsTIPIncreaseMasternodes using for increase masternodes from 18 to 40
-
-// Time update: 23-07-2019
-func (c *ChainConfig) IsTIPIncreaseMasternodes(num *big.Int) bool {
-	return isForked(common.TIPIncreaseMasternodes, num)
 }
 
 func (c *ChainConfig) IsTIPNoHalvingMNReward(num *big.Int) bool {
