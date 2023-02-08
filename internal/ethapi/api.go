@@ -766,12 +766,7 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 		result[fieldSuccess] = false
 		return result, err
 	}
-	var maxMasternodes int
-	if s.b.ChainConfig().IsTIPIncreaseMasternodes(block.Number()) {
-		maxMasternodes = common.MaxMasternodesV2
-	} else {
-		maxMasternodes = common.MaxMasternodes
-	}
+	maxMasternodes := common.MaxMasternodes
 
 	isTopCandidate := false
 	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top 150 candidates

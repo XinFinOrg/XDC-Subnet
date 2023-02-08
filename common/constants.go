@@ -15,7 +15,6 @@ const (
 	EpocBlockOpening           = 850
 	EpocBlockRandomize         = 900
 	MaxMasternodes             = 18
-	MaxMasternodesV2           = 108
 	LimitPenaltyEpoch          = 4
 	LimitPenaltyEpochV2        = 0
 	BlocksPerYearTest          = uint64(200000)
@@ -36,8 +35,7 @@ var TIP2019Block = big.NewInt(1)
 var TIPSigning = big.NewInt(3000000)
 var TIPRandomize = big.NewInt(3464000)
 
-var TIPIncreaseMasternodes = big.NewInt(5000000) // Upgrade MN Count at Block.
-var TIPNoHalvingMNReward = big.NewInt(38383838)  // hardfork no halving masternodes reward
+var TIPNoHalvingMNReward = big.NewInt(38383838) // hardfork no halving masternodes reward
 var BlackListHFNumber = uint64(38383838)
 var TIPXDCX = big.NewInt(38383838)
 var TIPXDCXLending = big.NewInt(38383838)
