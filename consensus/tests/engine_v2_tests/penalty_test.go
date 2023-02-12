@@ -62,7 +62,7 @@ func TestHookPenaltyV2Mining(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(headerMining.Penalties)/common.AddressLength)
 	// 20 candidates (set by PrepareXDCTestBlockChainForV2Engine) - 1 penalty = 19
-	assert.Equal(t, 19, len(headerMining.Validators)/common.AddressLength)
+	assert.Equal(t, 19, len(headerMining.Validators.CurrentEpoch)/common.AddressLength)
 }
 
 func TestHookPenaltyV2Comeback(t *testing.T) {

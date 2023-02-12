@@ -214,7 +214,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	for _, v := range snap.NextEpochMasterNodes {
 		validators = append(validators, v[:]...)
 	}
-	assert.Equal(t, validators, header901.Validators)
+	assert.Equal(t, validators, header901.Validators.CurrentEpoch)
 
 	var decodedExtraField types.ExtraFields_v2
 	err = utils.DecodeBytesExtraFields(header901.Extra, &decodedExtraField)
