@@ -156,6 +156,14 @@ func (api *API) GetV2BlockByNumber(number *rpc.BlockNumber) *V2BlockInfo {
 	} else {
 		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
 	}
+
+	if header == nil {
+		return &V2BlockInfo{
+			Number: big.NewInt(number.Int64()),
+			Error:  "can not find block from this number",
+		}
+	}
+
 	uncle := false
 	return api.GetV2BlockByHeader(header, uncle)
 }
