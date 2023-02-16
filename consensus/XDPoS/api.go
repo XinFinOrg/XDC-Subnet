@@ -144,7 +144,7 @@ func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInf
 		Number:     header.Number,
 		Round:      round,
 		Committed:  committed,
-		EncodeRLP:  string(encodeBytes),
+		EncodeRLP:  string(encodeBytes[:]),
 	}
 	return block
 }
