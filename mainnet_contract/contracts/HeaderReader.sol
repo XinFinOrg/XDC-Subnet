@@ -15,23 +15,37 @@ library HeaderReader {
     uint256 memPtr;
   }
 
-  function getParentHashAndNumber(bytes memory genesis_header) public pure returns (bytes32, int) {
-    RLPItem[] memory ls = toList(toRlpItem(genesis_header));
+  function getParentHashAndNumber(bytes memory header) public pure returns (bytes32, int) {
+    RLPItem[] memory ls = toList(toRlpItem(header));
     return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])));
   }
 
-  // Returns (parentHash, number, round_number, certificate hash, sigs)
-  function getValidationParams(bytes memory header) public pure returns (bytes32, int, uint64, bytes32, bytes[] memory) {
+  function getBlock1Params(bytes memory header) public pure returns (bytes32, int, uint64) {
     RLPItem[] memory ls = toList(toRlpItem(header));
     RLPItem[] memory extra = toList(toRlpItem(getExtraData(toBytes(ls[12]))));
     uint64 round_number = uint64(toUint(extra[0]));
+    return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number);
+  }
+
+  // Returns (parentHash, number, round_number, certificate hash, sigs)
+  function getValidationParams(bytes memory header) public pure returns (bytes32, int, uint64, uint64, bytes32, bytes[] memory) {
+    RLPItem[] memory ls = toList(toRlpItem(header));
+    RLPItem[] memory extra = toList(toRlpItem(getExtraData(toBytes(ls[12]))));
+    uint64 round_number = uint64(toUint(extra[0]));
+    RLPItem[] memory proposed_block = toList(toList(extra[1])[0]);
+    bytes32 parent_hash = toBytes32(toBytes(proposed_block[0]));
+    uint64 parent_round_number = uint64(toUint(proposed_block[1]));
+    int parent_number = int(toUint(proposed_block[2]));
+    if (parent_hash != toBytes32(toBytes(ls[0]))) {
+      revert("Verification Failed");
+    }
     RLPItem[] memory raw_sigs = toList(toList(extra[1])[1]);
     bytes[] memory sigs = new bytes[](raw_sigs.length);
     for (uint i = 0; i < raw_sigs.length; i++) {
       sigs[i] = toBytes(raw_sigs[i]);
     }
-    bytes32 signHash = createSignHash(toBytes32(toBytes(ls[0])), round_number, int(toUint(ls[8])), uint64(toUint(toList(extra[1])[2])));
-    return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number, signHash, sigs);
+    bytes32 signHash = createSignHash(parent_hash, parent_round_number, parent_number, uint64(toUint(toList(extra[1])[2])));
+    return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number, parent_round_number, signHash, sigs);
   }
 
   function getExtraData(bytes memory extra) public pure returns (bytes memory) {

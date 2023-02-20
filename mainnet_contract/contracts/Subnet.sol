@@ -40,10 +40,18 @@ contract Subnet {
     _;
   }
 
-  constructor(address[] memory initial_validator_set, int threshold, bytes memory genesis_header) public {
+  constructor(
+    address[] memory initial_validator_set,
+    int threshold,
+    bytes memory genesis_header,
+    bytes memory block1_header
+  ) public {
     require(initial_validator_set.length > 0, "Validator Empty");
+    require(threshold > 0, "Invalid Threshold");
     bytes32 genesis_header_hash = keccak256(genesis_header);
+    bytes32 block1_header_hash = keccak256(block1_header);
     (bytes32 ph, int n) = HeaderReader.getParentHashAndNumber(genesis_header);
+    (bytes32 ph1, int n1, uint64 rn) = HeaderReader.getBlock1Params(block1_header);
     header_tree[genesis_header_hash] = Header({
       hash: genesis_header_hash,
       number: n,
@@ -53,6 +61,16 @@ contract Subnet {
       mainnet_num: block.number,
       src: genesis_header
     });
+    header_tree[block1_header_hash] = Header({
+      hash: block1_header_hash,
+      number: n1,
+      round_num: rn, 
+      parent_hash: ph1,
+      finalized: true,
+      mainnet_num: block.number,
+      src: block1_header
+    });
+
     validator_sets[0] = Validators({
       set: initial_validator_set,
       threshold: threshold
@@ -61,7 +79,7 @@ contract Subnet {
       lookup[initial_validator_set[i]] = true;
     }
     masters[msg.sender] = true;
-    latest_finalized_block = genesis_header_hash;
+    latest_finalized_block = block1_header_hash;
   }
 
   function isMaster(address master) public view returns (bool) {
@@ -79,6 +97,7 @@ contract Subnet {
   function reviseValidatorSet(address[] memory new_validator_set, int threshold, int subnet_block_height) public onlyMasters  {
     require(new_validator_set.length > 0, "Validator Empty");
     require(threshold > 0, "Invalid Threshold");
+    require(subnet_block_height > 1, "Invalid Target Height");
     require(subnet_block_height >= current_validator_set_pointer, "Modify Past Validator");
     validator_sets[subnet_block_height] = Validators({
       set: new_validator_set,
@@ -87,11 +106,19 @@ contract Subnet {
   }
 
   function receiveHeader(bytes memory header) public onlyMasters { 
-    (bytes32 parent_hash, int number, uint64 round_number, bytes32 signHash, bytes[] memory sigs) = HeaderReader.getValidationParams(header);
+    (
+      bytes32 parent_hash,
+      int number,
+      uint64 round_number,
+      uint64 prev_round_number,
+      bytes32 signHash,
+      bytes[] memory sigs
+    ) = HeaderReader.getValidationParams(header);
     require(number > 0, "Repeated Genesis");
     require(header_tree[parent_hash].hash != 0, "Parent Missing");
     require(header_tree[parent_hash].number + 1 == number, "Invalid N");
     require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
+    require(header_tree[parent_hash].round_num == prev_round_number, "Invalid PRN");
     bytes32 block_hash = keccak256(header);
     if (header_tree[block_hash].number > 0) 
       revert("Repeated Header");
@@ -110,11 +137,13 @@ contract Subnet {
     for (uint i = 0; i < sigs.length; i++) {
       address signer = recoverSigner(signHash, sigs[i]);
       if (lookup[signer] != true) {
-        continue;
+        revert("Verification Fail");
       }
       if (!unique_addr[signer]) {
         unique_counter ++;
         unique_addr[signer]=true;
+      } else {
+        revert("Verification Fail");
       }
       signer_list[i] = signer;
     }
