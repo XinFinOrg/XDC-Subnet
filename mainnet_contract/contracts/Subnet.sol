@@ -70,7 +70,6 @@ contract Subnet {
       mainnet_num: block.number,
       src: block1_header
     });
-
     validator_sets[0] = Validators({
       set: initial_validator_set,
       threshold: threshold
