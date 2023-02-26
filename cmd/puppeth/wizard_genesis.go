@@ -209,7 +209,10 @@ func (w *wizard) makeGenesis() {
 		f := func(key, val common.Hash) bool {
 			decode := []byte{}
 			trim := bytes.TrimLeft(val.Bytes(), "\x00")
-			rlp.DecodeBytes(trim, &decode)
+			err := rlp.DecodeBytes(trim, &decode)
+			if err != nil {
+				log.Error("Failed while decode byte, please contract developer team")
+			}
 			storage[key] = common.BytesToHash(decode)
 			log.Info("DecodeBytes", "value", val.String(), "decode", storage[key].String())
 			return true
