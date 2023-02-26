@@ -21,6 +21,11 @@ contract Subnet {
     int threshold;
   }
 
+  struct BlockLite {
+    bytes32 hash;
+    int number;
+  }
+
   mapping(bytes32 => Header) header_tree;
   mapping(int => Validators) validator_sets;
   mapping(address => bool) lookup;
@@ -28,6 +33,7 @@ contract Subnet {
   mapping(address => bool) masters;
   int current_validator_set_pointer = 0;
   int current_subnet_height;
+  bytes32 latest_block;
   bytes32 latest_finalized_block;
 
   // Event types
@@ -78,6 +84,7 @@ contract Subnet {
       lookup[initial_validator_set[i]] = true;
     }
     masters[msg.sender] = true;
+    latest_block = block1_header_hash;
     latest_finalized_block = block1_header_hash;
   }
 
@@ -162,7 +169,9 @@ contract Subnet {
       src: header
     });
     emit SubnetBlockAccepted(block_hash, number);
-
+    if (header_tree[block_hash].number > header_tree[latest_block].number) {
+      latest_block = block_hash;
+    }
     // Look for 3 consecutive round
     bytes32 curr_hash = block_hash;
     for (uint i = 0; i < 3; i++) {
@@ -220,8 +229,11 @@ contract Subnet {
     return header_tree[header_hash].mainnet_num;
   }
 
-  function getLatestFinalizedBlock() public view returns (bytes32) {
-    return latest_finalized_block;
+  function getLatestBlock() public view returns (BlockLite memory) {
+    return BlockLite({
+      hash: latest_finalized_block,
+      number: header_tree[latest_finalized_block].number
+    });
   }
 
   function getValidatorSet(int height) public view returns (address[] memory res) {
