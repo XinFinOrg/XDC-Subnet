@@ -140,11 +140,9 @@ contract XDCValidator {
             ownerToCandidate[_firstOwner].push(_candidates[i]);
             validatorsState[_candidates[i]].voters[_firstOwner] = minCandidateCap;
         }
-        string memory grandMasterKYC = "grandmaster";
         for (i = 0; i < _grandMasters.length; i++) {
             grandMasters.push(_grandMasters[i]);
             grandMasterMap[_grandMasters[i]] = true;
-            KYCString[_grandMasters[i]].push(grandMasterKYC);
         }
     }
 
@@ -156,7 +154,7 @@ contract XDCValidator {
     }
 
     // propose : any non-candidate who has uploaded its KYC can become an owner by proposing a candidate.
-    function propose(address _candidate) external payable onlyValidCandidateCap onlyKYCWhitelisted onlyNotCandidate(_candidate) onlyGrandMaster {
+    function propose(address _candidate) external payable onlyValidCandidateCap onlyNotCandidate(_candidate) onlyGrandMaster {
         uint256 cap = validatorsState[_candidate].cap.add(msg.value);
         candidates.push(_candidate);
         validatorsState[_candidate] = ValidatorState({
