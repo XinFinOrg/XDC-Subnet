@@ -62,7 +62,7 @@ func TestNotChangeSingerListIfNothingProposedOrVoted(t *testing.T) {
 	blockchain, _, parentBlock, signer, signFn := PrepareXDCTestBlockChain(t, GAP-1, params.TestXDPoSMockChainConfig)
 	// Insert block 450
 	blockCoinBase := fmt.Sprintf("0x111000000000000000000000000000000%03d", 450)
-	merkleRoot := "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+	merkleRoot := "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(450)),
@@ -524,7 +524,7 @@ func TestVoteShouldNotBeAffectedByFork(t *testing.T) {
 
 	// Insert normal blocks 450 A
 	blockCoinBase450A := "0xaaa0000000000000000000000000000000000450"
-	merkleRoot := "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+	merkleRoot := "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(450)),
@@ -576,7 +576,7 @@ func TestVoteShouldNotBeAffectedByFork(t *testing.T) {
 	// Now, we going to inject normal blocks of 450B, 451B and 452B. Because it's the longest, it will become the mainchain
 	// Insert forked Block 450 B
 	blockCoinBase450B := "0xbbb0000000000000000000000000000000000450"
-	merkleRoot = "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+	merkleRoot = "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	header = &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(450)),
@@ -591,7 +591,7 @@ func TestVoteShouldNotBeAffectedByFork(t *testing.T) {
 	assert.Nil(t, err)
 
 	blockCoinBase451B := "0xbbb0000000000000000000000000000000000451"
-	merkleRoot = "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+	merkleRoot = "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	header = &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(451)),
@@ -606,7 +606,7 @@ func TestVoteShouldNotBeAffectedByFork(t *testing.T) {
 	assert.Nil(t, err)
 
 	blockCoinBase452B := "0xbbb0000000000000000000000000000000000452"
-	merkleRoot = "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+	merkleRoot = "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	header = &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(452)),
