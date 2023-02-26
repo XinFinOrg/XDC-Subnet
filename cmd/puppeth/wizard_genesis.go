@@ -213,7 +213,10 @@ func (w *wizard) makeGenesis() {
 		f := func(key, val common.Hash) bool {
 			decode := []byte{}
 			trim := bytes.TrimLeft(val.Bytes(), "\x00")
-			rlp.DecodeBytes(trim, &decode)
+			err := rlp.DecodeBytes(trim, &decode)
+			if err != nil {
+				log.Error("Failed while decode byte, please contract developer team")
+			}
 			storage[key] = common.BytesToHash(decode)
 			log.Info("DecodeBytes", "value", val.String(), "decode", storage[key].String())
 			return true
@@ -244,7 +247,7 @@ func (w *wizard) makeGenesis() {
 		// MultiSigWallet.
 		multiSignWalletAddr, _, err := multiSignWalletContract.DeployMultiSigWallet(transactOpts, contractBackend, owners, big.NewInt(required))
 		if err != nil {
-			fmt.Println("Can't deploy MultiSignWallet SMC")
+			fmt.Println("Can't deploy MultiSignWallet SMC.", err)
 		}
 		contractBackend.Commit()
 		code, _ = contractBackend.CodeAt(ctx, multiSignWalletAddr, nil)
@@ -310,7 +313,7 @@ func (w *wizard) makeGenesis() {
 		// MultiSigWallet.
 		multiSignWalletTeamAddr, _, err := multiSignWalletContract.DeployMultiSigWallet(transactOpts, contractBackend, teams, big.NewInt(required))
 		if err != nil {
-			fmt.Println("Can't deploy MultiSignWallet SMC")
+			fmt.Println("Can't deploy MultiSignWallet SMC.", err)
 		}
 		contractBackend.Commit()
 		code, _ = contractBackend.CodeAt(ctx, multiSignWalletTeamAddr, nil)
