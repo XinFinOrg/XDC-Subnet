@@ -28,7 +28,7 @@ const hex2Arr = (hexString) => {
   return byteArray;
 }
 
-const composeAndSignBlock = (number, round_num, parent_hash, validators, threshold) => {
+const composeAndSignBlock = (number, round_num, parent_hash, validators, threshold, current, next) => {
 
   const version = new Uint8Array([2]);
   const voteForSignHash = web3.utils.sha3(Buffer.from(
@@ -77,7 +77,7 @@ const composeAndSignBlock = (number, round_num, parent_hash, validators, thresho
     ])]),
     "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "nonce": new Uint8Array(8),
-    "validators": new Uint8Array(8),
+    "validators": [current, next],
     "validator": new Uint8Array(8),
     "penalties": new Uint8Array(8)
   }
@@ -105,7 +105,7 @@ const composeAndSignBlock = (number, round_num, parent_hash, validators, thresho
     ])]),
     util.zeros(32),
     new Uint8Array(8),
-    new Uint8Array(8),
+    [current, next],
     new Uint8Array(8),
     new Uint8Array(8),
   ]));
@@ -232,7 +232,7 @@ contract("Subnet Test", async accounts => {
       new Uint8Array(8),
     ])).toString("hex");
     
-    var [block1, block1_encoded, block1_hash] = composeAndSignBlock(1, 1, this.genesis_hash, this.validators, 2);
+    var [block1, block1_encoded, block1_hash] = composeAndSignBlock(1, 1, this.genesis_hash, this.validators, 2, [], []);
     this.block1 = block1;
     this.block1_encoded = block1_encoded;
     this.block1_hash = block1_hash;
@@ -251,11 +251,10 @@ contract("Subnet Test", async accounts => {
 
   it("Running Setup", async() => {
     const is_master = await this.subnet.isMaster(accounts[0]);
-    const validators = await this.subnet.getValidatorSet(0);
-    const threshold = await this.subnet.getValidatorThreshold(0);
+    const validators = await this.subnet.getCurrentValidators();
     assert.equal(is_master, true);
-    assert.deepEqual(validators, this.validators_addr);
-    assert.equal(threshold, 2);
+    assert.deepEqual(validators[0], this.validators_addr);
+    assert.equal(validators[1], 2);
   });
 
   it("Add Master", async() => {
@@ -267,33 +266,9 @@ contract("Subnet Test", async accounts => {
     assert.equal(is_master, false);
   });
 
-  it("Revise Validator Set", async() => {
-    const new_validators = [];
-    for (let i = 0; i < 3; i++) {
-      new_validators.push(web3.eth.accounts.create().address);
-    }
-
-    await this.subnet.reviseValidatorSet(new_validators, 2, 4, {"from": accounts[0]});
-    const validators = await this.subnet.getValidatorSet(4);
-    const threshold = await this.subnet.getValidatorThreshold(4);
-    assert.deepEqual(validators, new_validators);
-    assert.equal(threshold, 2);
-  });
-
   it("Receive New Header", async() => {
-    const new_validators = [];
-    const raw_sigs = [];
-    for (let i = 0; i < 3; i++) {
-      new_validators.push(web3.eth.accounts.create());
-    }
 
-    await this.subnet.reviseValidatorSet(
-      new_validators.map(x => x.address),
-      2,
-      2, {"from": accounts[0]}
-    );
-
-    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, new_validators, 2);
+    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
 
     await this.subnet.receiveHeader(block2_encoded);
 
@@ -314,10 +289,10 @@ contract("Subnet Test", async accounts => {
 
   it("Confirm A Received Block", async() => {
     
-    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2);
-    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, this.validators, 2);
-    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2);
-    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, this.validators, 2);
+    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
+    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, this.validators, 2, [], []);
+    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2, [], []);
+    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, this.validators, 2, [], []);
 
     await this.subnet.receiveHeader(block2_encoded); 
     await this.subnet.receiveHeader(block3_encoded);
@@ -340,25 +315,23 @@ contract("Subnet Test", async accounts => {
     assert.equal(latest_block[0], block2_hash);
   });
 
-  it("Confirm A Received Block with Lots of Signatures", async() => {
-
+  it("Create an Epoch Switch with Lots of Validators", async() => {
     const new_validators = [];
-    for (let i = 0; i < 21; i++) {
+    for(let i = 0; i < 21; i++) {
       new_validators.push(web3.eth.accounts.create());
     }
 
-    await this.subnet.reviseValidatorSet(new_validators.map(x => x.address), 14, 2, {"from": accounts[0]});
-
-    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, new_validators, 14);
-    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, new_validators, 14);
-    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, new_validators, 14);
-    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, new_validators, 14);
+    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
+    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, this.validators, 2, [], []);
+    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2, [], new_validators.map((x) => x.address));
+    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, new_validators, 14, new_validators.map((x) => x.address), []);
 
     await this.subnet.receiveHeader(block2_encoded); 
     await this.subnet.receiveHeader(block3_encoded);
     await this.subnet.receiveHeader(block4_encoded);
     await this.subnet.receiveHeader(block5_encoded);
 
+    
     const block2_resp = await this.subnet.getHeader(block2_hash);
     const block2_decoded = RLP.decode(block2_resp);
     const block2_extra = RLP.decode(block2_decoded[12].slice(1));

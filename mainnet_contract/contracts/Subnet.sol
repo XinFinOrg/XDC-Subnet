@@ -27,12 +27,11 @@ contract Subnet {
   }
 
   mapping(bytes32 => Header) header_tree;
-  mapping(int => Validators) validator_sets;
   mapping(address => bool) lookup;
   mapping(address => bool) unique_addr;
   mapping(address => bool) masters;
-  int current_validator_set_pointer = 0;
-  int current_subnet_height;
+  Validators current_validators;
+  Validators next_validators;
   bytes32 latest_block;
   bytes32 latest_finalized_block;
 
@@ -76,7 +75,7 @@ contract Subnet {
       mainnet_num: block.number,
       src: block1_header
     });
-    validator_sets[0] = Validators({
+    current_validators = Validators({
       set: initial_validator_set,
       threshold: threshold
     });
@@ -100,15 +99,9 @@ contract Subnet {
     masters[master] = false;
   }
 
-  function reviseValidatorSet(address[] memory new_validator_set, int threshold, int subnet_block_height) public onlyMasters  {
-    require(new_validator_set.length > 0, "Validator Empty");
-    require(threshold > 0, "Invalid Threshold");
-    require(subnet_block_height > 1, "Invalid Target Height");
-    require(subnet_block_height >= current_validator_set_pointer, "Modify Past Validator");
-    validator_sets[subnet_block_height] = Validators({
-      set: new_validator_set,
-      threshold: threshold
-    });
+  function setThreshold(int threshold) public onlyMasters {
+    require(threshold > 0, "0 Threshold");
+    next_validators.threshold = threshold;
   }
 
   function receiveHeader(bytes memory header) public onlyMasters { 
@@ -120,6 +113,11 @@ contract Subnet {
       bytes32 signHash,
       bytes[] memory sigs
     ) = HeaderReader.getValidationParams(header);
+    (
+      address[] memory current,
+      address[] memory next
+    ) = HeaderReader.getEpoch(header);
+
     require(number > 0, "Repeated Genesis");
     require(header_tree[parent_hash].hash != 0, "Parent Missing");
     require(header_tree[parent_hash].number + 1 == number, "Invalid N");
@@ -128,14 +126,40 @@ contract Subnet {
     bytes32 block_hash = keccak256(header);
     if (header_tree[block_hash].number > 0) 
       revert("Repeated Header");
-    if (validator_sets[number].set.length > 0) {
-      for (uint i = 0; i < validator_sets[current_validator_set_pointer].set.length; i++) {
-        lookup[validator_sets[current_validator_set_pointer].set[i]] = false;
+
+    if (current.length > 0 && next.length > 0)
+      revert("Malformed Block");
+    else if (current.length > 0) {
+      if (next_validators.set.length != current.length)
+        revert("Mismatched Validators");
+      else {
+        for (uint i = 0; i < current.length; i++) {
+          unique_addr[next_validators.set[i]] = true;
+        }
+        for (uint i = 0; i < current.length; i++) {
+          if (!unique_addr[current[i]]) 
+            revert("Mismatched Validators");
+          else
+            unique_addr[current[i]] = false;
+        }
+        for (uint i = 0; i < current_validators.set.length; i++) {
+          lookup[current_validators.set[i]] = false;
+        }
+        for (uint i = 0; i < current.length; i++) {
+          lookup[current[i]] = true;
+        }
+        current_validators = next_validators;
+        next_validators = Validators({
+          set: new address[](0),
+          threshold: 0
+        });
       }
-      for (uint i = 0; i < validator_sets[number].set.length; i++) {
-        lookup[validator_sets[number].set[i]] = true;
-      }
-      current_validator_set_pointer = number;
+    }
+    else if (next.length > 0) {
+      next_validators = Validators({
+        set: next,
+        threshold: int256(next.length * 2 / 3)
+      });
     }
 
     int unique_counter = 0;
@@ -156,7 +180,7 @@ contract Subnet {
     for (uint i = 0; i < signer_list.length; i++) {
       unique_addr[signer_list[i]] = false;
     }
-    if (unique_counter < validator_sets[current_validator_set_pointer].threshold) {
+    if (unique_counter < current_validators.threshold) {
       revert("Verification Fail");
     }
     header_tree[block_hash] = Header({
@@ -236,19 +260,7 @@ contract Subnet {
     });
   }
 
-  function getValidatorSet(int height) public view returns (address[] memory res) {
-    if (validator_sets[height].threshold == 0) {
-      res = new address[](0);
-    } else {
-      res = validator_sets[height].set;
-    }
-  }
-
-  function getValidatorThreshold(int height) public view returns (int res) {
-    if (validator_sets[height].threshold == 0) {
-      res = 0;
-    } else {
-      res = validator_sets[height].threshold;
-    }
+  function getCurrentValidators() public view returns (Validators memory) {
+    return current_validators;
   }
 }

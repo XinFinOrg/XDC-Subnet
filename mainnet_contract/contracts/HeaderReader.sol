@@ -48,6 +48,21 @@ library HeaderReader {
     return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number, parent_round_number, signHash, sigs);
   }
 
+  function getEpoch(bytes memory header) public pure returns (address[] memory current, address[] memory next) {
+    RLPItem[] memory ls = toList(toRlpItem(header));
+    RLPItem[] memory epoch = toList(ls[15]);
+    RLPItem[] memory list0 = toList(epoch[0]);
+    current = new address[](list0.length);
+    for (uint i = 0; i < list0.length; i++) {
+      current[i] = toAddress(list0[i]);
+    }
+    RLPItem[] memory list1 = toList(epoch[1]);
+    next = new address[](list1.length);
+    for (uint i = 0; i < list1.length; i++) {
+      next[i] = toAddress(list1[i]);
+    }
+  }
+
   function getExtraData(bytes memory extra) public pure returns (bytes memory) {
     bytes memory extraData = new bytes(extra.length-1);
     uint extraDataPtr;
@@ -149,6 +164,13 @@ library HeaderReader {
     }
 
     return result;
+  }
+
+  function toAddress(RLPItem memory item) internal pure returns (address) {
+    // 1 byte for the length prefix
+    require(item.len == 21);
+
+    return address(uint160(toUint(item)));
   }
 
   // @return number of payload items inside an encoded list.
