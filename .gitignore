@@ -40,6 +40,9 @@ profile.cov
 # Vim
 .*.sw*
 
+# Contract
+.env
+
 # dashboard
 /dashboard/assets/flow-typed
 /dashboard/assets/node_modules
