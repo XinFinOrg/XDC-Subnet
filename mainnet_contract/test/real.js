@@ -65,9 +65,10 @@ contract("Subnet Real Sample Test", async accounts => {
     await this.subnet.receiveHeader(block5_encoded);
 
     const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
-    const latest_block = await this.subnet.getLatestBlock();
+    const latest_blocks = await this.subnet.getLatestBlocks();
     assert.equal(finalized, true);
-    assert.equal(latest_block[0], block2_hash);
+    assert.equal(latest_blocks["0"][0], block5_hash);
+    assert.equal(latest_blocks["1"][0], block2_hash);
 
   });
 

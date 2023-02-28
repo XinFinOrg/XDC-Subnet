@@ -307,9 +307,10 @@ contract("Subnet Test", async accounts => {
     assert.equal(block2_extra[1][0][2][0], 1);
     const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
     const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
-    const latest_block = await this.subnet.getLatestBlock();
+    const latest_blocks = await this.subnet.getLatestBlocks();
     assert.equal(finalized, false);
-    assert.equal(latest_block[0], this.block1_hash);
+    assert.equal(latest_blocks["0"][0], block2_hash);
+    assert.equal(latest_blocks["1"][0], this.block1_hash);
   });
 
   it("Confirm A Received Block", async() => {
@@ -335,9 +336,10 @@ contract("Subnet Test", async accounts => {
 
     const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
     const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
-    const latest_block = await this.subnet.getLatestBlock();
+    const latest_blocks = await this.subnet.getLatestBlocks();
     assert.equal(finalized, true);
-    assert.equal(latest_block[0], block2_hash);
+    assert.equal(latest_blocks["0"][0], block5_hash);
+    assert.equal(latest_blocks["1"][0], block2_hash);
   });
 
   it("Confirm A Received Block with Lots of Signatures", async() => {
@@ -370,9 +372,10 @@ contract("Subnet Test", async accounts => {
 
     const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
     const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
-    const latest_block = await this.subnet.getLatestBlock();
+    const latest_blocks = await this.subnet.getLatestBlocks();
     assert.equal(finalized, true);
-    assert.equal(latest_block[0], block2_hash);
+    assert.equal(latest_blocks["0"][0], block5_hash);
+    assert.equal(latest_blocks["1"][0], block2_hash);
   });
 
   // it("Lookup the transaction", async() => {

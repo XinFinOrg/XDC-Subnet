@@ -229,11 +229,17 @@ contract Subnet {
     return header_tree[header_hash].mainnet_num;
   }
 
-  function getLatestBlock() public view returns (BlockLite memory) {
-    return BlockLite({
-      hash: latest_finalized_block,
-      number: header_tree[latest_finalized_block].number
-    });
+  function getLatestBlocks() public view returns (BlockLite memory, BlockLite memory) {
+    return (
+      BlockLite({
+        hash: latest_block,
+        number: header_tree[latest_block].number
+      }),
+      BlockLite({
+        hash: latest_finalized_block,
+        number: header_tree[latest_finalized_block].number
+      })
+    );
   }
 
   function getValidatorSet(int height) public view returns (address[] memory res) {
