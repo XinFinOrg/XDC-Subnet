@@ -103,15 +103,16 @@ class SubnetAPI {
 
   // Return latest finalized subnet block header in RLP encoded bytes
   async getLatestHeader() {
-    let latestBlock = await this.subnetContract.methods.getLatestBlock().call();
-    const latestFinalizedBlockInfo = await this.subnetContract.methods.getHeader(latestBlock[0]).call();
-    return latestFinalizedBlockInfo;
+    let latestBlocks = await this.subnetContract.methods.getLatestBlocks().call();
+    const latestFinalizedBlockInfo = await this.subnetContract.methods.getHeader(latestBlocks["0"][0]).call();
+    const latestBlockInfo = await this.subnetContract.methods.getHeader(latestBlocks["1"][0]).call();
+    return [latestFinalizedBlockInfo, latestBlockInfo];
   }
 
   // Return latest finalized subnet block hash
-  async getLatestBlock() {
-    let latestBlock = await this.subnetContract.methods.getLatestBlock().call();
-    return [latestBlock[0], latestBlock[1]];
+  async getLatestBlocks() {
+    let latestBlocks = await this.subnetContract.methods.getLatestBlocks().call();
+    return [latestBlocks["0"], latestBlocks["1"]];
   }
 
   // Return the boolean of whether the block is finalized in the mainnet
