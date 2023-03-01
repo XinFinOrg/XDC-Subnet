@@ -47,8 +47,9 @@ var (
 
 	ErrInvalidCheckpointPenalties = errors.New("invalid penalty list on checkpoint block")
 
-	ErrValidatorsNotLegit = errors.New("validators does not match what's stored in snapshot minutes its penalty")
-	ErrPenaltiesNotLegit  = errors.New("penalties does not match")
+	ErrValidatorsNotLegit          = errors.New("validators does not match what's stored in snapshot")
+	ErrPenaltiesNotLegit           = errors.New("penalties does not match")
+	ErrNextEpochValidatorsNotLegit = errors.New("next epoch validators does not match what's stored in snapshot")
 
 	// errInvalidMixDigest is returned if a block's mix digest is non-zero.
 	ErrInvalidMixDigest = errors.New("non-zero mix digest")
@@ -95,6 +96,8 @@ var (
 	ErrValidatorNotWithinMasternodes = errors.New("Validaotor address is not in the master node list")
 	ErrCoinbaseAndValidatorMismatch  = errors.New("Validaotor and coinbase address in header does not match")
 	ErrNotItsTurn                    = errors.New("Not validator's turn to mine this block")
+
+	ErrInvalidFieldInNonGapPlusOneSwitch = errors.New("invalid field exist in a non-gapPlusOne swtich block")
 
 	ErrRoundInvalid = errors.New("Invalid Round, it shall be bigger than QC round")
 

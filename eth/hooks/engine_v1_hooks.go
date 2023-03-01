@@ -185,7 +185,7 @@ func AttachConsensusV1Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 		if err != nil {
 			return []byte{}, err
 		}
-		header.Validators = validators
+		header.Validators.CurrentEpoch = validators
 		log.Debug("Time Calculated HookValidator ", "block", header.Number.Uint64(), "time", common.PrettyDuration(time.Since(start)))
 		return validators, nil
 	}
@@ -200,7 +200,7 @@ func AttachConsensusV1Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			if err != nil {
 				return err
 			}
-			if !bytes.Equal(header.Validators, validators) {
+			if !bytes.Equal(header.Validators.CurrentEpoch, validators) {
 				return utils.ErrInvalidCheckpointValidators
 			}
 		}

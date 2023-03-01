@@ -108,10 +108,10 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		if !bytes.Equal(header.Nonce[:], utils.NonceDropVote) {
 			return utils.ErrInvalidCheckpointVote
 		}
-		if header.Validators == nil || len(header.Validators) == 0 {
+		if header.Validators.CurrentEpoch == nil || len(header.Validators.CurrentEpoch) == 0 {
 			return utils.ErrEmptyEpochSwitchValidators
 		}
-		if len(header.Validators)%common.AddressLength != 0 {
+		if len(header.Validators.CurrentEpoch)%common.AddressLength != 0 {
 			return utils.ErrInvalidCheckpointSigners
 		}
 
@@ -122,7 +122,7 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 			return err
 		}
 
-		validatorsAddress := common.ExtractAddressFromBytes(header.Validators)
+		validatorsAddress := common.ExtractAddressFromBytes(header.Validators.CurrentEpoch)
 		if !utils.CompareSignersLists(localMasterNodes, validatorsAddress) {
 			return utils.ErrValidatorsNotLegit
 		}
@@ -133,8 +133,8 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		}
 
 	} else {
-		if len(header.Validators) != 0 {
-			log.Warn("[verifyHeader] Validators shall not have values in non-epochSwitch block", "Hash", header.Hash(), "Number", header.Number, "header.Validators", header.Validators)
+		if len(header.Validators.CurrentEpoch) != 0 {
+			log.Warn("[verifyHeader] Validators.CurrentEpoch shall not have values in non-epochSwitch block", "Hash", header.Hash(), "Number", header.Number, "header.Validators", header.Validators.CurrentEpoch)
 			return utils.ErrInvalidFieldInNonEpochSwitch
 		}
 		if len(header.Penalties) != 0 {
@@ -142,6 +142,24 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 			return utils.ErrInvalidFieldInNonEpochSwitch
 		}
 		masterNodes = x.GetMasternodes(chain, header)
+	}
+	// Verify v2 block that is gap plus one
+	if x.IsGapPlusOneBlock(header) {
+		validatorsAddress := common.ExtractAddressFromBytes(header.Validators.NextEpoch)
+		// this header number == gap + 1, so should use parent hash to get snapshot
+		snapshot, err := x.getSnapshotByHash(header.ParentHash)
+		if err != nil {
+			log.Error("[verifyHeader] fail to get snapshot for parent at gap number", "blockNum", header.Number, "parentHash", header.ParentHash, "error", err.Error())
+			return err
+		}
+		if !utils.CompareSignersLists(snapshot.NextEpochMasterNodes, validatorsAddress) {
+			return utils.ErrNextEpochValidatorsNotLegit
+		}
+	} else {
+		if len(header.Validators.NextEpoch) != 0 {
+			log.Warn("[verifyHeader] Validators.NextEpoch shall not have values in non-gapPlusOne block", "Hash", header.Hash(), "Number", header.Number, "header.Validators", header.Validators.NextEpoch)
+			return utils.ErrInvalidFieldInNonGapPlusOneSwitch
+		}
 	}
 
 	// If all checks passed, validate any special fields for hard forks

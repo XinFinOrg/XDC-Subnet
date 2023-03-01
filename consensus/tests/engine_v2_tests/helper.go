@@ -442,7 +442,7 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
 			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
 			for _, v := range masternodesFromV1LastEpoch {
-				header.Validators = append(header.Validators, v[:]...)
+				header.Validators.CurrentEpoch = append(header.Validators.CurrentEpoch, v[:]...)
 			}
 		} else if roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 {
 			// epoch switch blocks, copy the master node list and inject into v2 validators
@@ -450,7 +450,7 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
 			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
 			for _, v := range masternodesFromV1LastEpoch {
-				header.Validators = append(header.Validators, v[:]...)
+				header.Validators.CurrentEpoch = append(header.Validators.CurrentEpoch, v[:]...)
 			}
 			if penalties != nil {
 				header.Penalties = penalties

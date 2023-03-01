@@ -337,10 +337,23 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 			return err
 		}
 		for _, v := range masterNodes {
-			header.Validators = append(header.Validators, v[:]...)
+			header.Validators.CurrentEpoch = append(header.Validators.CurrentEpoch, v[:]...)
 		}
 		for _, v := range penalties {
 			header.Penalties = append(header.Penalties, v[:]...)
+		}
+	}
+
+	isGapPlusOneBlock := x.IsGapPlusOneBlock(header)
+	if isGapPlusOneBlock {
+		// prepare next epoch masternodes
+		snapshot, err := x.getSnapshotByHash(header.ParentHash)
+		if err != nil {
+			log.Error("[verifyHeader] fail to get snapshot for parent at gap number", "blockNum", header.Number, "parentHash", header.ParentHash, "error", err.Error())
+			return err
+		}
+		for _, v := range snapshot.NextEpochMasterNodes {
+			header.Validators.NextEpoch = append(header.Validators.NextEpoch, v[:]...)
 		}
 	}
 
@@ -958,9 +971,9 @@ func (x *XDPoS_v2) GetMasternodesFromEpochSwitchHeader(epochSwitchHeader *types.
 		log.Error("[GetMasternodesFromEpochSwitchHeader] use nil epoch switch block to get master nodes")
 		return []common.Address{}
 	}
-	masternodes := make([]common.Address, len(epochSwitchHeader.Validators)/common.AddressLength)
+	masternodes := make([]common.Address, len(epochSwitchHeader.Validators.CurrentEpoch)/common.AddressLength)
 	for i := 0; i < len(masternodes); i++ {
-		copy(masternodes[i][:], epochSwitchHeader.Validators[i*common.AddressLength:])
+		copy(masternodes[i][:], epochSwitchHeader.Validators.CurrentEpoch[i*common.AddressLength:])
 	}
 
 	return masternodes

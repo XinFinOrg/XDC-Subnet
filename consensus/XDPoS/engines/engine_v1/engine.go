@@ -761,7 +761,7 @@ func (x *XDPoS_v1) Prepare(chain consensus.ChainReader, header *types.Header) er
 			if err != nil {
 				return err
 			}
-			header.Validators = validators
+			header.Validators.CurrentEpoch = validators
 		}
 	}
 	header.Extra = append(header.Extra, make([]byte, utils.ExtraSeal)...)
