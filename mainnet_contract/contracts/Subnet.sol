@@ -34,6 +34,8 @@ contract Subnet {
   Validators next_validators;
   bytes32 latest_block;
   bytes32 latest_finalized_block;
+  uint64 private GAP;
+  uint64 private EPOCH;
 
   // Event types
   event SubnetBlockAccepted(bytes32 block_hash, int number);
@@ -49,7 +51,9 @@ contract Subnet {
     address[] memory initial_validator_set,
     int threshold,
     bytes memory genesis_header,
-    bytes memory block1_header
+    bytes memory block1_header,
+    uint64 GAP,
+    uint64 EPOCH
   ) public {
     require(initial_validator_set.length > 0, "Validator Empty");
     require(threshold > 0, "Invalid Threshold");
@@ -85,6 +89,8 @@ contract Subnet {
     masters[msg.sender] = true;
     latest_block = block1_header_hash;
     latest_finalized_block = block1_header_hash;
+    GAP = GAP;
+    EPOCH = EPOCH;
   }
 
   function isMaster(address master) public view returns (bool) {
@@ -119,6 +125,7 @@ contract Subnet {
     ) = HeaderReader.getEpoch(header);
 
     require(number > 0, "Repeated Genesis");
+    require(number > header_tree[latest_finalized_block].number, "Old Block");
     require(header_tree[parent_hash].hash != 0, "Parent Missing");
     require(header_tree[parent_hash].number + 1 == number, "Invalid N");
     require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
@@ -133,33 +140,39 @@ contract Subnet {
       if (next_validators.set.length != current.length)
         revert("Mismatched Validators");
       else {
-        for (uint i = 0; i < current.length; i++) {
-          unique_addr[next_validators.set[i]] = true;
-        }
-        for (uint i = 0; i < current.length; i++) {
-          if (!unique_addr[current[i]]) 
-            revert("Mismatched Validators");
-          else
-            unique_addr[current[i]] = false;
-        }
-        for (uint i = 0; i < current_validators.set.length; i++) {
-          lookup[current_validators.set[i]] = false;
-        }
-        for (uint i = 0; i < current.length; i++) {
-          lookup[current[i]] = true;
-        }
-        current_validators = next_validators;
-        next_validators = Validators({
-          set: new address[](0),
-          threshold: 0
-        });
+        if (prev_round_number < round_number - (round_number % EPOCH)) {
+          for (uint i = 0; i < current.length; i++) {
+            unique_addr[next_validators.set[i]] = true;
+          }
+          for (uint i = 0; i < current.length; i++) {
+            if (!unique_addr[current[i]]) 
+              revert("Mismatched Validators");
+            else
+              unique_addr[current[i]] = false;
+          }
+          for (uint i = 0; i < current_validators.set.length; i++) {
+            lookup[current_validators.set[i]] = false;
+          }
+          for (uint i = 0; i < current.length; i++) {
+            lookup[current[i]] = true;
+          }
+          current_validators = next_validators;
+          next_validators = Validators({
+            set: new address[](0),
+            threshold: 0
+          });
+        } else
+          revert("Invalid Current Block");
       }
     }
     else if (next.length > 0) {
-      next_validators = Validators({
-        set: next,
-        threshold: int256(next.length * 2 / 3)
-      });
+      if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
+        next_validators = Validators({
+          set: next,
+          threshold: int256(next.length * 2 / 3)
+        });
+      } else
+        revert("Invalid Next Block");
     }
 
     int unique_counter = 0;
