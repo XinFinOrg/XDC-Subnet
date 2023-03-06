@@ -266,7 +266,7 @@ contract Subnet {
     return header_tree[header_hash].mainnet_num;
   }
 
-  function getLatestBlock() public view returns (BlockLite memory, BlockLite memory) {
+  function getLatestBlocks() public view returns (BlockLite memory, BlockLite memory) {
     return (
         BlockLite({
         hash: latest_block,
