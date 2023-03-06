@@ -121,6 +121,7 @@ contract Subnet {
       bytes[] memory sigs
     ) = HeaderReader.getValidationParams(header);
     require(number > 0, "Repeated Genesis");
+    require(number > header_tree[latest_finalized_block].number, "Old Block");
     require(header_tree[parent_hash].hash != 0, "Parent Missing");
     require(header_tree[parent_hash].number + 1 == number, "Invalid N");
     require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
