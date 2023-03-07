@@ -165,6 +165,8 @@ contract Subnet {
               number: 0,
               threshold: 0
             });
+          } else {
+            revert("Invalid Current Block");
           }
         } else
           revert("Invalid Current Block");
