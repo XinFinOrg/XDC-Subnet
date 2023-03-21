@@ -28,6 +28,7 @@ contract Subnet {
 
   mapping(bytes32 => Header) header_tree;
   mapping(int => Validators) validator_sets;
+  mapping(int => bytes32) committed_blocks;
   mapping(address => bool) lookup;
   mapping(address => bool) unique_addr;
   mapping(address => bool) masters;
@@ -51,7 +52,7 @@ contract Subnet {
     int threshold,
     bytes memory genesis_header,
     bytes memory block1_header
-  ) {
+  ) public {
     require(initial_validator_set.length > 0, "Validator Empty");
     require(threshold > 0, "Invalid Threshold");
     bytes32 genesis_header_hash = keccak256(genesis_header);
@@ -86,6 +87,8 @@ contract Subnet {
     masters[msg.sender] = true;
     latest_block = block1_header_hash;
     latest_finalized_block = block1_header_hash;
+    committed_blocks[0] = genesis_header_hash;
+    committed_blocks[1] = block1_header_hash;
   }
 
   function isMaster(address master) public view returns (bool) {
@@ -190,6 +193,7 @@ contract Subnet {
     // Confirm all ancestor unconfirmed block
     while (header_tree[curr_hash].finalized != true) {
       header_tree[curr_hash].finalized = true;
+      committed_blocks[header_tree[curr_hash].number] = curr_hash;
       emit SubnetBlockFinalized(curr_hash, header_tree[curr_hash].number);
       curr_hash = header_tree[curr_hash].parent_hash;
     }
@@ -226,6 +230,21 @@ contract Subnet {
 
   function getHeader(bytes32 header_hash) public view returns (bytes memory) {
     return header_tree[header_hash].src;
+  }
+
+  function getHeaderByNumber(int number) public view returns (bytes memory) {
+    if (committed_blocks[number] == 0) {
+      if (number > header_tree[latest_block].number) return new bytes(0);
+      int num_gap = header_tree[latest_block].number - number;
+      bytes32 curr_hash = latest_block;
+      for (int i = 0; i < num_gap; i++) {
+        curr_hash = header_tree[curr_hash].parent_hash;
+      }
+      return header_tree[curr_hash].src;
+    } else {
+      return header_tree[committed_blocks[number]].src;
+    }
+    
   }
   
   function getHeaderConfirmationStatus(bytes32 header_hash) public view returns (bool) {
