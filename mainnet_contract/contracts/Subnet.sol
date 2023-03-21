@@ -51,7 +51,7 @@ contract Subnet {
     int threshold,
     bytes memory genesis_header,
     bytes memory block1_header
-  ) public {
+  ) {
     require(initial_validator_set.length > 0, "Validator Empty");
     require(threshold > 0, "Invalid Threshold");
     bytes32 genesis_header_hash = keccak256(genesis_header);
@@ -110,7 +110,7 @@ contract Subnet {
       threshold: threshold
     });
   }
-
+  // 939105
   function receiveHeader(bytes memory header) public onlyMasters { 
     (
       bytes32 parent_hash,
@@ -120,12 +120,14 @@ contract Subnet {
       bytes32 signHash,
       bytes[] memory sigs
     ) = HeaderReader.getValidationParams(header);
+    // 765373
     require(number > 0, "Repeated Genesis");
     require(number > header_tree[latest_finalized_block].number, "Old Block");
     require(header_tree[parent_hash].hash != 0, "Parent Missing");
     require(header_tree[parent_hash].number + 1 == number, "Invalid N");
     require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
     require(header_tree[parent_hash].round_num == prev_round_number, "Invalid PRN");
+    // 755683
     bytes32 block_hash = keccak256(header);
     if (header_tree[block_hash].number > 0) 
       revert("Repeated Header");
@@ -138,7 +140,7 @@ contract Subnet {
       }
       current_validator_set_pointer = number;
     }
-
+    // 751255
     int unique_counter = 0;
     address[] memory signer_list = new address[](sigs.length);
     for (uint i = 0; i < sigs.length; i++) {
@@ -160,6 +162,7 @@ contract Subnet {
     if (unique_counter < validator_sets[current_validator_set_pointer].threshold) {
       revert("Verification Fail");
     }
+    // 686855
     header_tree[block_hash] = Header({
       hash: block_hash,
       number: number,
@@ -169,10 +172,12 @@ contract Subnet {
       mainnet_num: block.number,
       src: header
     });
+    // 179582
     emit SubnetBlockAccepted(block_hash, number);
     if (header_tree[block_hash].number > header_tree[latest_block].number) {
       latest_block = block_hash;
     }
+    // 178035
     // Look for 3 consecutive round
     bytes32 curr_hash = block_hash;
     for (uint i = 0; i < 3; i++) {
@@ -188,6 +193,7 @@ contract Subnet {
       emit SubnetBlockFinalized(curr_hash, header_tree[curr_hash].number);
       curr_hash = header_tree[curr_hash].parent_hash;
     }
+    // 166189
   }
 
   /// signature methods.
