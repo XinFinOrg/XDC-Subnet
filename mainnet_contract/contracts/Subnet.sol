@@ -123,14 +123,12 @@ contract Subnet {
       bytes32 signHash,
       bytes[] memory sigs
     ) = HeaderReader.getValidationParams(header);
-    // 765373
     require(number > 0, "Repeated Genesis");
     require(number > header_tree[latest_finalized_block].number, "Old Block");
     require(header_tree[parent_hash].hash != 0, "Parent Missing");
     require(header_tree[parent_hash].number + 1 == number, "Invalid N");
     require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
     require(header_tree[parent_hash].round_num == prev_round_number, "Invalid PRN");
-    // 755683
     bytes32 block_hash = keccak256(header);
     if (header_tree[block_hash].number > 0) 
       revert("Repeated Header");
@@ -143,7 +141,6 @@ contract Subnet {
       }
       current_validator_set_pointer = number;
     }
-    // 751255
     int unique_counter = 0;
     address[] memory signer_list = new address[](sigs.length);
     for (uint i = 0; i < sigs.length; i++) {
@@ -165,7 +162,6 @@ contract Subnet {
     if (unique_counter < validator_sets[current_validator_set_pointer].threshold) {
       revert("Verification Fail");
     }
-    // 686855
     header_tree[block_hash] = Header({
       hash: block_hash,
       number: number,
@@ -175,7 +171,6 @@ contract Subnet {
       mainnet_num: block.number,
       src: header
     });
-    // 179582
     emit SubnetBlockAccepted(block_hash, number);
     if (header_tree[block_hash].number > header_tree[latest_block].number) {
       latest_block = block_hash;
@@ -232,17 +227,28 @@ contract Subnet {
     return header_tree[header_hash].src;
   }
 
-  function getHeaderByNumber(int number) public view returns (bytes memory) {
+  function getHeaderByNumber(int number) public view returns (BlockLite memory) {
     if (committed_blocks[number] == 0) {
-      if (number > header_tree[latest_block].number) return new bytes(0);
+      if (number > header_tree[latest_block].number) {
+        return BlockLite({
+          hash: bytes32(0),
+          number: 0
+        });
+      }
       int num_gap = header_tree[latest_block].number - number;
       bytes32 curr_hash = latest_block;
       for (int i = 0; i < num_gap; i++) {
         curr_hash = header_tree[curr_hash].parent_hash;
       }
-      return header_tree[curr_hash].src;
+      return BlockLite({
+        hash: header_tree[curr_hash].hash,
+        number: header_tree[curr_hash].number
+      });
     } else {
-      return header_tree[committed_blocks[number]].src;
+      return BlockLite({
+        hash: header_tree[committed_blocks[number]].hash,
+        number: header_tree[committed_blocks[number]].number
+      });
     }
     
   }

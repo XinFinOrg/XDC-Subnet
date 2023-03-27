@@ -311,6 +311,10 @@ contract("Subnet Test", async accounts => {
     assert.equal(finalized, false);
     assert.equal(latest_blocks["0"][0], block2_hash);
     assert.equal(latest_blocks["1"][0], this.block1_hash);
+
+    const block2_resp2 = await this.subnet.getHeaderByNumber(2);
+    assert.equal(block2_resp2[0], block2_hash);
+    assert.equal(block2_resp2[1], 2);
   });
 
   it("Confirm A Received Block", async() => {
@@ -340,6 +344,15 @@ contract("Subnet Test", async accounts => {
     assert.equal(finalized, true);
     assert.equal(latest_blocks["0"][0], block5_hash);
     assert.equal(latest_blocks["1"][0], block2_hash);
+
+    const block2_resp2 = await this.subnet.getHeaderByNumber(2);
+    assert.equal(block2_resp2[0], block2_hash);
+    assert.equal(block2_resp2[1], 2);
+
+    const block3_resp = await this.subnet.getHeaderByNumber(3);
+    assert.equal(block3_resp[0], block3_hash);
+    assert.equal(block3_resp[1], 3);
+
   });
 
   it("Confirm A Received Block with Lots of Signatures", async() => {

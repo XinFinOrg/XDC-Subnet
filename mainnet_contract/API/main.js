@@ -126,6 +126,12 @@ class SubnetAPI {
     return await this.subnetContract.methods.getMainnetBlockNumber(blockHash).call();
   }
 
+  // Return subnet block hash at height
+  async getHeaderByNumber(height) {
+    let block = await this.subnetContract.methods.getHeaderByNumber(height);
+    return block[0];
+  }
+
 }
 
 // const oldLibAddress = "0x3B3a580c10B4CA7596b95eAa87f4480137D615C5"
