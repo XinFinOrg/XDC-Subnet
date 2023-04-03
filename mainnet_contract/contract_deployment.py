@@ -38,7 +38,7 @@ with open(DEPLOY_INIT_JSON, "r") as f:
 Subnet = w3.eth.contract(abi=subnet_contract["abi"], bytecode=subnet_contract["bytecode"].replace("__HeaderReader__________________________", "B1e5f1b912577049E58918378Df3bC12Daa22CFd"))
 txn2 = Subnet.constructor(init["validators"], init["threshold"], init["genesis_header_encoded"], init["block1_header_encoded"]).build_transaction({
   "from": account.address,
-  "gas": 4500000,
+  "gas": 5000000,
   "gasPrice": 250000000,
   "nonce": w3.eth.get_transaction_count(account.address),
 })
