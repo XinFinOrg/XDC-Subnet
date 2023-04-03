@@ -295,7 +295,7 @@ contract("Subnet Test", async accounts => {
 
     var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, new_validators, 2);
 
-    await this.subnet.receiveHeader(block2_encoded);
+    await this.subnet.receiveHeader([block2_encoded]);
 
     const block2_resp = await this.subnet.getHeader(block2_hash);
     const block2_decoded = RLP.decode(block2_resp);
@@ -324,10 +324,12 @@ contract("Subnet Test", async accounts => {
     var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2);
     var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, this.validators, 2);
 
-    await this.subnet.receiveHeader(block2_encoded); 
-    await this.subnet.receiveHeader(block3_encoded);
-    await this.subnet.receiveHeader(block4_encoded);
-    await this.subnet.receiveHeader(block5_encoded);
+    await this.subnet.receiveHeader([
+        block2_encoded,
+        block3_encoded,
+        block4_encoded,
+        block5_encoded
+    ]); 
 
     const block2_resp = await this.subnet.getHeader(block2_hash);
     const block2_decoded = RLP.decode(block2_resp);
@@ -369,10 +371,15 @@ contract("Subnet Test", async accounts => {
     var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, new_validators, 14);
     var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, new_validators, 14);
 
-    await this.subnet.receiveHeader(block2_encoded); 
-    await this.subnet.receiveHeader(block3_encoded);
-    await this.subnet.receiveHeader(block4_encoded);
-    await this.subnet.receiveHeader(block5_encoded);
+    
+    await this.subnet.receiveHeader([
+      block2_encoded,
+      block3_encoded,
+      block4_encoded
+    ]);
+    await this.subnet.receiveHeader([
+      block5_encoded
+    ]);
 
     const block2_resp = await this.subnet.getHeader(block2_hash);
     const block2_decoded = RLP.decode(block2_resp);
