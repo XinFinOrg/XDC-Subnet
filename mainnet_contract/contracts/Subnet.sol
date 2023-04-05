@@ -28,6 +28,7 @@ contract Subnet {
   }
 
   mapping(bytes32 => Header) header_tree;
+  mapping(int => bytes32) committed_blocks;
   mapping(address => bool) lookup;
   mapping(address => bool) unique_addr;
   mapping(address => bool) masters;
@@ -85,12 +86,12 @@ contract Subnet {
       number: 1,
       threshold: threshold
     });
-    for (uint i = 0; i < initial_validator_set.length; i++) {
-      lookup[initial_validator_set[i]] = true;
-    }
+    updateLookup(initial_validator_set);
     masters[msg.sender] = true;
     latest_block = block1_header_hash;
     latest_finalized_block = block1_header_hash;
+    committed_blocks[0] = genesis_header_hash;
+    committed_blocks[1] = block1_header_hash;
     GAP = gap;
     EPOCH = epoch;
   }
@@ -229,6 +230,7 @@ contract Subnet {
     // Confirm all ancestor unconfirmed block
     while (header_tree[curr_hash].finalized != true) {
       header_tree[curr_hash].finalized = true;
+      committed_blocks[header_tree[curr_hash].number] = curr_hash;
       emit SubnetBlockFinalized(curr_hash, header_tree[curr_hash].number);
       curr_hash = header_tree[curr_hash].parent_hash;
     }
@@ -253,6 +255,12 @@ contract Subnet {
     return (v+27, r, s);
   }
 
+  function updateLookup(address[] memory initial_validator_set) internal {
+    for (uint i = 0; i < initial_validator_set.length; i++) {
+      lookup[initial_validator_set[i]] = true;
+    }
+  } 
+
   function recoverSigner(bytes32 message, bytes memory sig)
     internal
     pure
@@ -264,6 +272,32 @@ contract Subnet {
 
   function getHeader(bytes32 header_hash) public view returns (bytes memory) {
     return header_tree[header_hash].src;
+  }
+
+  function getHeaderByNumber(int number) public view returns (BlockLite memory) {
+    if (committed_blocks[number] == 0) {
+      if (number > header_tree[latest_block].number) {
+        return BlockLite({
+          hash: bytes32(0),
+          number: 0
+        });
+      }
+      int num_gap = header_tree[latest_block].number - number;
+      bytes32 curr_hash = latest_block;
+      for (int i = 0; i < num_gap; i++) {
+        curr_hash = header_tree[curr_hash].parent_hash;
+      }
+      return BlockLite({
+        hash: header_tree[curr_hash].hash,
+        number: header_tree[curr_hash].number
+      });
+    } else {
+      return BlockLite({
+        hash: header_tree[committed_blocks[number]].hash,
+        number: header_tree[committed_blocks[number]].number
+      });
+    }
+    
   }
   
   function getHeaderConfirmationStatus(bytes32 header_hash) public view returns (bool) {
