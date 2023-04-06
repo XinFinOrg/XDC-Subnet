@@ -9,9 +9,15 @@ Make sure you have installed [TruffleSuite](https://trufflesuite.com/docs/truffl
 
 We have provided the precompiled contracts in JSON format under `./build/contracts`. But if you want to rebuild it in local machine, you can do this under current folder:
 ```
+# install truffle dependencies from package.json
+npm intall
+
+# add private key into .env file
+vim .env
+
 # Compile contracts in the contracts folder and this automatically generates those json files in ./build/contracts
 
-truffle build
+truffle compile
 
 # Test contract functionality in local test network with test scripts written under ./test
 
