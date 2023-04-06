@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@ethereumjs/util": "^8.0.5",
+    "@truffle/decoder": "^5.3.14",
+    "@truffle/hdwallet-provider": "^2.1.9"
+  }
+}
