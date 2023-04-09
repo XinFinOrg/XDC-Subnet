@@ -34,6 +34,7 @@ contract Subnet {
   mapping(address => bool) masters;
   Validators current_validators;
   Validators next_validators;
+  Validators cached_validators;
   bytes32 latest_block;
   bytes32 latest_finalized_block;
   uint64 private GAP;
@@ -144,7 +145,7 @@ contract Subnet {
         revert("Mismatched Validators");
       else {
         if (prev_round_number < round_number - (round_number % EPOCH)) {
-          if (number - number % int256(uint256(EPOCH)) - int256(uint256(GAP)) + 1 == next_validators.number) {
+          if (number + 1 - number % int256(uint256(EPOCH)) - int256(uint256(GAP)) == next_validators.number) {
             for (uint i = 0; i < current.length; i++) {
               unique_addr[next_validators.set[i]] = true;
             }
@@ -161,11 +162,11 @@ contract Subnet {
               lookup[current[i]] = true;
             }
             current_validators = next_validators;
-            next_validators = Validators({
-              set: new address[](0),
-              number: 0,
-              threshold: 0
-            });
+            // next_validators = Validators({
+            //   set: new address[](0),
+            //   number: 0,
+            //   threshold: 0
+            // });
           } else {
             revert("Invalid Current Block");
           }
@@ -179,6 +180,11 @@ contract Subnet {
           set: next,
           number: number,
           threshold: int256(next.length * 2 / 3)
+        });
+        cached_validators = Validators({
+          set: current_validators.set,
+          number: current_validators.number,
+          threshold: current_validators.threshold
         });
       } else
         revert("Invalid Next Block");
