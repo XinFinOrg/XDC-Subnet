@@ -111,8 +111,10 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		if header.Validators.CurrentEpoch == nil || len(header.Validators.CurrentEpoch) == 0 {
 			return utils.ErrEmptyEpochSwitchValidators
 		}
-		if len(header.Validators.CurrentEpoch)%common.AddressLength != 0 {
-			return utils.ErrInvalidCheckpointSigners
+		for _, address := range header.Validators.CurrentEpoch {
+			if len(address)%common.AddressLength != 0 {
+				return utils.ErrInvalidCheckpointSigners
+			}
 		}
 
 		localMasterNodes, localPenalties, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
