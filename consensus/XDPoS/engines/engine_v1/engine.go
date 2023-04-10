@@ -756,13 +756,14 @@ func (x *XDPoS_v1) Prepare(chain consensus.ChainReader, header *types.Header) er
 		for _, masternode := range masternodes {
 			header.Extra = append(header.Extra, masternode[:]...)
 		}
-		if x.HookValidator != nil {
-			validators, err := x.HookValidator(header, masternodes)
-			if err != nil {
-				return err
-			}
-			header.Validators.CurrentEpoch = validators
-		}
+		// Skip correct Header.Validators.CurrentEpoch in v1 for subnet only
+		// if x.HookValidator != nil {
+		// 	validators, err := x.HookValidator(header, masternodes)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	header.Validators.CurrentEpoch = validators
+		// }
 	}
 	header.Extra = append(header.Extra, make([]byte, utils.ExtraSeal)...)
 

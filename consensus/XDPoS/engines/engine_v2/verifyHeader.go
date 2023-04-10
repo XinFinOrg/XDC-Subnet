@@ -122,8 +122,7 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 			return err
 		}
 
-		validatorsAddress := common.ExtractAddressFromBytes(header.Validators.CurrentEpoch)
-		if !utils.CompareSignersLists(localMasterNodes, validatorsAddress) {
+		if !utils.CompareSignersLists(localMasterNodes, header.Validators.CurrentEpoch) {
 			return utils.ErrValidatorsNotLegit
 		}
 
@@ -145,7 +144,7 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 	}
 	// Verify v2 block that is gap plus one
 	if x.IsGapPlusOneBlock(header) {
-		validatorsAddress := common.ExtractAddressFromBytes(header.Validators.NextEpoch)
+		validatorsAddress := header.Validators.NextEpoch
 		// this header number == gap + 1, so should use parent hash to get snapshot
 		snapshot, err := x.getSnapshotByHash(header.ParentHash)
 		if err != nil {

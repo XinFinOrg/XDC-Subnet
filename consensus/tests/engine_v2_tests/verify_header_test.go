@@ -43,7 +43,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	assert.Nil(t, err)
 
 	nonEpochSwitchWithValidators := blockchain.GetBlockByNumber(902).Header()
-	nonEpochSwitchWithValidators.Validators.CurrentEpoch = acc1Addr.Bytes()
+	nonEpochSwitchWithValidators.Validators.CurrentEpoch = []common.Address{acc1Addr}
 	err = adaptor.VerifyHeader(blockchain, nonEpochSwitchWithValidators, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonEpochSwitch, err)
 
@@ -69,18 +69,18 @@ func TestShouldVerifyBlock(t *testing.T) {
 	assert.Equal(t, utils.ErrInvalidVote, err)
 
 	emptyValidatorsBlock := blockchain.GetBlockByNumber(901).Header()
-	emptyValidatorsBlock.Validators.CurrentEpoch = []byte{}
+	emptyValidatorsBlock.Validators.CurrentEpoch = []common.Address{}
 	err = adaptor.VerifyHeader(blockchain, emptyValidatorsBlock, true)
 	assert.Equal(t, utils.ErrEmptyEpochSwitchValidators, err)
 
 	invalidValidatorsSignerBlock := blockchain.GetBlockByNumber(901).Header()
-	invalidValidatorsSignerBlock.Validators.CurrentEpoch = []byte{123}
+	invalidValidatorsSignerBlock.Validators.CurrentEpoch = []common.Address{{123}}
 	err = adaptor.VerifyHeader(blockchain, invalidValidatorsSignerBlock, true)
 	assert.Equal(t, utils.ErrInvalidCheckpointSigners, err)
 
 	// non-epoch switch
 	invalidValidatorsExistBlock := blockchain.GetBlockByNumber(902).Header()
-	invalidValidatorsExistBlock.Validators.CurrentEpoch = []byte{123}
+	invalidValidatorsExistBlock.Validators.CurrentEpoch = []common.Address{{123}}
 	err = adaptor.VerifyHeader(blockchain, invalidValidatorsExistBlock, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonEpochSwitch, err)
 
@@ -157,7 +157,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 
 	// Make the validators not legit by adding something to the validator
 	validatorsNotLegit := blockchain.GetBlockByNumber(901).Header()
-	validatorsNotLegit.Validators.CurrentEpoch = append(validatorsNotLegit.Validators.CurrentEpoch, acc1Addr[:]...)
+	validatorsNotLegit.Validators.CurrentEpoch = append(validatorsNotLegit.Validators.CurrentEpoch, acc1Addr)
 	err = adaptor.VerifyHeader(blockchain, validatorsNotLegit, true)
 	assert.Equal(t, utils.ErrValidatorsNotLegit, err)
 

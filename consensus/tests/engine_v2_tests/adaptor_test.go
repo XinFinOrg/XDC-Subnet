@@ -67,7 +67,7 @@ func TestAdaptorGetMasternodesFromCheckpointHeader(t *testing.T) {
 	masternodesV1 := adaptor.GetMasternodesFromCheckpointHeader(headerV1)
 	headerV2 := currentBlock.Header()
 	headerV2.Number.Add(blockchain.Config().XDPoS.V2.SwitchBlock, big.NewInt(1))
-	headerV2.Validators.CurrentEpoch = common.Hex2Bytes("0278c350152e15fa6ffc712a5a73d704ce73e2e103d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff065551f0dcac6f00cae11192d462db709be3758c")
+	headerV2.Validators.CurrentEpoch = []common.Address{}
 	headerV2.Extra = []byte{2}
 	masternodesV2 := adaptor.GetMasternodesFromCheckpointHeader(headerV2)
 	assert.True(t, reflect.DeepEqual(masternodesV1, masternodesV2), "GetMasternodesFromCheckpointHeader in adaptor for v1 v2 not equal", "v1", masternodesV1, "v2", masternodesV2)

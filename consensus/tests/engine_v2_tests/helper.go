@@ -177,7 +177,7 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig) *backends.S
 		trim := bytes.TrimLeft(val.Bytes(), "\x00")
 		err := rlp.DecodeBytes(trim, &decode)
 		if err != nil {
-			t.Fatalf("Failed while decode byte")
+			t.Fatalf("Failed while decode byte %s", err)
 		}
 		storage[key] = common.BytesToHash(decode)
 		log.Info("DecodeBytes", "value", val.String(), "decode", storage[key].String())
@@ -441,17 +441,15 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			// Get last master node list from last v1 block
 			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
 			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
-			for _, v := range masternodesFromV1LastEpoch {
-				header.Validators.CurrentEpoch = append(header.Validators.CurrentEpoch, v[:]...)
-			}
+			header.Validators.CurrentEpoch = masternodesFromV1LastEpoch
+
 		} else if roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 {
 			// epoch switch blocks, copy the master node list and inject into v2 validators
 			// Get last master node list from last v1 block
 			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
 			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
-			for _, v := range masternodesFromV1LastEpoch {
-				header.Validators.CurrentEpoch = append(header.Validators.CurrentEpoch, v[:]...)
-			}
+			header.Validators.CurrentEpoch = masternodesFromV1LastEpoch
+
 			if penalties != nil {
 				header.Penalties = penalties
 			}
