@@ -258,133 +258,124 @@ contract("Subnet Test", async accounts => {
     this.decoder = await forContractInstance(this.subnet);
   })
 
-  // it("Running Setup", async() => {
-  //   const is_master = await this.subnet.isMaster(accounts[0]);
-  //   const validators = await this.subnet.getCurrentValidators();
-  //   console.log(validators);
-  //   assert.equal(is_master, true);
-  //   assert.deepEqual(validators[0], this.validators_addr);
-  //   assert.equal(validators[2], 2);
-  // });
+  it("Running Setup", async() => {
+    const is_master = await this.subnet.isMaster(accounts[0]);
+    const validators = await this.subnet.getCurrentValidators();
+    assert.equal(is_master, true);
+    assert.deepEqual(validators[0], this.validators_addr);
+    assert.equal(validators[2], 2);
+  });
 
-  // it("Add Master", async() => {
-  //   await this.subnet.addMaster(accounts[1]);
-  //   var is_master = await this.subnet.isMaster(accounts[1]);
-  //   assert.equal(is_master, true);
-  //   await this.subnet.removeMaster(accounts[1]);
-  //   is_master = await this.subnet.isMaster(accounts[1]);
-  //   assert.equal(is_master, false);
-  // });
+  it("Add Master", async() => {
+    await this.subnet.addMaster(accounts[1]);
+    var is_master = await this.subnet.isMaster(accounts[1]);
+    assert.equal(is_master, true);
+    await this.subnet.removeMaster(accounts[1]);
+    is_master = await this.subnet.isMaster(accounts[1]);
+    assert.equal(is_master, false);
+  });
 
-  // it("Receive New Header", async() => {
+  it("Receive New Header", async() => {
 
-  //   var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
+    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
 
-  //   await this.subnet.receiveHeader(block2_encoded);
+    await this.subnet.receiveHeader([block2_encoded]);
 
-  //   const block2_resp = await this.subnet.getHeader(block2_hash);
-  //   const block2_decoded = RLP.decode(block2_resp);
-  //   const block2_extra = RLP.decode(block2_decoded[12].slice(1));
-  //   assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
-  //   assert.equal(block2_extra[0][0], 2);
-  //   assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
-  //   assert.equal(block2_extra[1][0][1][0], 1);
-  //   assert.equal(block2_extra[1][0][2][0], 1);
-  //   const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
-  //   const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
-  //   const latest_blocks = await this.subnet.getLatestBlocks();
-  //   assert.equal(finalized, false);
-  //   assert.equal(latest_blocks["0"][0], block2_hash);
-  //   assert.equal(latest_blocks["1"][0], this.block1_hash);
+    const block2_resp = await this.subnet.getHeader(block2_hash);
+    const block2_decoded = RLP.decode(block2_resp);
+    const block2_extra = RLP.decode(block2_decoded[12].slice(1));
+    assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
+    assert.equal(block2_extra[0][0], 2);
+    assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
+    assert.equal(block2_extra[1][0][1][0], 1);
+    assert.equal(block2_extra[1][0][2][0], 1);
+    const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
+    const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
+    const latest_blocks = await this.subnet.getLatestBlocks();
+    assert.equal(finalized, false);
+    assert.equal(latest_blocks["0"][0], block2_hash);
+    assert.equal(latest_blocks["1"][0], this.block1_hash);
 
-  //   const block2_resp2 = await this.subnet.getHeaderByNumber(2);
-  //   assert.equal(block2_resp2[0], block2_hash);
-  //   assert.equal(block2_resp2[1], 2);
-  // });
+    const block2_resp2 = await this.subnet.getHeaderByNumber(2);
+    assert.equal(block2_resp2[0], block2_hash);
+    assert.equal(block2_resp2[1], 2);
+  });
 
-  // it("Confirm A Received Block", async() => {
+  it("Confirm A Received Block", async() => {
     
-  //   var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
-  //   var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, this.validators, 2, [], []);
-  //   var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2, [], []);
-  //   var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, this.validators, 2, [], []);
+    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
+    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, 2, block2_hash, this.validators, 2, [], []);
+    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, 3, block3_hash, this.validators, 2, [], []);
+    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, 4, block4_hash, this.validators, 2, [], []);
 
-  //   await this.subnet.receiveHeader(block2_encoded); 
-  //   await this.subnet.receiveHeader(block3_encoded);
-  //   await this.subnet.receiveHeader(block4_encoded);
-  //   await this.subnet.receiveHeader(block5_encoded);
+    await this.subnet.receiveHeader([block2_encoded, block3_encoded]); 
+    await this.subnet.receiveHeader([block4_encoded, block5_encoded]);
 
-  //   const block2_resp = await this.subnet.getHeader(block2_hash);
-  //   const block2_decoded = RLP.decode(block2_resp);
-  //   const block2_extra = RLP.decode(block2_decoded[12].slice(1));
-  //   assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
-  //   assert.equal(block2_extra[0][0], 2);
-  //   assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
-  //   assert.equal(block2_extra[1][0][1][0], 1);
-  //   assert.equal(block2_extra[1][0][2][0], 1);
+    const block2_resp = await this.subnet.getHeader(block2_hash);
+    const block2_decoded = RLP.decode(block2_resp);
+    const block2_extra = RLP.decode(block2_decoded[12].slice(1));
+    assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
+    assert.equal(block2_extra[0][0], 2);
+    assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
+    assert.equal(block2_extra[1][0][1][0], 1);
+    assert.equal(block2_extra[1][0][2][0], 1);
 
-  //   const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
-  //   const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
-  //   const latest_blocks = await this.subnet.getLatestBlocks();
-  //   assert.equal(finalized, true);
-  //   assert.equal(latest_blocks["0"][0], block5_hash);
-  //   assert.equal(latest_blocks["1"][0], block2_hash);
+    const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
+    const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
+    const latest_blocks = await this.subnet.getLatestBlocks();
+    assert.equal(finalized, true);
+    assert.equal(latest_blocks["0"][0], block5_hash);
+    assert.equal(latest_blocks["1"][0], block2_hash);
 
-  //   const block2_resp2 = await this.subnet.getHeaderByNumber(2);
-  //   assert.equal(block2_resp2[0], block2_hash);
-  //   assert.equal(block2_resp2[1], 2);
+    const block2_resp2 = await this.subnet.getHeaderByNumber(2);
+    assert.equal(block2_resp2[0], block2_hash);
+    assert.equal(block2_resp2[1], 2);
 
-  //   const block3_resp = await this.subnet.getHeaderByNumber(3);
-  //   assert.equal(block3_resp[0], block3_hash);
-  //   assert.equal(block3_resp[1], 3);
-  // });
+    const block3_resp = await this.subnet.getHeaderByNumber(3);
+    assert.equal(block3_resp[0], block3_hash);
+    assert.equal(block3_resp[1], 3);
+  });
 
-  // it("Switch a Validator Set", async() => {
+  it("Switch a Validator Set", async() => {
     
-  //   var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
-  //   var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, this.validators, 2, [], []);
-  //   var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2, [], []);
-  //   var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, this.validators, 2, [], []);
-  //   let new_validators = createValidators(3);
-  //   var [block6, block6_encoded, block6_hash] = composeAndSignBlock(6, 6, block5_hash, this.validators, 2, [], new_validators.map((val) => val.address));
-  //   var [block7, block7_encoded, block7_hash] = composeAndSignBlock(7, 7, block6_hash, this.validators, 2, [], []);
-  //   var [block8, block8_encoded, block8_hash] = composeAndSignBlock(8, 8, block7_hash, this.validators, 2, [], []);
-  //   var [block9, block9_encoded, block9_hash] = composeAndSignBlock(9, 9, block8_hash, this.validators, 2, [], []);
-  //   var [block10, block10_encoded, block10_hash] = composeAndSignBlock(10, 10, block9_hash, new_validators, 2, new_validators.map((val) => val.address), []);
+    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
+    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, 2, block2_hash, this.validators, 2, [], []);
+    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, 3, block3_hash, this.validators, 2, [], []);
+    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, 4, block4_hash, this.validators, 2, [], []);
+    let new_validators = createValidators(3);
+    var [block6, block6_encoded, block6_hash] = composeAndSignBlock(6, 6, 5, block5_hash, this.validators, 2, [], new_validators.map((val) => val.address));
+    var [block7, block7_encoded, block7_hash] = composeAndSignBlock(7, 7, 6, block6_hash, this.validators, 2, [], []);
+    var [block8, block8_encoded, block8_hash] = composeAndSignBlock(8, 8, 7, block7_hash, this.validators, 2, [], []);
+    var [block9, block9_encoded, block9_hash] = composeAndSignBlock(9, 9, 8, block8_hash, this.validators, 2, [], []);
+    var [block10, block10_encoded, block10_hash] = composeAndSignBlock(10, 10, 9, block9_hash, new_validators, 2, new_validators.map((val) => val.address), []);
 
-  //   await this.subnet.receiveHeader(block2_encoded); 
-  //   await this.subnet.receiveHeader(block3_encoded);
-  //   await this.subnet.receiveHeader(block4_encoded);
-  //   await this.subnet.receiveHeader(block5_encoded);
-  //   await this.subnet.receiveHeader(block6_encoded);
-  //   await this.subnet.receiveHeader(block7_encoded);
-  //   await this.subnet.receiveHeader(block8_encoded);
-  //   await this.subnet.receiveHeader(block9_encoded);
-  //   await this.subnet.receiveHeader(block10_encoded);
+    await this.subnet.receiveHeader([block2_encoded, block3_encoded, block4_encoded]); 
+    await this.subnet.receiveHeader([block5_encoded, block6_encoded, block7_encoded]);
+    await this.subnet.receiveHeader([block8_encoded, block9_encoded, block10_encoded]);
 
-  //   const block7_resp = await this.subnet.getHeader(block7_hash);
-  //   const block7_decoded = RLP.decode(block7_resp);
-  //   const block7_extra = RLP.decode(block7_decoded[12].slice(1));
-  //   assert.equal("0x"+Buffer.from(block7_decoded[0]).toString("hex"), block6_hash);
-  //   assert.equal(block7_extra[0][0], 7);
-  //   assert.equal("0x"+Buffer.from(block7_extra[1][0][0]).toString("hex"), block6_hash);
-  //   assert.equal(block7_extra[1][0][1][0], 6);
-  //   assert.equal(block7_extra[1][0][2][0], 6);
+    const block7_resp = await this.subnet.getHeader(block7_hash);
+    const block7_decoded = RLP.decode(block7_resp);
+    const block7_extra = RLP.decode(block7_decoded[12].slice(1));
+    assert.equal("0x"+Buffer.from(block7_decoded[0]).toString("hex"), block6_hash);
+    assert.equal(block7_extra[0][0], 7);
+    assert.equal("0x"+Buffer.from(block7_extra[1][0][0]).toString("hex"), block6_hash);
+    assert.equal(block7_extra[1][0][1][0], 6);
+    assert.equal(block7_extra[1][0][2][0], 6);
 
-  //   const finalized = await this.subnet.getHeaderConfirmationStatus(block7_hash);
-  //   const latest_blocks = await this.subnet.getLatestBlocks();
-  //   assert.equal(finalized, true);
-  //   assert.equal(latest_blocks["0"][0], block10_hash);
-  //   assert.equal(latest_blocks["1"][0], block7_hash);
+    const finalized = await this.subnet.getHeaderConfirmationStatus(block7_hash);
+    const latest_blocks = await this.subnet.getLatestBlocks();
+    assert.equal(finalized, true);
+    assert.equal(latest_blocks["0"][0], block10_hash);
+    assert.equal(latest_blocks["1"][0], block7_hash);
 
-  //   const block7_resp2 = await this.subnet.getHeaderByNumber(7);
-  //   assert.equal(block7_resp2[0], block7_hash);
-  //   assert.equal(block7_resp2[1], 7);
+    const block7_resp2 = await this.subnet.getHeaderByNumber(7);
+    assert.equal(block7_resp2[0], block7_hash);
+    assert.equal(block7_resp2[1], 7);
 
-  //   const block8_resp = await this.subnet.getHeaderByNumber(8);
-  //   assert.equal(block8_resp[0], block8_hash);
-  //   assert.equal(block8_resp[1], 8);
-  // });
+    const block8_resp = await this.subnet.getHeaderByNumber(8);
+    assert.equal(block8_resp[0], block8_hash);
+    assert.equal(block8_resp[1], 8);
+  });
 
   it("Switch a Validator Set in Special Case", async() => {
     
@@ -394,21 +385,17 @@ contract("Subnet Test", async accounts => {
     var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, 4, block4_hash, this.validators, 2, [], []);
     let new_validators = createValidators(3);
     var [block6, block6_encoded, block6_hash] = composeAndSignBlock(6, 9, 5, block5_hash, this.validators, 2, [], new_validators.map((val) => val.address));
-    var [block7, block7_encoded, block7_hash] = composeAndSignBlock(7, 10, 9, block6_hash, new_validators, 2, new_validators.map((val) => val.address), []);
+    var [block7, block7_encoded, block7_hash] = composeAndSignBlock(7, 10, 9, block6_hash, this.validators, 2, this.validators.map((val) => val.address), []);
 
-    await this.subnet.receiveHeader(block2_encoded); 
-    await this.subnet.receiveHeader(block3_encoded);
-    await this.subnet.receiveHeader(block4_encoded);
-    await this.subnet.receiveHeader(block5_encoded);
-    await this.subnet.receiveHeader(block6_encoded);
-    await this.subnet.receiveHeader(block7_encoded);
+    await this.subnet.receiveHeader([block2_encoded, block3_encoded, block4_encoded]); 
+    await this.subnet.receiveHeader([block5_encoded, block6_encoded, block7_encoded]);
 
     const latest_blocks = await this.subnet.getLatestBlocks();
     assert.equal(latest_blocks["0"][0], block7_hash);
     assert.equal(latest_blocks["1"][0], block2_hash);
 
     const block5_resp = await this.subnet.getHeaderByNumber(5);
-    assert.equal(block5_resp[0], block7_hash);
+    assert.equal(block5_resp[0], block5_hash);
     assert.equal(block5_resp[1], 5);
 
     const block2_resp = await this.subnet.getHeaderByNumber(2);

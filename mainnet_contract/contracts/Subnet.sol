@@ -34,7 +34,6 @@ contract Subnet {
   mapping(address => bool) masters;
   Validators current_validators;
   Validators next_validators;
-  Validators cached_validators;
   bytes32 latest_block;
   bytes32 latest_finalized_block;
   uint64 private GAP;
@@ -43,6 +42,7 @@ contract Subnet {
   // Event types
   event SubnetBlockAccepted(bytes32 block_hash, int number);
   event SubnetBlockFinalized(bytes32 block_hash, int number);
+  event Work();
 
   // Modifier
   modifier onlyMasters() {
@@ -114,131 +114,144 @@ contract Subnet {
     next_validators.threshold = threshold;
   }
 
-  function receiveHeader(bytes memory header) public onlyMasters { 
-    (
-      bytes32 parent_hash,
-      int number,
-      uint64 round_number,
-      uint64 prev_round_number,
-      bytes32 signHash,
-      bytes[] memory sigs
-    ) = HeaderReader.getValidationParams(header);
-    (
-      address[] memory current,
-      address[] memory next
-    ) = HeaderReader.getEpoch(header);
-
-    require(number > 0, "Repeated Genesis");
-    require(number > header_tree[latest_finalized_block].number, "Old Block");
-    require(header_tree[parent_hash].hash != 0, "Parent Missing");
-    require(header_tree[parent_hash].number + 1 == number, "Invalid N");
-    require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
-    require(header_tree[parent_hash].round_num == prev_round_number, "Invalid PRN");
-    bytes32 block_hash = keccak256(header);
-    if (header_tree[block_hash].number > 0) 
-      revert("Repeated Header");
-
-    if (current.length > 0 && next.length > 0)
-      revert("Malformed Block");
-    else if (current.length > 0) {
-      if (next_validators.set.length != current.length)
-        revert("Mismatched Validators");
-      else {
-        if (prev_round_number < round_number - (round_number % EPOCH)) {
-          if (number + 1 - number % int256(uint256(EPOCH)) - int256(uint256(GAP)) == next_validators.number) {
-            for (uint i = 0; i < current.length; i++) {
-              unique_addr[next_validators.set[i]] = true;
+  function receiveHeader(bytes[] memory headers) public onlyMasters {
+    emit Work();
+    for (uint x = 0; x < headers.length; x++) {
+      (
+        bytes32 parent_hash,
+        int number,
+        uint64 round_number,
+        uint64 prev_round_number,
+        bytes32 signHash,
+        bytes[] memory sigs
+      ) = HeaderReader.getValidationParams(headers[x]);
+    
+      (
+        address[] memory current,
+        address[] memory next
+      ) = HeaderReader.getEpoch(headers[x]);
+      
+      require(number > 0, "Repeated Genesis");
+      require(number > header_tree[latest_finalized_block].number, "Old Block");
+      require(header_tree[parent_hash].hash != 0, "Parent Missing");
+      require(header_tree[parent_hash].number + 1 == number, "Invalid N");
+      require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
+      require(header_tree[parent_hash].round_num == prev_round_number, "Invalid PRN");
+      
+      bytes32 block_hash = keccak256(headers[x]);
+      if (header_tree[block_hash].number > 0) 
+        revert("Repeated Header");
+      
+      if (current.length > 0 && next.length > 0)
+        revert("Malformed Block");
+      else if (current.length > 0) {
+        if (next_validators.set.length != current.length)
+          revert("Mismatched Validators");
+        else {
+          if (prev_round_number < round_number - (round_number % EPOCH)) {
+            int256 gap_number = number - number % int256(uint256(EPOCH)) - int256(uint256(GAP));
+            if (gap_number < 0) {
+              gap_number = 0;
             }
-            for (uint i = 0; i < current.length; i++) {
-              if (!unique_addr[current[i]]) 
-                revert("Mismatched Validators");
-              else
-                unique_addr[current[i]] = false;
+            if (gap_number + 1 == next_validators.number) {
+              for (uint i = 0; i < next_validators.set.length; i++) {
+                unique_addr[next_validators.set[i]] = true;
+              }
+              for (uint i = 0; i < next_validators.set.length; i++) {
+                if (!unique_addr[next_validators.set[i]]) 
+                  revert("Mismatched Validators");
+                else
+                  unique_addr[next_validators.set[i]] = false;
+              }
+              for (uint i = 0; i < current_validators.set.length; i++) {
+                lookup[current_validators.set[i]] = false;
+              }
+              for (uint i = 0; i < current.length; i++) {
+                lookup[next_validators.set[i]] = true;
+              }
+              current_validators = next_validators;
+              // next_validators = Validators({
+              //   set: new address[](0),
+              //   number: 0,
+              //   threshold: 0
+              // });
+            } else if (gap_number + 1 != current_validators.number){
+              revert("Invalid Current Block");
             }
-            for (uint i = 0; i < current_validators.set.length; i++) {
-              lookup[current_validators.set[i]] = false;
-            }
-            for (uint i = 0; i < current.length; i++) {
-              lookup[current[i]] = true;
-            }
-            current_validators = next_validators;
-            // next_validators = Validators({
-            //   set: new address[](0),
-            //   number: 0,
-            //   threshold: 0
-            // });
-          } else {
+          } else
             revert("Invalid Current Block");
-          }
+        }
+      }
+      else if (next.length > 0) {
+        if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
+          next_validators = Validators({
+            set: next,
+            number: number,
+            threshold: int256(next.length * 2 / 3)
+          });
         } else
-          revert("Invalid Current Block");
+          revert("Invalid Next Block");
       }
-    }
-    else if (next.length > 0) {
-      if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
-        next_validators = Validators({
-          set: next,
-          number: number,
-          threshold: int256(next.length * 2 / 3)
-        });
-        cached_validators = Validators({
-          set: current_validators.set,
-          number: current_validators.number,
-          threshold: current_validators.threshold
-        });
-      } else
-        revert("Invalid Next Block");
-    }
 
-    int unique_counter = 0;
-    address[] memory signer_list = new address[](sigs.length);
-    for (uint i = 0; i < sigs.length; i++) {
-      address signer = recoverSigner(signHash, sigs[i]);
-      if (lookup[signer] != true) {
+      int unique_counter = 0;
+      address[] memory signer_list = new address[](sigs.length);
+      for (uint i = 0; i < sigs.length; i++) {
+        address signer = recoverSigner(signHash, sigs[i]);
+        if (lookup[signer] != true) {
+          revert("Verification Fail");
+        }
+        if (!unique_addr[signer]) {
+          unique_counter ++;
+          unique_addr[signer]=true;
+        } else {
+          revert("Verification Fail");
+        }
+        signer_list[i] = signer;
+      }
+      for (uint i = 0; i < signer_list.length; i++) {
+        unique_addr[signer_list[i]] = false;
+      }
+      if (unique_counter < current_validators.threshold) {
         revert("Verification Fail");
       }
-      if (!unique_addr[signer]) {
-        unique_counter ++;
-        unique_addr[signer]=true;
-      } else {
-        revert("Verification Fail");
+      header_tree[block_hash] = Header({
+        hash: block_hash,
+        number: number,
+        round_num: round_number,
+        parent_hash: parent_hash,
+        finalized: false,
+        mainnet_num: block.number,
+        src: headers[x]
+      });
+      emit SubnetBlockAccepted(block_hash, number);
+      if (header_tree[block_hash].number > header_tree[latest_block].number) {
+        latest_block = block_hash;
       }
-      signer_list[i] = signer;
-    }
-    for (uint i = 0; i < signer_list.length; i++) {
-      unique_addr[signer_list[i]] = false;
-    }
-    if (unique_counter < current_validators.threshold) {
-      revert("Verification Fail");
-    }
-    header_tree[block_hash] = Header({
-      hash: block_hash,
-      number: number,
-      round_num: round_number,
-      parent_hash: parent_hash,
-      finalized: false,
-      mainnet_num: block.number,
-      src: header
-    });
-    emit SubnetBlockAccepted(block_hash, number);
-    if (header_tree[block_hash].number > header_tree[latest_block].number) {
-      latest_block = block_hash;
-    }
-    // Look for 3 consecutive round
-    bytes32 curr_hash = block_hash;
-    for (uint i = 0; i < 3; i++) {
-      if (header_tree[curr_hash].parent_hash == 0) return;
-      bytes32 prev_hash = header_tree[curr_hash].parent_hash;
-      if (header_tree[curr_hash].round_num != header_tree[prev_hash].round_num+1) return;
-      curr_hash = prev_hash;
-    }
-    latest_finalized_block = curr_hash;
-    // Confirm all ancestor unconfirmed block
-    while (header_tree[curr_hash].finalized != true) {
-      header_tree[curr_hash].finalized = true;
-      committed_blocks[header_tree[curr_hash].number] = curr_hash;
-      emit SubnetBlockFinalized(curr_hash, header_tree[curr_hash].number);
-      curr_hash = header_tree[curr_hash].parent_hash;
+      // Look for 3 consecutive round
+      bool found_committed_flag = true;
+      bytes32 curr_hash = block_hash;
+      for (uint i = 0; i < 3; i++) {
+        if (header_tree[curr_hash].parent_hash == 0) {
+          found_committed_flag = false;
+          break;
+        }
+        bytes32 prev_hash = header_tree[curr_hash].parent_hash;
+        if (header_tree[curr_hash].round_num != header_tree[prev_hash].round_num+1) {
+          found_committed_flag = false;
+          break;
+        } else {
+          curr_hash = prev_hash;
+        }
+      }
+      if (found_committed_flag == false) continue;
+      latest_finalized_block = curr_hash;
+      // Confirm all ancestor unconfirmed block
+      while (header_tree[curr_hash].finalized != true) {
+        header_tree[curr_hash].finalized = true;
+        committed_blocks[header_tree[curr_hash].number] = curr_hash;
+        emit SubnetBlockFinalized(curr_hash, header_tree[curr_hash].number);
+        curr_hash = header_tree[curr_hash].parent_hash;
+      }
     }
   }
 
@@ -265,7 +278,7 @@ contract Subnet {
     for (uint i = 0; i < initial_validator_set.length; i++) {
       lookup[initial_validator_set[i]] = true;
     }
-  } 
+  }
 
   function recoverSigner(bytes32 message, bytes memory sig)
     internal
