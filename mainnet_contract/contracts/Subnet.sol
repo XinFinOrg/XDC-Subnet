@@ -39,8 +39,8 @@ contract Subnet {
   Validators next_validators;
   bytes32 latest_block;
   bytes32 latest_finalized_block;
-  uint64 private GAP;
-  uint64 private EPOCH;
+  uint64 GAP;
+  uint64 EPOCH;
 
   // Event types
   event SubnetBlockAccepted(bytes32 block_hash, int number);
@@ -98,11 +98,6 @@ contract Subnet {
 
   function removeMaster(address master) public onlyMasters {
     masters[master] = false;
-  }
-
-  function setThreshold(int threshold) public onlyMasters {
-    require(threshold > 0, "0 Threshold");
-    next_validators.threshold = threshold;
   }
 
   function receiveHeader(bytes[] memory headers) public onlyMasters {
@@ -231,7 +226,7 @@ contract Subnet {
       // Confirm all ancestor unconfirmed block
       while ((header_tree[curr_hash].mix & 1) != 1) {
         header_tree[curr_hash].mix |= 1;
-        committed_blocks[uint64(header_tree[curr_hash].mix >> 129)] = curr_hash;
+        committed_blocks[int256(uint256(uint64(header_tree[curr_hash].mix >> 129)))] = curr_hash;
         emit SubnetBlockFinalized(curr_hash, int256(uint256(uint64(header_tree[curr_hash].mix >> 129))));
         curr_hash = header_tree[curr_hash].parent_hash;
       }

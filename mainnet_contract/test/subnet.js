@@ -77,8 +77,9 @@ const composeAndSignBlock = (number, round_num, prn, parent_hash, validators, th
     ])]),
     "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "nonce": new Uint8Array(8),
-    "validators": [current, next],
     "validator": new Uint8Array(8),
+    "validators": current,
+    "nextValidators": next,
     "penalties": new Uint8Array(8)
   }
 
@@ -105,8 +106,9 @@ const composeAndSignBlock = (number, round_num, prn, parent_hash, validators, th
     ])]),
     util.zeros(32),
     new Uint8Array(8),
-    [current, next],
     new Uint8Array(8),
+    current, 
+    next,
     new Uint8Array(8),
   ]));
 
@@ -177,8 +179,9 @@ contract("Subnet Test", async accounts => {
       ])]),
       "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "nonce": new Uint8Array(8),
-      "validators": new Uint8Array(8),
       "validator": new Uint8Array(8),
+      "validators": [],
+      "nextValidators": [],
       "penalties": new Uint8Array(8)
     }
     
@@ -207,7 +210,7 @@ contract("Subnet Test", async accounts => {
         util.zeros(32),
         new Uint8Array(8),
         new Uint8Array(8),
-        new Uint8Array(8),
+        [], [],
         new Uint8Array(8),
     ])));
 
@@ -235,7 +238,7 @@ contract("Subnet Test", async accounts => {
       util.zeros(32),
       new Uint8Array(8),
       new Uint8Array(8),
-      new Uint8Array(8),
+      [], [],
       new Uint8Array(8),
     ])).toString("hex");
     

@@ -50,15 +50,16 @@ library HeaderReader {
 
   function getEpoch(bytes memory header) public pure returns (address[] memory current, address[] memory next) {
     RLPItem[] memory ls = toList(toRlpItem(header));
-    RLPItem[] memory epoch = toList(ls[15]);
-    RLPItem[] memory list0 = toList(epoch[0]);
+    RLPItem[] memory list0 = toList(ls[16]);
+    // RLPItem[] memory list0 = toList(epoch[0]);
     if (list0.length > 0) {
       current = new address[](list0.length);
       for (uint i = 0; i < list0.length; i++) {
         current[i] = toAddress(list0[i]);
       }
     }
-    RLPItem[] memory list1 = toList(epoch[1]);
+    RLPItem[] memory list1 = toList(ls[17]);
+    // RLPItem[] memory list1 = toList(epoch[1]);
     if (list1.length > 0) {
       next = new address[](list1.length);
       for (uint i = 0; i < list1.length; i++) {

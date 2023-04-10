@@ -26,7 +26,7 @@ txn2 = Subnet.constructor(
 ).build_transaction(
   {
     "from": account.address,
-    "gas": 3950000,
+    "gas": 4500000,
     "gasPrice": 250000000,
     "nonce": w3.eth.get_transaction_count(account.address),
 })
