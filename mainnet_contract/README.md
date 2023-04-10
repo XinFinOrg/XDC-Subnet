@@ -47,8 +47,6 @@ source xdc/bin/activate
 # Git clone the modified web3
 git clone https://github.com/span14/web3.py.git
 cd web3.py
-git fetch 
-git checkout v5
 
 # Install modified web3
 python setup.py install
