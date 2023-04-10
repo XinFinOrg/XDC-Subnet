@@ -69,30 +69,25 @@ func (n *BlockNonce) UnmarshalText(input []byte) error {
 
 // Header represents a block header in the Ethereum blockchain.
 type Header struct {
-	ParentHash  common.Hash     `json:"parentHash"       gencodec:"required"`
-	UncleHash   common.Hash     `json:"sha3Uncles"       gencodec:"required"`
-	Coinbase    common.Address  `json:"miner"            gencodec:"required"`
-	Root        common.Hash     `json:"stateRoot"        gencodec:"required"`
-	TxHash      common.Hash     `json:"transactionsRoot" gencodec:"required"`
-	ReceiptHash common.Hash     `json:"receiptsRoot"     gencodec:"required"`
-	Bloom       Bloom           `json:"logsBloom"        gencodec:"required"`
-	Difficulty  *big.Int        `json:"difficulty"       gencodec:"required"`
-	Number      *big.Int        `json:"number"           gencodec:"required"`
-	GasLimit    uint64          `json:"gasLimit"         gencodec:"required"`
-	GasUsed     uint64          `json:"gasUsed"          gencodec:"required"`
-	Time        *big.Int        `json:"timestamp"        gencodec:"required"`
-	Extra       []byte          `json:"extraData"        gencodec:"required"`
-	MixDigest   common.Hash     `json:"mixHash"          gencodec:"required"`
-	Nonce       BlockNonce      `json:"nonce"            gencodec:"required"`
-	Validators  BlockValidators `json:"validators"       gencodec:"required"`
-	Validator   []byte          `json:"validator"        gencodec:"required"`
-	Penalties   []byte          `json:"penalties"        gencodec:"required"`
-}
-
-// BlockValidators contains the list of current epoch and next epoch masternodes
-type BlockValidators struct {
-	CurrentEpoch []common.Address
-	NextEpoch    []common.Address
+	ParentHash     common.Hash      `json:"parentHash"       gencodec:"required"`
+	UncleHash      common.Hash      `json:"sha3Uncles"       gencodec:"required"`
+	Coinbase       common.Address   `json:"miner"            gencodec:"required"`
+	Root           common.Hash      `json:"stateRoot"        gencodec:"required"`
+	TxHash         common.Hash      `json:"transactionsRoot" gencodec:"required"`
+	ReceiptHash    common.Hash      `json:"receiptsRoot"     gencodec:"required"`
+	Bloom          Bloom            `json:"logsBloom"        gencodec:"required"`
+	Difficulty     *big.Int         `json:"difficulty"       gencodec:"required"`
+	Number         *big.Int         `json:"number"           gencodec:"required"`
+	GasLimit       uint64           `json:"gasLimit"         gencodec:"required"`
+	GasUsed        uint64           `json:"gasUsed"          gencodec:"required"`
+	Time           *big.Int         `json:"timestamp"        gencodec:"required"`
+	Extra          []byte           `json:"extraData"        gencodec:"required"`
+	MixDigest      common.Hash      `json:"mixHash"          gencodec:"required"`
+	Nonce          BlockNonce       `json:"nonce"            gencodec:"required"`
+	Validator      []byte           `json:"validator"        gencodec:"required"`
+	Validators     []common.Address `json:"validators"       gencodec:"required"`
+	NextValidators []common.Address `json:"nextValidators"   gencodec:"required"` // next epoch validators
+	Penalties      []byte           `json:"penalties"        gencodec:"required"`
 }
 
 // field type overrides for gencodec

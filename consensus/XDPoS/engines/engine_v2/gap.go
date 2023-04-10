@@ -8,5 +8,5 @@ func (x *XDPoS_v2) IsGapPlusOneBlock(header *types.Header) bool {
 		// prevent overflow of number - number%x.config.Epoch - x.config.Gap < 0
 		return true
 	}
-	return (header.Number.Uint64() % x.config.Epoch) == (x.config.Epoch - x.config.Gap + 1)
+	return (header.Number.Uint64() % x.config.Epoch) == (x.config.Gap + 1)
 }

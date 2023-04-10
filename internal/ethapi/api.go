@@ -1251,8 +1251,9 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 		"timestamp":        (*hexutil.Big)(head.Time),
 		"transactionsRoot": head.TxHash,
 		"receiptsRoot":     head.ReceiptHash,
-		"validators":       head.Validators.CurrentEpoch, //omit head.Validators.NextEpoch on purpose
 		"validator":        hexutil.Bytes(head.Validator),
+		"validators":       head.Validators,
+		"nextValidators":   head.NextValidators,
 		"penalties":        hexutil.Bytes(head.Penalties),
 	}
 
