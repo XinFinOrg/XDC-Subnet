@@ -52,14 +52,18 @@ library HeaderReader {
     RLPItem[] memory ls = toList(toRlpItem(header));
     RLPItem[] memory epoch = toList(ls[15]);
     RLPItem[] memory list0 = toList(epoch[0]);
-    current = new address[](list0.length);
-    for (uint i = 0; i < list0.length; i++) {
-      current[i] = toAddress(list0[i]);
+    if (list0.length > 0) {
+      current = new address[](list0.length);
+      for (uint i = 0; i < list0.length; i++) {
+        current[i] = toAddress(list0[i]);
+      }
     }
     RLPItem[] memory list1 = toList(epoch[1]);
-    next = new address[](list1.length);
-    for (uint i = 0; i < list1.length; i++) {
-      next[i] = toAddress(list1[i]);
+    if (list1.length > 0) {
+      next = new address[](list1.length);
+      for (uint i = 0; i < list1.length; i++) {
+        next[i] = toAddress(list1[i]);
+      }
     }
   }
 

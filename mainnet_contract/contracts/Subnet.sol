@@ -115,7 +115,6 @@ contract Subnet {
   }
 
   function receiveHeader(bytes[] memory headers) public onlyMasters {
-    emit Work();
     for (uint x = 0; x < headers.length; x++) {
       (
         bytes32 parent_hash,
@@ -141,7 +140,6 @@ contract Subnet {
       bytes32 block_hash = keccak256(headers[x]);
       if (header_tree[block_hash].number > 0) 
         revert("Repeated Header");
-      
       if (current.length > 0 && next.length > 0)
         revert("Malformed Block");
       else if (current.length > 0) {
@@ -175,14 +173,13 @@ contract Subnet {
               //   number: 0,
               //   threshold: 0
               // });
-            } else if (gap_number + 1 != current_validators.number){
+            } else if (gap_number + 1 != current_validators.number) {
               revert("Invalid Current Block");
             }
           } else
             revert("Invalid Current Block");
         }
-      }
-      else if (next.length > 0) {
+      } else if (next.length > 0) {
         if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
           next_validators = Validators({
             set: next,
