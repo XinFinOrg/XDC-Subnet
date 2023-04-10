@@ -56,6 +56,10 @@ type Genesis struct {
 	Coinbase   common.Address      `json:"coinbase"`
 	Alloc      GenesisAlloc        `json:"alloc"      gencodec:"required"`
 
+	// subnet only fields
+	Validators     []common.Address `json:"validators"`
+	NextValidators []common.Address `json:"nextValidators"`
+
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
 	Number     uint64      `json:"number"`
