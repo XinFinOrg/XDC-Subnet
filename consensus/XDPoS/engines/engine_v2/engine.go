@@ -349,7 +349,7 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 		// prepare next epoch masternodes
 		snapshot, err := x.getSnapshotByHash(header.ParentHash)
 		if err != nil {
-			log.Error("[verifyHeader] fail to get snapshot for parent at gap number", "blockNum", header.Number, "parentHash", header.ParentHash, "error", err.Error())
+			log.Error("[Prepare] fail to get snapshot for parent at gap number", "blockNum", header.Number, "parentHash", header.ParentHash, "error", err.Error())
 			return err
 		}
 		header.Validators.NextEpoch = snapshot.NextEpochMasterNodes
