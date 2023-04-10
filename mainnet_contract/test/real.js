@@ -34,7 +34,6 @@ contract("Subnet Real Sample Test", async accounts => {
     Subnet.link("HeaderReader", this.lib.address);
     this.subnet = await Subnet.new(
       this.validators_addr,
-      2,
       this.genesis_encoded,
       this.block1_encoded,
       450,

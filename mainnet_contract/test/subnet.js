@@ -248,7 +248,6 @@ contract("Subnet Test", async accounts => {
     Subnet.link("HeaderReader", this.lib.address);
     this.subnet = await Subnet.new(
       this.validators_addr,
-      2,
       this.genesis_encoded,
       this.block1_encoded,
       5,
@@ -282,13 +281,9 @@ contract("Subnet Test", async accounts => {
     await this.subnet.receiveHeader([block2_encoded]);
 
     const block2_resp = await this.subnet.getHeader(block2_hash);
-    const block2_decoded = RLP.decode(block2_resp);
-    const block2_extra = RLP.decode(block2_decoded[12].slice(1));
-    assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
-    assert.equal(block2_extra[0][0], 2);
-    assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
-    assert.equal(block2_extra[1][0][1][0], 1);
-    assert.equal(block2_extra[1][0][2][0], 1);
+    assert.equal(block2_resp[0], this.block1_hash);
+    assert.equal(block2_resp[1], 2);
+    assert.equal(block2_resp[2], 2);
     const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
     const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();
@@ -312,13 +307,9 @@ contract("Subnet Test", async accounts => {
     await this.subnet.receiveHeader([block4_encoded, block5_encoded]);
 
     const block2_resp = await this.subnet.getHeader(block2_hash);
-    const block2_decoded = RLP.decode(block2_resp);
-    const block2_extra = RLP.decode(block2_decoded[12].slice(1));
-    assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
-    assert.equal(block2_extra[0][0], 2);
-    assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
-    assert.equal(block2_extra[1][0][1][0], 1);
-    assert.equal(block2_extra[1][0][2][0], 1);
+    assert.equal(block2_resp[0], this.block1_hash);
+    assert.equal(block2_resp[1], 2);
+    assert.equal(block2_resp[2], 2);
 
     const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
     const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
@@ -354,13 +345,9 @@ contract("Subnet Test", async accounts => {
     await this.subnet.receiveHeader([block8_encoded, block9_encoded, block10_encoded]);
 
     const block7_resp = await this.subnet.getHeader(block7_hash);
-    const block7_decoded = RLP.decode(block7_resp);
-    const block7_extra = RLP.decode(block7_decoded[12].slice(1));
-    assert.equal("0x"+Buffer.from(block7_decoded[0]).toString("hex"), block6_hash);
-    assert.equal(block7_extra[0][0], 7);
-    assert.equal("0x"+Buffer.from(block7_extra[1][0][0]).toString("hex"), block6_hash);
-    assert.equal(block7_extra[1][0][1][0], 6);
-    assert.equal(block7_extra[1][0][2][0], 6);
+    assert.equal(block7_resp[0], block6_hash);
+    assert.equal(block7_resp[1], 7);
+    assert.equal(block7_resp[2], 7);
 
     const finalized = await this.subnet.getHeaderConfirmationStatus(block7_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();

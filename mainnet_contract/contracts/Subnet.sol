@@ -7,13 +7,16 @@ import "./HeaderReader.sol";
 contract Subnet {
 
   struct Header {
-    bytes32 hash;
+    bytes32 parent_hash;
+    uint256 mix; // padding 63 | uint64 number | uint64 round_num | uint64 mainnet_num | bool finalized 
+  }
+
+  struct HeaderInfo {
+    bytes32 parent_hash;
     int number;
     uint64 round_num;
-    bytes32 parent_hash;
+    int mainnet_num;
     bool finalized;
-    uint mainnet_num;
-    bytes src;
   }
 
   struct Validators {
@@ -42,7 +45,6 @@ contract Subnet {
   // Event types
   event SubnetBlockAccepted(bytes32 block_hash, int number);
   event SubnetBlockFinalized(bytes32 block_hash, int number);
-  event Work();
 
   // Modifier
   modifier onlyMasters() {
@@ -52,40 +54,29 @@ contract Subnet {
 
   constructor(
     address[] memory initial_validator_set,
-    int threshold,
     bytes memory genesis_header,
     bytes memory block1_header,
     uint64 gap,
     uint64 epoch
   ) public {
     require(initial_validator_set.length > 0, "Validator Empty");
-    require(threshold > 0, "Invalid Threshold");
     bytes32 genesis_header_hash = keccak256(genesis_header);
     bytes32 block1_header_hash = keccak256(block1_header);
     (bytes32 ph, int n) = HeaderReader.getParentHashAndNumber(genesis_header);
     (bytes32 ph1, int n1, uint64 rn) = HeaderReader.getBlock1Params(block1_header);
+    require(n == 0 && n1 == 1, "Invalid Init Block");
     header_tree[genesis_header_hash] = Header({
-      hash: genesis_header_hash,
-      number: n,
-      round_num: 0, 
       parent_hash: ph,
-      finalized: true,
-      mainnet_num: block.number,
-      src: genesis_header
+      mix: uint256(n) << 129 | uint256(block.number) << 1 | 1
     });
     header_tree[block1_header_hash] = Header({
-      hash: block1_header_hash,
-      number: n1,
-      round_num: rn, 
       parent_hash: ph1,
-      finalized: true,
-      mainnet_num: block.number,
-      src: block1_header
+      mix: uint256(n1) << 129 | uint256(rn) << 65 | uint256(block.number) << 1 | 1
     });
     current_validators = Validators({
       set: initial_validator_set,
       number: 1,
-      threshold: threshold
+      threshold: int256(initial_validator_set.length * 2 / 3)
     });
     updateLookup(initial_validator_set);
     masters[msg.sender] = true;
@@ -131,14 +122,14 @@ contract Subnet {
       ) = HeaderReader.getEpoch(headers[x]);
       
       require(number > 0, "Repeated Genesis");
-      require(number > header_tree[latest_finalized_block].number, "Old Block");
-      require(header_tree[parent_hash].hash != 0, "Parent Missing");
-      require(header_tree[parent_hash].number + 1 == number, "Invalid N");
-      require(header_tree[parent_hash].round_num < round_number, "Invalid RN");
-      require(header_tree[parent_hash].round_num == prev_round_number, "Invalid PRN");
+      require(number > int256(uint256(uint64(header_tree[latest_finalized_block].mix >> 129))), "Old Block");
+      require(header_tree[parent_hash].mix != 0, "Parent Missing");
+      require(int256(uint256(uint64(header_tree[parent_hash].mix >> 129))) + 1 == number, "Invalid N");
+      require(uint64(header_tree[parent_hash].mix >> 65) < round_number, "Invalid RN");
+      require(uint64(header_tree[parent_hash].mix >> 65) == prev_round_number, "Invalid PRN");
       
       bytes32 block_hash = keccak256(headers[x]);
-      if (header_tree[block_hash].number > 0) 
+      if (header_tree[block_hash].mix > 0) 
         revert("Repeated Header");
       if (current.length > 0 && next.length > 0)
         revert("Malformed Block");
@@ -212,16 +203,11 @@ contract Subnet {
         revert("Verification Fail");
       }
       header_tree[block_hash] = Header({
-        hash: block_hash,
-        number: number,
-        round_num: round_number,
         parent_hash: parent_hash,
-        finalized: false,
-        mainnet_num: block.number,
-        src: headers[x]
+        mix: uint256(number) << 129 | uint256(round_number) << 65 | uint256(block.number) << 1
       });
       emit SubnetBlockAccepted(block_hash, number);
-      if (header_tree[block_hash].number > header_tree[latest_block].number) {
+      if (number > int256(uint256(uint64(header_tree[latest_block].mix >> 129)))) {
         latest_block = block_hash;
       }
       // Look for 3 consecutive round
@@ -233,7 +219,7 @@ contract Subnet {
           break;
         }
         bytes32 prev_hash = header_tree[curr_hash].parent_hash;
-        if (header_tree[curr_hash].round_num != header_tree[prev_hash].round_num+1) {
+        if (uint64(header_tree[curr_hash].mix >> 65) != uint64(header_tree[prev_hash].mix >> 65)+1) {
           found_committed_flag = false;
           break;
         } else {
@@ -243,10 +229,10 @@ contract Subnet {
       if (found_committed_flag == false) continue;
       latest_finalized_block = curr_hash;
       // Confirm all ancestor unconfirmed block
-      while (header_tree[curr_hash].finalized != true) {
-        header_tree[curr_hash].finalized = true;
-        committed_blocks[header_tree[curr_hash].number] = curr_hash;
-        emit SubnetBlockFinalized(curr_hash, header_tree[curr_hash].number);
+      while ((header_tree[curr_hash].mix & 1) != 1) {
+        header_tree[curr_hash].mix |= 1;
+        committed_blocks[uint64(header_tree[curr_hash].mix >> 129)] = curr_hash;
+        emit SubnetBlockFinalized(curr_hash, int256(uint256(uint64(header_tree[curr_hash].mix >> 129))));
         curr_hash = header_tree[curr_hash].parent_hash;
       }
     }
@@ -286,53 +272,61 @@ contract Subnet {
     return ecrecover(message, v, r, s);
   }
 
-  function getHeader(bytes32 header_hash) public view returns (bytes memory) {
-    return header_tree[header_hash].src;
+  function getHeader(bytes32 header_hash) public view returns (HeaderInfo memory) {
+    return HeaderInfo({
+      parent_hash: header_tree[header_hash].parent_hash,
+      number: int256(uint256(uint64(header_tree[header_hash].mix >> 129))),
+      round_num: uint64(header_tree[header_hash].mix >> 65),
+      mainnet_num: int256(uint256(uint64(header_tree[header_hash].mix >> 1))),
+      finalized: (header_tree[header_hash].mix & 1) == 1
+    });
   }
+
 
   function getHeaderByNumber(int number) public view returns (BlockLite memory) {
     if (committed_blocks[number] == 0) {
-      if (number > header_tree[latest_block].number) {
+      int block_num = int256(uint256(uint64(header_tree[latest_block].mix >> 129)));
+      if (number > block_num) {
         return BlockLite({
           hash: bytes32(0),
           number: 0
         });
       }
-      int num_gap = header_tree[latest_block].number - number;
+      int num_gap =  block_num - number;
       bytes32 curr_hash = latest_block;
       for (int i = 0; i < num_gap; i++) {
         curr_hash = header_tree[curr_hash].parent_hash;
       }
       return BlockLite({
-        hash: header_tree[curr_hash].hash,
-        number: header_tree[curr_hash].number
+        hash: curr_hash,
+        number: int256(uint256(uint64(header_tree[curr_hash].mix >> 129)))
       });
     } else {
       return BlockLite({
-        hash: header_tree[committed_blocks[number]].hash,
-        number: header_tree[committed_blocks[number]].number
+        hash: committed_blocks[number],
+        number: int256(uint256(uint64(header_tree[committed_blocks[number]].mix >> 129)))
       });
     }
     
   }
   
   function getHeaderConfirmationStatus(bytes32 header_hash) public view returns (bool) {
-    return header_tree[header_hash].finalized;
+    return (header_tree[header_hash].mix & 1 == 1);
   }
 
   function getMainnetBlockNumber(bytes32 header_hash) public view returns (uint) {
-    return header_tree[header_hash].mainnet_num;
+    return uint256(uint64(header_tree[header_hash].mix >> 1));
   }
 
   function getLatestBlocks() public view returns (BlockLite memory, BlockLite memory) {
     return (
         BlockLite({
         hash: latest_block,
-        number: header_tree[latest_block].number
+        number: int256(uint256(uint64(header_tree[latest_block].mix >> 129)))
       }),
         BlockLite({
         hash: latest_finalized_block,
-        number: header_tree[latest_finalized_block].number
+        number: int256(uint256(uint64(header_tree[latest_finalized_block].mix >> 129)))
     }));
   }
 

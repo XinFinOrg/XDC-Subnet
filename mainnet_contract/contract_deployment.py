@@ -18,7 +18,7 @@ with open("lib_address.txt", "r") as f:
 
 Subnet = w3.eth.contract(abi=subnet_contract["abi"], bytecode=subnet_contract["bytecode"].replace("__HeaderReader__________________________", lib_addr))
 txn2 = Subnet.constructor(
-  init["validators"], init["threshold"], 
+  init["validators"],
   init["genesis_header_encoded"], 
   init["block1_header_encoded"],
   init["gap"],
