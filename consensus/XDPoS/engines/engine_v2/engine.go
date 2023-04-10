@@ -352,9 +352,8 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 			log.Error("[verifyHeader] fail to get snapshot for parent at gap number", "blockNum", header.Number, "parentHash", header.ParentHash, "error", err.Error())
 			return err
 		}
-		for _, v := range snapshot.NextEpochMasterNodes {
-			header.Validators.NextEpoch = append(header.Validators.NextEpoch, v[:]...)
-		}
+		header.Validators.NextEpoch = snapshot.NextEpochMasterNodes
+
 	}
 
 	// Mix digest is reserved for now, set to empty

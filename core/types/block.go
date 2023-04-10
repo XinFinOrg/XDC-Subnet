@@ -91,8 +91,8 @@ type Header struct {
 
 // BlockValidators contains the list of current epoch and next epoch masternodes
 type BlockValidators struct {
-	CurrentEpoch []byte
-	NextEpoch    []byte
+	CurrentEpoch []common.Address
+	NextEpoch    []common.Address
 }
 
 // field type overrides for gencodec
