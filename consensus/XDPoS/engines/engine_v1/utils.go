@@ -30,7 +30,9 @@ func getM1M2FromCheckpointHeader(checkpointHeader *types.Header, currentHeader *
 	}
 	// Get signers from this block.
 	masternodes := decodeMasternodesFromHeaderExtra(checkpointHeader)
-	validators := utils.ExtractValidatorsFromBytes(checkpointHeader.Validators.CurrentEpoch)
+	//SKip modify Header.Validators.CurrentEpoch in v1 for subnet only
+	//validators := utils.ExtractValidatorsFromBytes(checkpointHeader.Validators.CurrentEpoch)
+	validators := []int64{}
 	m1m2, _, err := getM1M2(masternodes, validators, currentHeader, config)
 	if err != nil {
 		return map[common.Address]common.Address{}, err

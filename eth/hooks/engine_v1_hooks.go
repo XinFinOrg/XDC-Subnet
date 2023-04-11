@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"bytes"
 	"errors"
 	"math/big"
 	"sort"
@@ -185,25 +184,29 @@ func AttachConsensusV1Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 		if err != nil {
 			return []byte{}, err
 		}
-		header.Validators.CurrentEpoch = validators
+		//Skip modify Header.Validators.CurrentEpoch in v1 for subnet only
+		//header.Validators.CurrentEpoch = validators
 		log.Debug("Time Calculated HookValidator ", "block", header.Number.Uint64(), "time", common.PrettyDuration(time.Since(start)))
 		return validators, nil
 	}
 
 	// Hook verifies masternodes set
 	adaptor.EngineV1.HookVerifyMNs = func(header *types.Header, signers []common.Address) error {
-		number := header.Number.Int64()
-		if number > 0 && number%common.EpocBlockRandomize == 0 {
-			start := time.Now()
-			validators, err := getValidators(bc, signers)
-			log.Debug("Time Calculated HookVerifyMNs ", "block", header.Number.Uint64(), "time", common.PrettyDuration(time.Since(start)))
-			if err != nil {
-				return err
+		// Skip modify header.Validators.CurrentEpoch on v1 for subnet only
+		/*
+			number := header.Number.Int64()
+			if number > 0 && number%common.EpocBlockRandomize == 0 {
+				start := time.Now()
+				validators, err := getValidators(bc, signers)
+				log.Debug("Time Calculated HookVerifyMNs ", "block", header.Number.Uint64(), "time", common.PrettyDuration(time.Since(start)))
+				if err != nil {
+					return err
+				}
+				if !bytes.Equal(header.Validators.CurrentEpoch, validators) {
+					return utils.ErrInvalidCheckpointValidators
+				}
 			}
-			if !bytes.Equal(header.Validators.CurrentEpoch, validators) {
-				return utils.ErrInvalidCheckpointValidators
-			}
-		}
+		*/
 		return nil
 	}
 

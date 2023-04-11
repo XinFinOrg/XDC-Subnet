@@ -155,8 +155,9 @@ func (api *API) GetV2BlockByNumber(number *rpc.BlockNumber) *V2BlockInfo {
 	if number == nil || *number == rpc.LatestBlockNumber {
 		header = api.chain.CurrentHeader()
 	} else if *number == rpc.CommittedBlockNumber {
-		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
-		header = api.chain.GetHeaderByHash(hash)
+		if blockInfo := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo(); blockInfo != nil {
+			header = api.chain.GetHeaderByHash(blockInfo.Hash)
+		}
 	} else {
 		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
 	}

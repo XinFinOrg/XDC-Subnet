@@ -336,9 +336,9 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 		if err != nil {
 			return err
 		}
-		for _, v := range masterNodes {
-			header.Validators.CurrentEpoch = append(header.Validators.CurrentEpoch, v[:]...)
-		}
+
+		header.Validators = masterNodes
+
 		for _, v := range penalties {
 			header.Penalties = append(header.Penalties, v[:]...)
 		}
@@ -352,9 +352,8 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 			log.Error("[Prepare] fail to get snapshot for parent at gap number", "blockNum", header.Number, "parentHash", header.ParentHash, "error", err.Error())
 			return err
 		}
-		for _, v := range snapshot.NextEpochMasterNodes {
-			header.Validators.NextEpoch = append(header.Validators.NextEpoch, v[:]...)
-		}
+		header.NextValidators = snapshot.NextEpochMasterNodes
+
 	}
 
 	// Mix digest is reserved for now, set to empty
@@ -971,11 +970,7 @@ func (x *XDPoS_v2) GetMasternodesFromEpochSwitchHeader(epochSwitchHeader *types.
 		log.Error("[GetMasternodesFromEpochSwitchHeader] use nil epoch switch block to get master nodes")
 		return []common.Address{}
 	}
-	masternodes := make([]common.Address, len(epochSwitchHeader.Validators.CurrentEpoch)/common.AddressLength)
-	for i := 0; i < len(masternodes); i++ {
-		copy(masternodes[i][:], epochSwitchHeader.Validators.CurrentEpoch[i*common.AddressLength:])
-	}
-
+	masternodes := epochSwitchHeader.Validators
 	return masternodes
 }
 

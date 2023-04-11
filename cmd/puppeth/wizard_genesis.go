@@ -166,6 +166,10 @@ func (w *wizard) makeGenesis() {
 				}
 			}
 		}
+
+		genesis.Validators = signers
+		genesis.NextValidators = signers
+
 		validatorCap := new(big.Int)
 		validatorCap.SetString("50000000000000000000000", 10)
 		var validatorCaps []*big.Int
