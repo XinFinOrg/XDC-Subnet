@@ -1,6 +1,7 @@
 package engine_v2_tests
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"testing"
@@ -76,8 +77,16 @@ func TestShouldMineOncePerRound(t *testing.T) {
 }
 
 func TestUpdateMasterNodes(t *testing.T) {
-	config := params.TestXDPoSMockChainConfig
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch+config.XDPoS.Gap)-1, config, nil)
+	b, err := json.Marshal(params.TestXDPoSMockChainConfig)
+	assert.Nil(t, err)
+	configString := string(b)
+
+	var config params.ChainConfig
+	err = json.Unmarshal([]byte(configString), &config)
+	assert.Nil(t, err)
+	// set switch to 0
+	config.XDPoS.V2.SwitchBlock.SetUint64(0)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch+config.XDPoS.Gap)-1, &config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	x := adaptor.EngineV2
 	snap, err := x.GetSnapshot(blockchain, currentBlock.Header())
@@ -94,9 +103,9 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	merkleRoot := "ef9198eb14b003774a505033f6cdcea2d357cbf7a7e7b004d8034d4e2a9770ee"
+	stateRoot := "48974afaffb7b132394fc4d55f1fea1e370f24d85d56df8907f275e17e519f1b"
 	header := &types.Header{
-		Root:       common.HexToHash(merkleRoot),
+		Root:       common.HexToHash(stateRoot),
 		Number:     big.NewInt(int64(1350)),
 		ParentHash: currentBlock.Hash(),
 		Coinbase:   common.HexToAddress(blockCoinbaseA),
@@ -104,7 +113,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 
 	header.Extra = generateV2Extra(450, currentBlock, signer, signFn, nil)
 
-	parentBlock, err := createBlockFromHeader(blockchain, header, []*types.Transaction{tx}, signer, signFn, config)
+	parentBlock, err := createBlockFromHeader(blockchain, header, []*types.Transaction{tx}, signer, signFn, &config)
 	assert.Nil(t, err)
 	err = blockchain.InsertBlock(parentBlock)
 	assert.Nil(t, err)
@@ -116,7 +125,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		blockCoinbase := fmt.Sprintf("0xaaa000000000000000000000000000000000%4d", i)
 		//Get from block validator error message
 		header = &types.Header{
-			Root:       common.HexToHash(merkleRoot),
+			Root:       common.HexToHash(stateRoot),
 			Number:     big.NewInt(int64(i)),
 			ParentHash: parentBlock.Hash(),
 			Coinbase:   common.HexToAddress(blockCoinbase),
@@ -124,7 +133,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 
 		header.Extra = generateV2Extra(int64(i), currentBlock, signer, signFn, nil)
 
-		block, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, config)
+		block, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, &config)
 		if err != nil {
 			t.Fatal(err)
 		}
