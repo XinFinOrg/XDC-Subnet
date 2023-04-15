@@ -21,7 +21,6 @@ contract Subnet {
 
   struct Validators {
     address[] set;
-    int number;
     int threshold;
   }
 
@@ -35,8 +34,8 @@ contract Subnet {
   mapping(address => bool) lookup;
   mapping(address => bool) unique_addr;
   mapping(address => bool) masters;
+  mapping(int => Validators) validators;
   Validators current_validators;
-  Validators next_validators;
   bytes32 latest_block;
   bytes32 latest_finalized_block;
   uint64 GAP;
@@ -73,11 +72,11 @@ contract Subnet {
       parent_hash: ph1,
       mix: uint256(n1) << 129 | uint256(rn) << 65 | uint256(block.number) << 1 | 1
     });
-    current_validators = Validators({
+    validators[1] = Validators({
       set: initial_validator_set,
-      number: 1,
       threshold: int256(initial_validator_set.length * 2 / 3)
     });
+    current_validators = validators[1];
     updateLookup(initial_validator_set);
     masters[msg.sender] = true;
     latest_block = block1_header_hash;
@@ -129,47 +128,39 @@ contract Subnet {
       if (current.length > 0 && next.length > 0)
         revert("Malformed Block");
       else if (current.length > 0) {
-        if (next_validators.set.length != current.length)
-          revert("Mismatched Validators");
-        else {
-          if (prev_round_number < round_number - (round_number % EPOCH)) {
-            int256 gap_number = number - number % int256(uint256(EPOCH)) - int256(uint256(GAP));
-            if (gap_number < 0) {
-              gap_number = 0;
+        if (prev_round_number < round_number - (round_number % EPOCH)) {
+          int256 gap_number = number - number % int256(uint256(EPOCH)) - int256(uint256(GAP));
+          if (gap_number < 0) {
+            gap_number = 0;
+          }
+          gap_number = gap_number + 1;
+          if (validators[gap_number].threshold > 0) {
+            if (validators[gap_number].set.length != current.length)
+              revert("Mismatched Validators");
+            for (uint i = 0; i < current_validators.set.length; i++) {
+              lookup[current_validators.set[i]] = false;
             }
-            if (gap_number + 1 == next_validators.number) {
-              for (uint i = 0; i < next_validators.set.length; i++) {
-                unique_addr[next_validators.set[i]] = true;
-              }
-              for (uint i = 0; i < next_validators.set.length; i++) {
-                if (!unique_addr[next_validators.set[i]]) 
-                  revert("Mismatched Validators");
-                else
-                  unique_addr[next_validators.set[i]] = false;
-              }
-              for (uint i = 0; i < current_validators.set.length; i++) {
-                lookup[current_validators.set[i]] = false;
-              }
-              for (uint i = 0; i < current.length; i++) {
-                lookup[next_validators.set[i]] = true;
-              }
-              current_validators = next_validators;
-              // next_validators = Validators({
-              //   set: new address[](0),
-              //   number: 0,
-              //   threshold: 0
-              // });
-            } else if (gap_number + 1 != current_validators.number) {
-              revert("Invalid Current Block");
+            for (uint i = 0; i < current.length; i++) {
+              lookup[validators[gap_number].set[i]] = true;
             }
-          } else
+            current_validators = validators[gap_number];
+          } else 
             revert("Invalid Current Block");
-        }
+        } else
+          revert("Invalid Current Block");
       } else if (next.length > 0) {
         if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
-          next_validators = Validators({
+          for (uint i = 0; i < next.length; i++) {
+            unique_addr[next[i]] = true;
+          }
+          for (uint i = 0; i < next.length; i++) {
+            if (!unique_addr[next[i]]) 
+              revert("Repeated Validator");
+            else
+              unique_addr[next[i]] = false;
+          }
+          validators[number] = Validators({
             set: next,
-            number: number,
             threshold: int256(next.length * 2 / 3)
           });
         } else
