@@ -35,6 +35,8 @@ var TIP2019Block = big.NewInt(1)
 var TIPSigning = big.NewInt(3000000)
 var TIPRandomize = big.NewInt(3464000)
 
+var TIPV2SwitchBlock = big.NewInt(99999999999)
+
 var TIPNoHalvingMNReward = big.NewInt(38383838) // hardfork no halving masternodes reward
 var BlackListHFNumber = uint64(38383838)
 var TIPXDCX = big.NewInt(38383838)

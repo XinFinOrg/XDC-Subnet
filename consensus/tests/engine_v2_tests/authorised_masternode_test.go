@@ -34,7 +34,7 @@ func TestIsAuthorisedMNForConsensusV2(t *testing.T) {
 func TestIsYourTurnConsensusV2(t *testing.T) {
 	// we skip test for v1 since it's hard to make a real genesis block
 	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 900, params.TestXDPoSMockChainConfig, nil)
-	minePeriod := params.TestV2Configs[0].MinePeriod
+	minePeriod := params.UnitTestV2Configs[0].MinePeriod
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	blockNum := 901
 	blockCoinBase := "0x111000000000000000000000000000000123"
@@ -98,7 +98,7 @@ func TestIsYourTurnConsensusV2CrossConfig(t *testing.T) {
 	time.Sleep(time.Duration(firstMinePeriod) * time.Second)
 	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
 	assert.Nil(t, err)
-	assert.True(t, isYourTurn) //TODO: @Liam why this is true
+	assert.False(t, isYourTurn)
 
 	adaptor.UpdateParams(currentBlockHeader) // it will be triggered automatically on the real code by other process
 

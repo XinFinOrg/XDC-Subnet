@@ -76,7 +76,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	invalidValidatorsSignerBlock := blockchain.GetBlockByNumber(901).Header()
 	invalidValidatorsSignerBlock.Validators = []common.Address{{123}}
 	err = adaptor.VerifyHeader(blockchain, invalidValidatorsSignerBlock, true)
-	assert.Equal(t, utils.ErrInvalidCheckpointSigners, err)
+	assert.Equal(t, utils.ErrValidatorsNotLegit, err)
 
 	// non-epoch switch
 	invalidValidatorsExistBlock := blockchain.GetBlockByNumber(902).Header()
@@ -217,8 +217,7 @@ func TestConfigSwitchOnDifferentCertThreshold(t *testing.T) {
 	block912.Extra = extraInBytes
 	err = adaptor.VerifyHeader(blockchain, block912, true)
 
-	// assert.Equal(t, utils.ErrInvalidQCSignatures, err)//todo @Liam why ErrValidatorNotWithinMasternodes?
-	assert.Equal(t, utils.ErrValidatorNotWithinMasternodes, err)
+	assert.Equal(t, utils.ErrInvalidQCSignatures, err)
 
 	// Make we verification process use the corresponding config
 	// Genrate 910 QC
