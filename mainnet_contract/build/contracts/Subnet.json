@@ -1323,7 +1323,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 2820,
+                          "referencedDeclaration": 2818,
                           "src": "1117:3:1",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -1398,10 +1398,10 @@
                         "name": "revert",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [
-                          2825,
-                          2826
+                          2823,
+                          2824
                         ],
-                        "referencedDeclaration": 2826,
+                        "referencedDeclaration": 2824,
                         "src": "1130:6:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -1557,10 +1557,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2823,
-                        2824
+                        2821,
+                        2822
                       ],
-                      "referencedDeclaration": 2824,
+                      "referencedDeclaration": 2822,
                       "src": "1340:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1646,7 +1646,7 @@
                       "name": "keccak256",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2814,
+                      "referencedDeclaration": 2812,
                       "src": "1436:9:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_keccak256_pure$_t_bytes_memory_ptr_$returns$_t_bytes32_$",
@@ -1731,7 +1731,7 @@
                       "name": "keccak256",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2814,
+                      "referencedDeclaration": 2812,
                       "src": "1496:9:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_keccak256_pure$_t_bytes_memory_ptr_$returns$_t_bytes32_$",
@@ -2195,10 +2195,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2823,
-                        2824
+                        2821,
+                        2822
                       ],
-                      "referencedDeclaration": 2824,
+                      "referencedDeclaration": 2822,
                       "src": "1689:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -2423,7 +2423,7 @@
                                       "name": "block",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 2810,
+                                      "referencedDeclaration": 2808,
                                       "src": "1849:5:1",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_magic_block",
@@ -2894,7 +2894,7 @@
                                       "name": "block",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 2810,
+                                      "referencedDeclaration": 2808,
                                       "src": "2011:5:1",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_magic_block",
@@ -3484,7 +3484,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 2820,
+                          "referencedDeclaration": 2818,
                           "src": "2272:3:1",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -5056,10 +5056,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              2823,
-                              2824
+                              2821,
+                              2822
                             ],
-                            "referencedDeclaration": 2824,
+                            "referencedDeclaration": 2822,
                             "src": "3279:7:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -5361,10 +5361,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              2823,
-                              2824
+                              2821,
+                              2822
                             ],
-                            "referencedDeclaration": 2824,
+                            "referencedDeclaration": 2822,
                             "src": "3326:7:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -5520,10 +5520,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              2823,
-                              2824
+                              2821,
+                              2822
                             ],
-                            "referencedDeclaration": 2824,
+                            "referencedDeclaration": 2822,
                             "src": "3436:7:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -5862,10 +5862,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              2823,
-                              2824
+                              2821,
+                              2822
                             ],
-                            "referencedDeclaration": 2824,
+                            "referencedDeclaration": 2822,
                             "src": "3504:7:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -6091,10 +6091,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              2823,
-                              2824
+                              2821,
+                              2822
                             ],
-                            "referencedDeclaration": 2824,
+                            "referencedDeclaration": 2822,
                             "src": "3608:7:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -6320,10 +6320,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              2823,
-                              2824
+                              2821,
+                              2822
                             ],
-                            "referencedDeclaration": 2824,
+                            "referencedDeclaration": 2822,
                             "src": "3696:7:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -6436,7 +6436,7 @@
                             "name": "keccak256",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 2814,
+                            "referencedDeclaration": 2812,
                             "src": "3819:9:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_keccak256_pure$_t_bytes_memory_ptr_$returns$_t_bytes32_$",
@@ -6592,10 +6592,10 @@
                               "name": "revert",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [
-                                2825,
-                                2826
+                                2823,
+                                2824
                               ],
-                              "referencedDeclaration": 2826,
+                              "referencedDeclaration": 2824,
                               "src": "3894:6:1",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -7249,10 +7249,10 @@
                                         "name": "revert",
                                         "nodeType": "Identifier",
                                         "overloadedDeclarations": [
-                                          2825,
-                                          2826
+                                          2823,
+                                          2824
                                         ],
-                                        "referencedDeclaration": 2826,
+                                        "referencedDeclaration": 2824,
                                         "src": "5529:6:1",
                                         "typeDescriptions": {
                                           "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -7783,10 +7783,10 @@
                                                     "name": "revert",
                                                     "nodeType": "Identifier",
                                                     "overloadedDeclarations": [
-                                                      2825,
-                                                      2826
+                                                      2823,
+                                                      2824
                                                     ],
-                                                    "referencedDeclaration": 2826,
+                                                    "referencedDeclaration": 2824,
                                                     "src": "5269:6:1",
                                                     "typeDescriptions": {
                                                       "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -8399,10 +8399,10 @@
                                       "name": "revert",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [
-                                        2825,
-                                        2826
+                                        2823,
+                                        2824
                                       ],
-                                      "referencedDeclaration": 2826,
+                                      "referencedDeclaration": 2824,
                                       "src": "4908:6:1",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -9057,10 +9057,10 @@
                                             "name": "revert",
                                             "nodeType": "Identifier",
                                             "overloadedDeclarations": [
-                                              2825,
-                                              2826
+                                              2823,
+                                              2824
                                             ],
-                                            "referencedDeclaration": 2826,
+                                            "referencedDeclaration": 2824,
                                             "src": "4850:6:1",
                                             "typeDescriptions": {
                                               "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -9252,10 +9252,10 @@
                                                   "name": "revert",
                                                   "nodeType": "Identifier",
                                                   "overloadedDeclarations": [
-                                                    2825,
-                                                    2826
+                                                    2823,
+                                                    2824
                                                   ],
-                                                  "referencedDeclaration": 2826,
+                                                  "referencedDeclaration": 2824,
                                                   "src": "4458:6:1",
                                                   "typeDescriptions": {
                                                     "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -10007,10 +10007,10 @@
                               "name": "revert",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [
-                                2825,
-                                2826
+                                2823,
+                                2824
                               ],
-                              "referencedDeclaration": 2826,
+                              "referencedDeclaration": 2824,
                               "src": "3978:6:1",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -10480,10 +10480,10 @@
                                         "name": "revert",
                                         "nodeType": "Identifier",
                                         "overloadedDeclarations": [
-                                          2825,
-                                          2826
+                                          2823,
+                                          2824
                                         ],
-                                        "referencedDeclaration": 2826,
+                                        "referencedDeclaration": 2824,
                                         "src": "5817:6:1",
                                         "typeDescriptions": {
                                           "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -10607,10 +10607,10 @@
                                         "name": "revert",
                                         "nodeType": "Identifier",
                                         "overloadedDeclarations": [
-                                          2825,
-                                          2826
+                                          2823,
+                                          2824
                                         ],
-                                        "referencedDeclaration": 2826,
+                                        "referencedDeclaration": 2824,
                                         "src": "5984:6:1",
                                         "typeDescriptions": {
                                           "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -11359,10 +11359,10 @@
                                   "name": "revert",
                                   "nodeType": "Identifier",
                                   "overloadedDeclarations": [
-                                    2825,
-                                    2826
+                                    2823,
+                                    2824
                                   ],
-                                  "referencedDeclaration": 2826,
+                                  "referencedDeclaration": 2824,
                                   "src": "6238:6:1",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_function_revert_pure$_t_string_memory_ptr_$returns$__$",
@@ -11686,7 +11686,7 @@
                                           "name": "block",
                                           "nodeType": "Identifier",
                                           "overloadedDeclarations": [],
-                                          "referencedDeclaration": 2810,
+                                          "referencedDeclaration": 2808,
                                           "src": "6426:5:1",
                                           "typeDescriptions": {
                                             "typeIdentifier": "t_magic_block",
@@ -14469,10 +14469,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2823,
-                        2824
+                        2821,
+                        2822
                       ],
-                      "referencedDeclaration": 2824,
+                      "referencedDeclaration": 2822,
                       "src": "7858:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -15353,7 +15353,7 @@
                       "name": "ecrecover",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2812,
+                      "referencedDeclaration": 2810,
                       "src": "8621:9:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_ecrecover_pure$_t_bytes32_$_t_uint8_$_t_bytes32_$_t_bytes32_$returns$_t_address_$",
@@ -20233,7 +20233,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 2820,
+                                      "referencedDeclaration": 2818,
                                       "type": "msg",
                                       "value": "msg"
                                     },
@@ -20282,10 +20282,10 @@
                                     }
                                   ],
                                   "overloadedDeclarations": [
-                                    2825,
-                                    2826
+                                    2823,
+                                    2824
                                   ],
-                                  "referencedDeclaration": 2826,
+                                  "referencedDeclaration": 2824,
                                   "type": "function (string memory) pure",
                                   "value": "revert"
                                 },
@@ -20548,10 +20548,10 @@
                                 }
                               ],
                               "overloadedDeclarations": [
-                                2823,
-                                2824
+                                2821,
+                                2822
                               ],
-                              "referencedDeclaration": 2824,
+                              "referencedDeclaration": 2822,
                               "type": "function (bool,string memory) pure",
                               "value": "require"
                             },
@@ -20713,7 +20713,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 2814,
+                              "referencedDeclaration": 2812,
                               "type": "function (bytes memory) pure returns (bytes32)",
                               "value": "keccak256"
                             },
@@ -20804,7 +20804,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 2814,
+                              "referencedDeclaration": 2812,
                               "type": "function (bytes memory) pure returns (bytes32)",
                               "value": "keccak256"
                             },
@@ -21163,10 +21163,10 @@
                                 }
                               ],
                               "overloadedDeclarations": [
-                                2823,
-                                2824
+                                2821,
+                                2822
                               ],
-                              "referencedDeclaration": 2824,
+                              "referencedDeclaration": 2822,
                               "type": "function (bool,string memory) pure",
                               "value": "require"
                             },
@@ -21619,7 +21619,7 @@
                                                       "overloadedDeclarations": [
                                                         null
                                                       ],
-                                                      "referencedDeclaration": 2810,
+                                                      "referencedDeclaration": 2808,
                                                       "type": "block",
                                                       "value": "block"
                                                     },
@@ -22107,7 +22107,7 @@
                                                       "overloadedDeclarations": [
                                                         null
                                                       ],
-                                                      "referencedDeclaration": 2810,
+                                                      "referencedDeclaration": 2808,
                                                       "type": "block",
                                                       "value": "block"
                                                     },
@@ -22658,7 +22658,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 2820,
+                                      "referencedDeclaration": 2818,
                                       "type": "msg",
                                       "value": "msg"
                                     },
@@ -24341,10 +24341,10 @@
                                         }
                                       ],
                                       "overloadedDeclarations": [
-                                        2823,
-                                        2824
+                                        2821,
+                                        2822
                                       ],
-                                      "referencedDeclaration": 2824,
+                                      "referencedDeclaration": 2822,
                                       "type": "function (bool,string memory) pure",
                                       "value": "require"
                                     },
@@ -24460,10 +24460,10 @@
                                         }
                                       ],
                                       "overloadedDeclarations": [
-                                        2823,
-                                        2824
+                                        2821,
+                                        2822
                                       ],
-                                      "referencedDeclaration": 2824,
+                                      "referencedDeclaration": 2822,
                                       "type": "function (bool,string memory) pure",
                                       "value": "require"
                                     },
@@ -24776,10 +24776,10 @@
                                         }
                                       ],
                                       "overloadedDeclarations": [
-                                        2823,
-                                        2824
+                                        2821,
+                                        2822
                                       ],
-                                      "referencedDeclaration": 2824,
+                                      "referencedDeclaration": 2822,
                                       "type": "function (bool,string memory) pure",
                                       "value": "require"
                                     },
@@ -24941,10 +24941,10 @@
                                         }
                                       ],
                                       "overloadedDeclarations": [
-                                        2823,
-                                        2824
+                                        2821,
+                                        2822
                                       ],
-                                      "referencedDeclaration": 2824,
+                                      "referencedDeclaration": 2822,
                                       "type": "function (bool,string memory) pure",
                                       "value": "require"
                                     },
@@ -25294,10 +25294,10 @@
                                         }
                                       ],
                                       "overloadedDeclarations": [
-                                        2823,
-                                        2824
+                                        2821,
+                                        2822
                                       ],
-                                      "referencedDeclaration": 2824,
+                                      "referencedDeclaration": 2822,
                                       "type": "function (bool,string memory) pure",
                                       "value": "require"
                                     },
@@ -25532,10 +25532,10 @@
                                         }
                                       ],
                                       "overloadedDeclarations": [
-                                        2823,
-                                        2824
+                                        2821,
+                                        2822
                                       ],
-                                      "referencedDeclaration": 2824,
+                                      "referencedDeclaration": 2822,
                                       "type": "function (bool,string memory) pure",
                                       "value": "require"
                                     },
@@ -25799,7 +25799,7 @@
                                       "overloadedDeclarations": [
                                         null
                                       ],
-                                      "referencedDeclaration": 2814,
+                                      "referencedDeclaration": 2812,
                                       "type": "function (bytes memory) pure returns (bytes32)",
                                       "value": "keccak256"
                                     },
@@ -25988,10 +25988,10 @@
                                             }
                                           ],
                                           "overloadedDeclarations": [
-                                            2825,
-                                            2826
+                                            2823,
+                                            2824
                                           ],
-                                          "referencedDeclaration": 2826,
+                                          "referencedDeclaration": 2824,
                                           "type": "function (string memory) pure",
                                           "value": "revert"
                                         },
@@ -26215,10 +26215,10 @@
                                             }
                                           ],
                                           "overloadedDeclarations": [
-                                            2825,
-                                            2826
+                                            2823,
+                                            2824
                                           ],
-                                          "referencedDeclaration": 2826,
+                                          "referencedDeclaration": 2824,
                                           "type": "function (string memory) pure",
                                           "value": "revert"
                                         },
@@ -27241,10 +27241,10 @@
                                                                         }
                                                                       ],
                                                                       "overloadedDeclarations": [
-                                                                        2825,
-                                                                        2826
+                                                                        2823,
+                                                                        2824
                                                                       ],
-                                                                      "referencedDeclaration": 2826,
+                                                                      "referencedDeclaration": 2824,
                                                                       "type": "function (string memory) pure",
                                                                       "value": "revert"
                                                                     },
@@ -28043,10 +28043,10 @@
                                                                 }
                                                               ],
                                                               "overloadedDeclarations": [
-                                                                2825,
-                                                                2826
+                                                                2823,
+                                                                2824
                                                               ],
-                                                              "referencedDeclaration": 2826,
+                                                              "referencedDeclaration": 2824,
                                                               "type": "function (string memory) pure",
                                                               "value": "revert"
                                                             },
@@ -28117,10 +28117,10 @@
                                                         }
                                                       ],
                                                       "overloadedDeclarations": [
-                                                        2825,
-                                                        2826
+                                                        2823,
+                                                        2824
                                                       ],
-                                                      "referencedDeclaration": 2826,
+                                                      "referencedDeclaration": 2824,
                                                       "type": "function (string memory) pure",
                                                       "value": "revert"
                                                     },
@@ -29116,10 +29116,10 @@
                                                                             }
                                                                           ],
                                                                           "overloadedDeclarations": [
-                                                                            2825,
-                                                                            2826
+                                                                            2823,
+                                                                            2824
                                                                           ],
-                                                                          "referencedDeclaration": 2826,
+                                                                          "referencedDeclaration": 2824,
                                                                           "type": "function (string memory) pure",
                                                                           "value": "revert"
                                                                         },
@@ -29580,10 +29580,10 @@
                                                             }
                                                           ],
                                                           "overloadedDeclarations": [
-                                                            2825,
-                                                            2826
+                                                            2823,
+                                                            2824
                                                           ],
-                                                          "referencedDeclaration": 2826,
+                                                          "referencedDeclaration": 2824,
                                                           "type": "function (string memory) pure",
                                                           "value": "revert"
                                                         },
@@ -30253,10 +30253,10 @@
                                                         }
                                                       ],
                                                       "overloadedDeclarations": [
-                                                        2825,
-                                                        2826
+                                                        2823,
+                                                        2824
                                                       ],
-                                                      "referencedDeclaration": 2826,
+                                                      "referencedDeclaration": 2824,
                                                       "type": "function (string memory) pure",
                                                       "value": "revert"
                                                     },
@@ -30519,10 +30519,10 @@
                                                         }
                                                       ],
                                                       "overloadedDeclarations": [
-                                                        2825,
-                                                        2826
+                                                        2823,
+                                                        2824
                                                       ],
-                                                      "referencedDeclaration": 2826,
+                                                      "referencedDeclaration": 2824,
                                                       "type": "function (string memory) pure",
                                                       "value": "revert"
                                                     },
@@ -31039,10 +31039,10 @@
                                                 }
                                               ],
                                               "overloadedDeclarations": [
-                                                2825,
-                                                2826
+                                                2823,
+                                                2824
                                               ],
-                                              "referencedDeclaration": 2826,
+                                              "referencedDeclaration": 2824,
                                               "type": "function (string memory) pure",
                                               "value": "revert"
                                             },
@@ -31478,7 +31478,7 @@
                                                           "overloadedDeclarations": [
                                                             null
                                                           ],
-                                                          "referencedDeclaration": 2810,
+                                                          "referencedDeclaration": 2808,
                                                           "type": "block",
                                                           "value": "block"
                                                         },
@@ -34150,10 +34150,10 @@
                                 }
                               ],
                               "overloadedDeclarations": [
-                                2823,
-                                2824
+                                2821,
+                                2822
                               ],
-                              "referencedDeclaration": 2824,
+                              "referencedDeclaration": 2822,
                               "type": "function (bool,string memory) pure",
                               "value": "require"
                             },
@@ -35103,7 +35103,7 @@
                               "overloadedDeclarations": [
                                 null
                               ],
-                              "referencedDeclaration": 2812,
+                              "referencedDeclaration": 2810,
                               "type": "function (bytes32,uint8,bytes32,bytes32) pure returns (address)",
                               "value": "ecrecover"
                             },
@@ -39098,7 +39098,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.1",
-  "updatedAt": "2023-04-15T07:07:55.245Z",
+  "updatedAt": "2023-04-18T06:36:12.272Z",
   "devdoc": {
     "methods": {}
   },
