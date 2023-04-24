@@ -309,7 +309,7 @@ func TestConfigSwitchOnDifferentMindPeriod(t *testing.T) {
 	block911.Time = big.NewInt(blockchain.GetBlockByNumber(910).Time().Int64() + 2) //2 is previous config, should get the right config from round
 	err = adaptor.VerifyHeader(blockchain, block911, true)
 
-	// assert.Equal(t, utils.ErrInvalidTimestamp, err) //todo @Liam: [VerifyBlockInfo] Provided blockheader does not match what's in the blockInfo
+	assert.Equal(t, utils.ErrInvalidTimestamp, err)
 }
 
 func TestShouldFailIfNotEnoughQCSignatures(t *testing.T) {
