@@ -6,6 +6,7 @@ import "./HeaderReader.sol";
 
 contract Subnet {
 
+  // Compressed subnet header information stored on chain
   struct Header {
     bytes32 parent_hash;
     uint256 mix; // padding 63 | uint64 number | uint64 round_num | uint64 mainnet_num | bool finalized 
@@ -77,7 +78,7 @@ contract Subnet {
       threshold: int256(initial_validator_set.length * 2 / 3)
     });
     current_validators = validators[1];
-    updateLookup(initial_validator_set);
+    setLookup(initial_validator_set);
     masters[msg.sender] = true;
     latest_block = block1_header_hash;
     latest_finalized_block = block1_header_hash;
@@ -99,6 +100,13 @@ contract Subnet {
     masters[master] = false;
   }
 
+  /*
+  * @description core function in the contract, it can be summarized into three steps:
+  * 1. Verify subnet header meta information
+  * 2. Verify subnet header certificates
+  * 3. (Conditional) Update Committed Status for ancestor blocks
+  * @param list of rlp-encoded block headers.
+  */
   function receiveHeader(bytes[] memory headers) public onlyMasters {
     for (uint x = 0; x < headers.length; x++) {
       (
@@ -115,6 +123,7 @@ contract Subnet {
         address[] memory next
       ) = HeaderReader.getEpoch(headers[x]);
       
+      // Verify subnet header meta information
       require(number > 0, "Repeated Genesis");
       require(number > int256(uint256(uint64(header_tree[latest_finalized_block].mix >> 129))), "Old Block");
       require(header_tree[parent_hash].mix != 0, "Parent Missing");
@@ -123,42 +132,30 @@ contract Subnet {
       require(uint64(header_tree[parent_hash].mix >> 65) == prev_round_number, "Invalid PRN");
       
       bytes32 block_hash = keccak256(headers[x]);
-      if (header_tree[block_hash].mix > 0) 
-        revert("Repeated Header");
-      if (current.length > 0 && next.length > 0)
-        revert("Malformed Block");
+
+      // If block is the epoch block, prepared for validators switch
+      if (header_tree[block_hash].mix > 0) revert("Repeated Header");
+      if (current.length > 0 && next.length > 0) revert("Malformed Block");
       else if (current.length > 0) {
         if (prev_round_number < round_number - (round_number % EPOCH)) {
           int256 gap_number = number - number % int256(uint256(EPOCH)) - int256(uint256(GAP));
+          // Edge case at the beginning
           if (gap_number < 0) {
             gap_number = 0;
           }
           gap_number = gap_number + 1;
           if (validators[gap_number].threshold > 0) {
-            if (validators[gap_number].set.length != current.length)
-              revert("Mismatched Validators");
-            for (uint i = 0; i < current_validators.set.length; i++) {
-              lookup[current_validators.set[i]] = false;
-            }
-            for (uint i = 0; i < current.length; i++) {
-              lookup[validators[gap_number].set[i]] = true;
-            }
+            if (validators[gap_number].set.length != current.length) revert("Mismatched Validators");
+            setLookup(validators[gap_number].set);
             current_validators = validators[gap_number];
-          } else 
-            revert("Invalid Current Block");
-        } else
-          revert("Invalid Current Block");
+          } else revert("Missing Current Validators");
+        } else revert("Invalid Current Block");
       } else if (next.length > 0) {
         if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
-          for (uint i = 0; i < next.length; i++) {
-            unique_addr[next[i]] = true;
-          }
-          for (uint i = 0; i < next.length; i++) {
-            if (!unique_addr[next[i]]) 
-              revert("Repeated Validator");
-            else
-              unique_addr[next[i]] = false;
-          }
+
+          (bool is_validator_unique, ) = checkUniqueness(next);
+          if (!is_validator_unique) revert("Repeated Validator");
+
           validators[number] = Validators({
             set: next,
             threshold: int256(next.length * 2 / 3)
@@ -166,28 +163,18 @@ contract Subnet {
         } else
           revert("Invalid Next Block");
       }
-
-      int unique_counter = 0;
+      // Verify subnet header certificates
       address[] memory signer_list = new address[](sigs.length);
       for (uint i = 0; i < sigs.length; i++) {
         address signer = recoverSigner(signHash, sigs[i]);
-        if (lookup[signer] != true) {
-          revert("Verification Fail");
-        }
-        if (!unique_addr[signer]) {
-          unique_counter ++;
-          unique_addr[signer]=true;
-        } else {
-          revert("Verification Fail");
-        }
+        if (lookup[signer] != true) revert("Verification Fail");
         signer_list[i] = signer;
       }
-      for (uint i = 0; i < signer_list.length; i++) {
-        unique_addr[signer_list[i]] = false;
-      }
-      if (unique_counter < current_validators.threshold) {
-        revert("Verification Fail");
-      }
+      (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
+      if (!is_unique) revert("Verification Fail"); 
+      if (unique_counter < current_validators.threshold) revert("Verification Fail");
+
+      // Store subnet header
       header_tree[block_hash] = Header({
         parent_hash: parent_hash,
         mix: uint256(number) << 129 | uint256(round_number) << 65 | uint256(block.number) << 1
@@ -196,33 +183,76 @@ contract Subnet {
       if (number > int256(uint256(uint64(header_tree[latest_block].mix >> 129)))) {
         latest_block = block_hash;
       }
-      // Look for 3 consecutive round
-      bool found_committed_flag = true;
-      bytes32 curr_hash = block_hash;
-      for (uint i = 0; i < 3; i++) {
-        if (header_tree[curr_hash].parent_hash == 0) {
-          found_committed_flag = false;
-          break;
-        }
-        bytes32 prev_hash = header_tree[curr_hash].parent_hash;
-        if (uint64(header_tree[curr_hash].mix >> 65) != uint64(header_tree[prev_hash].mix >> 65)+1) {
-          found_committed_flag = false;
-          break;
-        } else {
-          curr_hash = prev_hash;
-        }
-      }
-      if (found_committed_flag == false) continue;
-      latest_finalized_block = curr_hash;
+
+      // Look for commitable ancestor block
+      (bool is_committed, bytes32 committed_block) = checkCommittedStatus(block_hash);
+      if (!is_committed) continue;
+      latest_finalized_block = committed_block;
+
       // Confirm all ancestor unconfirmed block
-      while ((header_tree[curr_hash].mix & 1) != 1) {
-        header_tree[curr_hash].mix |= 1;
-        committed_blocks[int256(uint256(uint64(header_tree[curr_hash].mix >> 129)))] = curr_hash;
-        emit SubnetBlockFinalized(curr_hash, int256(uint256(uint64(header_tree[curr_hash].mix >> 129))));
-        curr_hash = header_tree[curr_hash].parent_hash;
+      setCommittedStatus(committed_block);
+    }
+  }
+
+  function setLookup(address[] memory validator_set) internal {
+    for (uint i = 0; i < current_validators.set.length; i++) {
+      lookup[current_validators.set[i]] = false;
+    }
+    for (uint i = 0; i < validator_set.length; i++) {
+      lookup[validator_set[i]] = true;
+    }
+  }
+
+  function setCommittedStatus(bytes32 start_block) internal {
+    while ((header_tree[start_block].mix & 1) != 1) {
+      header_tree[start_block].mix |= 1;
+      committed_blocks[int256(uint256(uint64(header_tree[start_block].mix >> 129)))] = start_block;
+      emit SubnetBlockFinalized(start_block, int256(uint256(uint64(header_tree[start_block].mix >> 129))));
+      start_block = header_tree[start_block].parent_hash;
+    }
+  }
+
+  function checkUniqueness(address[] memory list) 
+    internal 
+    returns (bool is_unique, int unique_counter) 
+  {
+    unique_counter = 0;
+    is_unique = true;
+    for (uint i = 0; i < list.length; i++) {
+      if (!unique_addr[list[i]]) {
+        unique_counter ++;
+        unique_addr[list[i]]=true;
+      } else {
+        is_unique = false;
+      }
+    }
+    for (uint i = 0; i < list.length; i++) {
+      unique_addr[list[i]] = false;
+    }
+  }
+
+  function checkCommittedStatus(bytes32 block_hash)
+    internal
+    view
+    returns (bool is_committed, bytes32 committed_block)
+  {
+    is_committed = true;
+    committed_block = block_hash;
+    for (uint i = 0; i < 3; i++) {
+      if (header_tree[committed_block].parent_hash == 0) {
+        is_committed = false;
+        break;
+      }
+      bytes32 prev_hash = header_tree[committed_block].parent_hash;
+      if (uint64(header_tree[committed_block].mix >> 65) != uint64(header_tree[prev_hash].mix >> 65)+1) {
+        is_committed = false;
+        break;
+      } else {
+        committed_block = prev_hash;
       }
     }
   }
+
 
   /// signature methods.
   function splitSignature(bytes memory sig)
@@ -243,12 +273,6 @@ contract Subnet {
     return (v+27, r, s);
   }
 
-  function updateLookup(address[] memory initial_validator_set) internal {
-    for (uint i = 0; i < initial_validator_set.length; i++) {
-      lookup[initial_validator_set[i]] = true;
-    }
-  }
-
   function recoverSigner(bytes32 message, bytes memory sig)
     internal
     pure
@@ -258,17 +282,24 @@ contract Subnet {
     return ecrecover(message, v, r, s);
   }
 
-  function getHeader(bytes32 header_hash) public view returns (HeaderInfo memory) {
+  /*
+  * @param subnet block hash.
+  * @return HeaderInfo struct defined above.
+  */
+  function getHeader(bytes32 block_hash) public view returns (HeaderInfo memory) {
     return HeaderInfo({
-      parent_hash: header_tree[header_hash].parent_hash,
-      number: int256(uint256(uint64(header_tree[header_hash].mix >> 129))),
-      round_num: uint64(header_tree[header_hash].mix >> 65),
-      mainnet_num: int256(uint256(uint64(header_tree[header_hash].mix >> 1))),
-      finalized: (header_tree[header_hash].mix & 1) == 1
+      parent_hash: header_tree[block_hash].parent_hash,
+      number: int256(uint256(uint64(header_tree[block_hash].mix >> 129))),
+      round_num: uint64(header_tree[block_hash].mix >> 65),
+      mainnet_num: int256(uint256(uint64(header_tree[block_hash].mix >> 1))),
+      finalized: (header_tree[block_hash].mix & 1) == 1
     });
   }
 
-
+  /*
+  * @param subnet block number.
+  * @return BlockLite struct defined above.
+  */
   function getHeaderByNumber(int number) public view returns (BlockLite memory) {
     if (committed_blocks[number] == 0) {
       int block_num = int256(uint256(uint64(header_tree[latest_block].mix >> 129)));
@@ -295,28 +326,27 @@ contract Subnet {
     }
     
   }
-  
-  function getHeaderConfirmationStatus(bytes32 header_hash) public view returns (bool) {
-    return (header_tree[header_hash].mix & 1 == 1);
-  }
 
-  function getMainnetBlockNumber(bytes32 header_hash) public view returns (uint) {
-    return uint256(uint64(header_tree[header_hash].mix >> 1));
-  }
-
+  /*
+  * @return pair of BlockLite structs defined above.
+  */
   function getLatestBlocks() public view returns (BlockLite memory, BlockLite memory) {
     return (
-        BlockLite({
+      BlockLite({
         hash: latest_block,
         number: int256(uint256(uint64(header_tree[latest_block].mix >> 129)))
       }),
-        BlockLite({
+      BlockLite({
         hash: latest_finalized_block,
         number: int256(uint256(uint64(header_tree[latest_finalized_block].mix >> 129)))
     }));
   }
 
+  /*
+  * @return Validators struct defined above.
+  */
   function getCurrentValidators() public view returns (Validators memory) {
     return current_validators;
   }
+
 }

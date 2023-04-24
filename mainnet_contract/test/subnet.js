@@ -265,7 +265,7 @@ contract("Subnet Test", async accounts => {
     const validators = await this.subnet.getCurrentValidators();
     assert.equal(is_master, true);
     assert.deepEqual(validators[0], this.validators_addr);
-    assert.equal(validators[2], 2);
+    assert.equal(validators[1], 2);
   });
 
   it("Add Master", async() => {
@@ -287,10 +287,8 @@ contract("Subnet Test", async accounts => {
     assert.equal(block2_resp[0], this.block1_hash);
     assert.equal(block2_resp[1], 2);
     assert.equal(block2_resp[2], 2);
-    const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
-    const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(finalized, false);
+    assert.equal(block2_resp[4], false);
     assert.equal(latest_blocks["0"][0], block2_hash);
     assert.equal(latest_blocks["1"][0], this.block1_hash);
 
@@ -314,10 +312,8 @@ contract("Subnet Test", async accounts => {
     assert.equal(block2_resp[1], 2);
     assert.equal(block2_resp[2], 2);
 
-    const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
-    const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(finalized, true);
+    assert.equal(block2_resp[4], true);
     assert.equal(latest_blocks["0"][0], block5_hash);
     assert.equal(latest_blocks["1"][0], block2_hash);
 
@@ -352,9 +348,8 @@ contract("Subnet Test", async accounts => {
     assert.equal(block7_resp[1], 7);
     assert.equal(block7_resp[2], 7);
 
-    const finalized = await this.subnet.getHeaderConfirmationStatus(block7_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(finalized, true);
+    assert.equal(block7_resp[4], true);
     assert.equal(latest_blocks["0"][0], block10_hash);
     assert.equal(latest_blocks["1"][0], block7_hash);
 
@@ -392,40 +387,6 @@ contract("Subnet Test", async accounts => {
     assert.equal(block2_resp[0], block2_hash);
     assert.equal(block2_resp[1], 2);
   });
-
-
-  // it("Create an Epoch Switch with Lots of Validators", async() => {
-  //   const new_validators = [];
-  //   for(let i = 0; i < 21; i++) {
-  //     new_validators.push(web3.eth.accounts.create());
-  //   }
-
-  //   var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, this.block1_hash, this.validators, 2, [], []);
-  //   var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, block2_hash, this.validators, 2, [], []);
-  //   var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, block3_hash, this.validators, 2, [], new_validators.map((x) => x.address));
-  //   var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, block4_hash, new_validators, 14, new_validators.map((x) => x.address), []);
-
-  //   await this.subnet.receiveHeader(block2_encoded); 
-  //   await this.subnet.receiveHeader(block3_encoded);
-  //   await this.subnet.receiveHeader(block4_encoded);
-  //   await this.subnet.receiveHeader(block5_encoded);
-
-    
-  //   const block2_resp = await this.subnet.getHeader(block2_hash);
-  //   const block2_decoded = RLP.decode(block2_resp);
-  //   const block2_extra = RLP.decode(block2_decoded[12].slice(1));
-  //   assert.equal("0x"+Buffer.from(block2_decoded[0]).toString("hex"), this.block1_hash);
-  //   assert.equal(block2_extra[0][0], 2);
-  //   assert.equal("0x"+Buffer.from(block2_extra[1][0][0]).toString("hex"), this.block1_hash);
-  //   assert.equal(block2_extra[1][0][1][0], 1);
-  //   assert.equal(block2_extra[1][0][2][0], 1);
-
-  //   const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
-  //   const mainnet_num = await this.subnet.getMainnetBlockNumber(block2_hash);
-  //   const latest_block = await this.subnet.getLatestBlock();
-  //   assert.equal(finalized, true);
-  //   assert.equal(latest_block[0], block2_hash);
-  // });
 
   // it("Lookup the transaction", async() => {
   //   const raw_sigs = [];
