@@ -140,7 +140,7 @@ func TestTimeoutPeriodAndThreadholdConfigChange(t *testing.T) {
 
 // Timeout handler
 func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
-	params.TestXDPoSMockChainConfig.XDPoS.V2.CurrentConfig = params.TestV2Configs[0]
+	params.TestXDPoSMockChainConfig.XDPoS.V2.CurrentConfig = params.UnitTestV2Configs[0]
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 11, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
@@ -271,7 +271,7 @@ func TestShouldVerifyTimeoutMessage(t *testing.T) {
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 2251, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
-	signedHash := SignHashByPK(acc1Key, types.TimeoutSigHash(&types.TimeoutForSign{
+	signedHash := SignHashByPK(acc3Key, types.TimeoutSigHash(&types.TimeoutForSign{
 		Round:     types.Round(5000),
 		GapNumber: 2250,
 	}).Bytes())

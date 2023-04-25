@@ -30,7 +30,7 @@ func TestAdaptorShouldGetAuthorForDifferentConsensusVersion(t *testing.T) {
 	// Insert one more block to make it above 10, which means now we are on v2 of consensus engine
 	// Insert block 901
 
-	merkleRoot := "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+	merkleRoot := "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(901)),
@@ -67,7 +67,7 @@ func TestAdaptorGetMasternodesFromCheckpointHeader(t *testing.T) {
 	masternodesV1 := adaptor.GetMasternodesFromCheckpointHeader(headerV1)
 	headerV2 := currentBlock.Header()
 	headerV2.Number.Add(blockchain.Config().XDPoS.V2.SwitchBlock, big.NewInt(1))
-	headerV2.Validators = []common.Address{common.StringToAddress("0278c350152e15fa6ffc712a5a73d704ce73e2e1"), common.StringToAddress("03d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff"), common.StringToAddress("065551f0dcac6f00cae11192d462db709be3758c")}
+	headerV2.Validators = []common.Address{common.HexToAddress("0278c350152e15fa6ffc712a5a73d704ce73e2e1"), common.HexToAddress("03d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff"), common.HexToAddress("065551f0dcac6f00cae11192d462db709be3758c")}
 	headerV2.Extra = []byte{2}
 	masternodesV2 := adaptor.GetMasternodesFromCheckpointHeader(headerV2)
 	assert.True(t, reflect.DeepEqual(masternodesV1, masternodesV2), "GetMasternodesFromCheckpointHeader in adaptor for v1 v2 not equal", "v1", masternodesV1, "v2", masternodesV2)

@@ -32,9 +32,9 @@ const (
 )
 
 var (
-	XDCMainnetGenesisHash = common.HexToHash("4a9d748bd78a8d0385b67788c2435dcdb914f98a96250b68863a1f8b7642d6b1") // XDC Mainnet genesis hash to enforce below configs on
+	XDCMainnetGenesisHash = common.HexToHash("5bf418d6b42369177de194b88779f4b132d514e5c3b2e1ef7ae55f0790d898d0") // XDC Mainnet genesis hash to enforce below configs on
 	MainnetGenesisHash    = common.HexToHash("8d13370621558f4ed0da587934473c0404729f28b0ff1d50e5fdd840457a2f17") // Mainnet genesis hash to enforce below configs on
-	TestnetGenesisHash    = common.HexToHash("bdea512b4f12ff1135ec92c00dc047ffb93890c2ea1aa0eefe9b013d80640075") // Testnet genesis hash to enforce below configs on
+	TestnetGenesisHash    = common.HexToHash("f07facd6ffa6c6c7813d422eb8ff09f8840c6639b7db9d9221a4c0390d6ec161") // Testnet genesis hash to enforce below configs on
 	DevnetGenesisHash     = common.HexToHash("ab6fd3cb7d1a489e03250c7d14c2d6d819a6a528d6380b31e8410951964ef423") // Devnet genesis hash to enforce below configs on
 )
 
@@ -49,7 +49,8 @@ var (
 			MinePeriod:           10,
 		},
 	}
-	TestV2Configs = map[uint64]*V2Config{
+
+	TestnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
 			CertThreshold:        3,
@@ -88,10 +89,37 @@ var (
 			Gap:                 450,
 			FoudationWalletAddr: common.HexToAddress("xdc92a289fe95a85c53b8d0d113cbaef0c1ec98ac65"),
 			V2: &V2{
-				SwitchBlock:   big.NewInt(9999999999),
+				SwitchBlock:   common.TIPV2SwitchBlock,
 				CurrentConfig: MainnetV2Configs[0],
 				AllConfigs:    MainnetV2Configs,
 			},
+		},
+	}
+
+	UnitTestV2Configs = map[uint64]*V2Config{
+		Default: {
+			SwitchRound:          0,
+			CertThreshold:        3,
+			TimeoutSyncThreshold: 2,
+			TimeoutPeriod:        4,
+			WaitPeriod:           1,
+			MinePeriod:           2,
+		},
+		10: {
+			SwitchRound:          10,
+			CertThreshold:        5,
+			TimeoutSyncThreshold: 2,
+			TimeoutPeriod:        4,
+			WaitPeriod:           2,
+			MinePeriod:           3,
+		},
+		899: {
+			SwitchRound:          899,
+			CertThreshold:        5,
+			TimeoutSyncThreshold: 4,
+			TimeoutPeriod:        5,
+			WaitPeriod:           2,
+			MinePeriod:           3,
 		},
 	}
 
@@ -130,9 +158,9 @@ var (
 			Gap:                 450,
 			FoudationWalletAddr: common.HexToAddress("xdc746249c61f5832c5eed53172776b460491bdcd5c"),
 			V2: &V2{
-				SwitchBlock:      big.NewInt(900),
-				CurrentConfig:    TestV2Configs[0],
-				AllConfigs:       TestV2Configs,
+				SwitchBlock:      common.TIPV2SwitchBlock,
+				CurrentConfig:    TestnetV2Configs[0],
+				AllConfigs:       TestnetV2Configs,
 				SkipV2Validation: true,
 			},
 		},
@@ -155,7 +183,7 @@ var (
 			Gap:                 450,
 			FoudationWalletAddr: common.HexToAddress("0x746249c61f5832c5eed53172776b460491bdcd5c"),
 			V2: &V2{
-				SwitchBlock:   big.NewInt(7074000),
+				SwitchBlock:   common.TIPV2SwitchBlock,
 				CurrentConfig: DevnetV2Configs[0],
 				AllConfigs:    DevnetV2Configs,
 			},
@@ -199,8 +227,8 @@ var (
 			Reward:              250,
 			V2: &V2{
 				SwitchBlock:   big.NewInt(900),
-				CurrentConfig: TestV2Configs[0],
-				AllConfigs:    TestV2Configs,
+				CurrentConfig: UnitTestV2Configs[0],
+				AllConfigs:    UnitTestV2Configs,
 			},
 		},
 	}
