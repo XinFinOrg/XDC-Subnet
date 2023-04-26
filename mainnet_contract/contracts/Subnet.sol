@@ -34,6 +34,12 @@ contract Subnet {
   uint64 GAP;
   uint64 EPOCH;
 
+  // Function temp space
+  bytes32 prev_hash;
+  uint64 prev_rn;
+  uint256 epoch_info = 0;
+  bytes32 epoch_hash = 0;
+
   // Event types
   event SubnetEpochBlockAccepted(bytes32 block_hash, uint64 number);
 
@@ -83,10 +89,6 @@ contract Subnet {
   * @param list of rlp-encoded block headers.
   */
   function receiveHeader(bytes[] memory headers) public onlyMasters {
-    bytes32[] memory parent_hashes = new bytes32[](headers.length - 1);
-    uint64[] memory round_numbers = new uint64[](3);
-    uint256 epoch_info = 0;
-    bytes32 epoch_hash = 0;
     for (uint x = 0; x < headers.length; x++) {
       (
         bytes32 parent_hash,
@@ -149,16 +151,17 @@ contract Subnet {
       if (unique_counter < current_validators.threshold) revert("Verification Fail");
 
       if (x > 0) {
-        if (parent_hash != parent_hashes[x-1]) revert("Invalid Block Sequence");
+        if (parent_hash != prev_hash) revert("Invalid Block Sequence");
       }
-      if (x < headers.length - 1) parent_hashes[x] = block_hash;
-      if (x >= headers.length - 3) round_numbers[x - (headers.length - 3)] = round_number;
+      if (x < headers.length - 1) prev_hash = block_hash;
+      if (x >= headers.length - 3) {
+        if (round_number != prev_rn + 1) revert("Uncommitted Epoch Block");
+      }
+      if (x > headers.length - 3) prev_rn = round_number;
     }
-    if ((round_numbers[1] == round_numbers[0]+1) && (round_numbers[2] == round_numbers[1]+1)) {
-      header_tree[epoch_hash] = epoch_info;
-      height_tree[uint64(epoch_info >> 128)] = epoch_hash;
-      emit SubnetEpochBlockAccepted(epoch_hash, uint64(epoch_info >> 128));
-    } else revert("Uncommitted Epoch Block");
+    header_tree[epoch_hash] = epoch_info;
+    height_tree[uint64(epoch_info >> 128)] = epoch_hash;
+    emit SubnetEpochBlockAccepted(epoch_hash, uint64(epoch_info >> 128));
   }
 
   function setLookup(address[] memory validator_set) internal {

@@ -20,29 +20,6 @@ library HeaderReader {
     uint256 memPtr;
   }
 
-  /*
-  * @param genesis rlp-encoded block header.
-  * @return (parentHash, genesisNum) pair.
-  */
-  function getParentHashAndNumber(bytes memory header) public pure returns (bytes32, int) {
-    RLPItem[] memory ls = toList(toRlpItem(header));
-    return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])));
-  }
-
-  /*
-  * @param block1 rlp-encoded header.
-  * @return (parentHash, blockNum, blockRoundNum).
-  */
-  function getBlock1Params(bytes memory header) 
-    public
-    pure 
-    returns (bytes32, int, uint64) 
-  {
-    RLPItem[] memory ls = toList(toRlpItem(header));
-    RLPItem[] memory extra = toList(toRlpItem(getExtraData(toBytes(ls[12]))));
-    uint64 round_number = uint64(toUint(extra[0]));
-    return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number);
-  }
 
   /*
   * @param rlp-encoded block header.
