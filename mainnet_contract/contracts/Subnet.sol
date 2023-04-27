@@ -129,7 +129,7 @@ contract Subnet {
           } else if (next.length > 0) {
             if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
 
-              (bool is_validator_unique, ) = checkUniqueness(next, false);
+              (bool is_validator_unique, ) = checkUniqueness(next);
               if (!is_validator_unique) revert("Repeated Validator");
 
               validators[number] = Validators({
@@ -152,7 +152,7 @@ contract Subnet {
         if (lookup[signer] != true) revert("Verification Fail");
         signer_list[i] = signer;
       }
-      (bool is_unique, int unique_counter) = checkUniqueness(signer_list, true);
+      (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
       if (!is_unique) revert("Verification Fail"); 
       if (unique_counter < current_validators.threshold) revert("Verification Fail");
 
@@ -179,14 +179,14 @@ contract Subnet {
     }
   }
 
-  function checkUniqueness(address[] memory list, bool needLookup) 
+  function checkUniqueness(address[] memory list) 
     internal 
     returns (bool is_verified, int unique_counter) 
   {
     unique_counter = 0;
     is_verified = true;
     for (uint i = 0; i < list.length; i++) {
-      if (!unique_addr[list[i]] && (!needLookup || lookup[list[i]])) {
+      if (!unique_addr[list[i]]) {
         unique_counter ++;
         unique_addr[list[i]]=true;
       } else {
