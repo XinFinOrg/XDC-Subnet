@@ -24,6 +24,8 @@ contract Subnet {
 
   mapping(bytes32 => uint256) header_tree; // padding 64 | uint64 number | uint64 round_num | uint64 mainnet_num
   mapping(uint64 => bytes32) height_tree;
+  bytes32[] current_tree;
+  bytes32[] next_tree;
   mapping(address => bool) lookup;
   mapping(address => bool) unique_addr;
   mapping(address => bool) masters;
@@ -89,6 +91,7 @@ contract Subnet {
   * @param list of rlp-encoded block headers.
   */
   function receiveHeader(bytes[] memory headers) public onlyMasters {
+    require(headers.length > 3, "Invalid Sequence");
     for (uint x = 0; x < headers.length; x++) {
       (
         bytes32 parent_hash,
@@ -105,6 +108,7 @@ contract Subnet {
       ) = HeaderReader.getEpoch(headers[x]);
       bytes32 block_hash = keccak256(headers[x]);
       if (x == 0) {
+        if (header_tree[block_hash] != 0) revert("Repeated Block");
         if (current.length > 0 && next.length > 0) revert("Malformed Block");
         else if (current.length > 0) {
           if (prev_round_number < round_number - (round_number % EPOCH)) {
@@ -119,12 +123,13 @@ contract Subnet {
               setLookup(validators[gap_number].set);
               current_validators = validators[gap_number];
               latest_current_epoch_block = block_hash;
+              current_tree.push(block_hash); 
               } else revert("Missing Current Validators");
             } else revert("Invalid Current Block");
           } else if (next.length > 0) {
             if (uint64(uint256(number % int256(uint256(EPOCH)))) == EPOCH - GAP + 1) {
 
-              (bool is_validator_unique, ) = checkUniqueness(next);
+              (bool is_validator_unique, ) = checkUniqueness(next, false);
               if (!is_validator_unique) revert("Repeated Validator");
 
               validators[number] = Validators({
@@ -132,6 +137,7 @@ contract Subnet {
                 threshold: int256(next.length * 2 / 3)
               });
               latest_next_epoch_block = block_hash;
+              next_tree.push(block_hash);
             } else
               revert("Invalid Next Block");
           }
@@ -146,7 +152,7 @@ contract Subnet {
         if (lookup[signer] != true) revert("Verification Fail");
         signer_list[i] = signer;
       }
-      (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
+      (bool is_unique, int unique_counter) = checkUniqueness(signer_list, true);
       if (!is_unique) revert("Verification Fail"); 
       if (unique_counter < current_validators.threshold) revert("Verification Fail");
 
@@ -154,10 +160,10 @@ contract Subnet {
         if (parent_hash != prev_hash) revert("Invalid Block Sequence");
       }
       if (x < headers.length - 1) prev_hash = block_hash;
-      if (x >= headers.length - 3) {
+      if (x > headers.length - 3) {
         if (round_number != prev_rn + 1) revert("Uncommitted Epoch Block");
       }
-      if (x > headers.length - 3) prev_rn = round_number;
+      if (x >= headers.length - 3) prev_rn = round_number;
     }
     header_tree[epoch_hash] = epoch_info;
     height_tree[uint64(epoch_info >> 128)] = epoch_hash;
@@ -173,18 +179,18 @@ contract Subnet {
     }
   }
 
-  function checkUniqueness(address[] memory list) 
+  function checkUniqueness(address[] memory list, bool needLookup) 
     internal 
-    returns (bool is_unique, int unique_counter) 
+    returns (bool is_verified, int unique_counter) 
   {
     unique_counter = 0;
-    is_unique = true;
+    is_verified = true;
     for (uint i = 0; i < list.length; i++) {
-      if (!unique_addr[list[i]]) {
+      if (!unique_addr[list[i]] && (!needLookup || lookup[list[i]])) {
         unique_counter ++;
         unique_addr[list[i]]=true;
       } else {
-        is_unique = false;
+        is_verified = false;
       }
     }
     for (uint i = 0; i < list.length; i++) {
@@ -254,6 +260,46 @@ contract Subnet {
           round_num: uint64(header_tree[block_hash] >> 64),
           mainnet_num: int(uint(uint64(header_tree[block_hash])))
         }), block_hash
+      );
+    }
+  }
+
+  function getCurrentEpochBlockByIndex(int idx) public view returns (HeaderInfo memory) {
+    if (uint256(idx) < current_tree.length) {
+      return (
+        HeaderInfo({
+          number: int(header_tree[current_tree[uint256(idx)]] >> 128),
+          round_num: uint64(header_tree[current_tree[uint256(idx)]] >> 64),
+          mainnet_num: int(uint(uint64(header_tree[current_tree[uint256(idx)]])))
+        })
+      );
+    } else {
+      return (
+        HeaderInfo({
+          number: 0,
+          round_num: 0,
+          mainnet_num: 0
+        })
+      );
+    }
+  }
+
+  function getNextEpochBlockByIndex(int idx) public view returns (HeaderInfo memory) {
+    if (uint256(idx) < next_tree.length) {
+      return (
+        HeaderInfo({
+          number: int(header_tree[next_tree[uint256(idx)]] >> 128),
+          round_num: uint64(header_tree[next_tree[uint256(idx)]] >> 64),
+          mainnet_num: int(uint(uint64(header_tree[next_tree[uint256(idx)]])))
+        })
+      );
+    } else {
+      return (
+        HeaderInfo({
+          number: 0,
+          round_num: 0,
+          mainnet_num: 0
+        })
       );
     }
   }

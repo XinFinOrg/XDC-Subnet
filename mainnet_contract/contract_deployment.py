@@ -19,14 +19,13 @@ with open("lib_address.txt", "r") as f:
 Subnet = w3.eth.contract(abi=subnet_contract["abi"], bytecode=subnet_contract["bytecode"].replace("__HeaderReader__________________________", lib_addr))
 txn2 = Subnet.constructor(
   init["validators"],
-  init["genesis_header_encoded"], 
   init["block1_header_encoded"],
   init["gap"],
   init["epoch"]
 ).build_transaction(
   {
     "from": account.address,
-    "gas": 5500000,
+    "gas": 4000000,
     "gasPrice": 250000000,
     "nonce": w3.eth.get_transaction_count(account.address),
 })

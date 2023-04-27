@@ -251,7 +251,6 @@ contract("Subnet Test", async accounts => {
     Subnet.link("HeaderReader", this.lib.address);
     this.subnet = await Subnet.new(
       this.validators_addr,
-      this.genesis_encoded,
       this.block1_encoded,
       5,
       10,
@@ -277,56 +276,8 @@ contract("Subnet Test", async accounts => {
     assert.equal(is_master, false);
   });
 
-  it("Receive New Header", async() => {
 
-    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
-
-    await this.subnet.receiveHeader([block2_encoded]);
-
-    const block2_resp = await this.subnet.getHeader(block2_hash);
-    assert.equal(block2_resp[0], this.block1_hash);
-    assert.equal(block2_resp[1], 2);
-    assert.equal(block2_resp[2], 2);
-    const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(block2_resp[4], false);
-    assert.equal(latest_blocks["0"][0], block2_hash);
-    assert.equal(latest_blocks["1"][0], this.block1_hash);
-
-    const block2_resp2 = await this.subnet.getHeaderByNumber(2);
-    assert.equal(block2_resp2[0], block2_hash);
-    assert.equal(block2_resp2[1], 2);
-  });
-
-  it("Confirm A Received Block", async() => {
-    
-    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
-    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, 2, block2_hash, this.validators, 2, [], []);
-    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, 3, block3_hash, this.validators, 2, [], []);
-    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, 4, block4_hash, this.validators, 2, [], []);
-
-    await this.subnet.receiveHeader([block2_encoded, block3_encoded]); 
-    await this.subnet.receiveHeader([block4_encoded, block5_encoded]);
-
-    const block2_resp = await this.subnet.getHeader(block2_hash);
-    assert.equal(block2_resp[0], this.block1_hash);
-    assert.equal(block2_resp[1], 2);
-    assert.equal(block2_resp[2], 2);
-
-    const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(block2_resp[4], true);
-    assert.equal(latest_blocks["0"][0], block5_hash);
-    assert.equal(latest_blocks["1"][0], block2_hash);
-
-    const block2_resp2 = await this.subnet.getHeaderByNumber(2);
-    assert.equal(block2_resp2[0], block2_hash);
-    assert.equal(block2_resp2[1], 2);
-
-    const block3_resp = await this.subnet.getHeaderByNumber(3);
-    assert.equal(block3_resp[0], block3_hash);
-    assert.equal(block3_resp[1], 3);
-  });
-
-  it("Switch a Validator Set", async() => {
+  it("Receive a next and current epoch block", async() => {
     
     var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
     var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, 2, block2_hash, this.validators, 2, [], []);
@@ -338,54 +289,25 @@ contract("Subnet Test", async accounts => {
     var [block8, block8_encoded, block8_hash] = composeAndSignBlock(8, 8, 7, block7_hash, this.validators, 2, [], []);
     var [block9, block9_encoded, block9_hash] = composeAndSignBlock(9, 9, 8, block8_hash, this.validators, 2, [], []);
     var [block10, block10_encoded, block10_hash] = composeAndSignBlock(10, 10, 9, block9_hash, new_validators, 2, new_validators.map((val) => val.address), []);
+    var [block11, block11_encoded, block11_hash] = composeAndSignBlock(11, 11, 10, block10_hash, new_validators, 2, [], []);
+    var [block12, block12_encoded, block12_hash] = composeAndSignBlock(12, 12, 11, block11_hash, new_validators, 2, [], []);
+    var [block13, block13_encoded, block13_hash] = composeAndSignBlock(13, 13, 12, block12_hash, new_validators, 2, [], []);
 
-    await this.subnet.receiveHeader([block2_encoded, block3_encoded, block4_encoded]); 
-    await this.subnet.receiveHeader([block5_encoded, block6_encoded, block7_encoded]);
-    await this.subnet.receiveHeader([block8_encoded, block9_encoded, block10_encoded]);
+    await this.subnet.receiveHeader([block6_encoded, block7_encoded, block8_encoded, block9_encoded]); 
+    await this.subnet.receiveHeader([block10_encoded, block11_encoded, block12_encoded, block13_encoded]);
 
-    const block7_resp = await this.subnet.getHeader(block7_hash);
-    assert.equal(block7_resp[0], block6_hash);
-    assert.equal(block7_resp[1], 7);
-    assert.equal(block7_resp[2], 7);
+    const block6_resp = await this.subnet.getHeader(block6_hash);
+    assert.equal(block6_resp[0], 6);
+    assert.equal(block6_resp[1], 6);
+
+    const block10_resp = await this.subnet.getHeader(block10_hash);
+    assert.equal(block10_resp[0], 10);
+    assert.equal(block10_resp[1], 10);
 
     const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(block7_resp[4], true);
     assert.equal(latest_blocks["0"][0], block10_hash);
-    assert.equal(latest_blocks["1"][0], block7_hash);
+    assert.equal(latest_blocks["1"][0], block6_hash);
 
-    const block7_resp2 = await this.subnet.getHeaderByNumber(7);
-    assert.equal(block7_resp2[0], block7_hash);
-    assert.equal(block7_resp2[1], 7);
-
-    const block8_resp = await this.subnet.getHeaderByNumber(8);
-    assert.equal(block8_resp[0], block8_hash);
-    assert.equal(block8_resp[1], 8);
-  });
-
-  it("Switch a Validator Set in Special Case", async() => {
-    
-    var [block2, block2_encoded, block2_hash] = composeAndSignBlock(2, 2, 1, this.block1_hash, this.validators, 2, [], []);
-    var [block3, block3_encoded, block3_hash] = composeAndSignBlock(3, 3, 2, block2_hash, this.validators, 2, [], []);
-    var [block4, block4_encoded, block4_hash] = composeAndSignBlock(4, 4, 3, block3_hash, this.validators, 2, [], []);
-    var [block5, block5_encoded, block5_hash] = composeAndSignBlock(5, 5, 4, block4_hash, this.validators, 2, [], []);
-    let new_validators = createValidators(3);
-    var [block6, block6_encoded, block6_hash] = composeAndSignBlock(6, 9, 5, block5_hash, this.validators, 2, [], new_validators.map((val) => val.address));
-    var [block7, block7_encoded, block7_hash] = composeAndSignBlock(7, 10, 9, block6_hash, this.validators, 2, this.validators.map((val) => val.address), []);
-
-    await this.subnet.receiveHeader([block2_encoded, block3_encoded, block4_encoded]); 
-    await this.subnet.receiveHeader([block5_encoded, block6_encoded, block7_encoded]);
-
-    const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(latest_blocks["0"][0], block7_hash);
-    assert.equal(latest_blocks["1"][0], block2_hash);
-
-    const block5_resp = await this.subnet.getHeaderByNumber(5);
-    assert.equal(block5_resp[0], block5_hash);
-    assert.equal(block5_resp[1], 5);
-
-    const block2_resp = await this.subnet.getHeaderByNumber(2);
-    assert.equal(block2_resp[0], block2_hash);
-    assert.equal(block2_resp[1], 2);
   });
 
   // it("Lookup the transaction", async() => {
