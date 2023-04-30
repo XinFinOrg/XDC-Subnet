@@ -1,13 +1,13 @@
 name: PR tests
 
 on:
-  pull_request:
+  push:
     branches:    
       - main
   
 jobs:
   test_on_pr:
-    name: Test
+    name: Test, build and push image to registry
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
@@ -29,6 +29,18 @@ jobs:
         make test
       env:
         GO111MODULE: auto
+    - name: Docker login
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - name: Build and push image
+      run: |
+        docker build -t xdc-subnet -f cicd/Dockerfile .
+        docker tag xdc-subnet:latest xinfinorg/xdcsubnets:latest
+        docker push xinfinorg/xdcsubnets:latest
+    
       
     
     
