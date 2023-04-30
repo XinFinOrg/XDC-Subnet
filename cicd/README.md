@@ -1,52 +1,23 @@
-# CI/CD pipeline for XDC
-This directory contains CI/CD scripts used for each of the XDC environments.
+# CI/CD pipeline for XDC Subnet
+This directory contain scripts used for building the subnet docker images
 
-## How to deploy more nodes
-Adjust the number of variable `num_of_nodes` under file `.env`. (**Maximum supported is 58**)
-
-## Devnet
+## CI Process
 Each PR merged into `main` will trigger below actions:
 - Tests
-- Terraform to apply infrascture changes(if any)
-- Docker build of XDC with devnet configurations with tag of `:latest`
-- Docker push to docker hub. https://hub.docker.com/repository/docker/xinfinorg/subnet-devnet
-- Deployment of the latest XDC image(from above) to devnet run by AWS ECS
+- Docker build of XDC subnet configurations with tag of `:latest`
+- Docker push to docker hub. https://hub.docker.com/repository/docker/xinfinorg/xdcsubnets
 
-### First time set up an new environment
-1. Pre-generate a list of node private keys in below format
-```
-{
-  "xdc0": {
-    "pk": {{PRIVATE KEY}},
-    "address": {{XDC wallet address}},
-    "imageTag": {{Optional field to run different version of XDC}},
-    "logLevel": {{Optional field to adjust the log level for the container}}
-  },
-  "xdc1": {...},
-  "xdc{{NUMBER}}: {...}
-}
-```
-2. Access to aws console, create a bucket with name `tf-subnet-devnet-bucket`:
-  - You can choose any name, just make sure update the name in the s3 bucket name variable in `variables.tf`
-  - And update the name of the terraform.backend.s3.bucket from `s3.tf`
-3. Upload the file from step 1 into the above bucket with name `node-config.json`
-4. In order to allow pipeline able to push and deploy via ECR and ECS, we require below environment variables to be injected into the CI pipeline:
-  1. DOCKER_USERNAME
-  2. DOCKER_PASSWORD
-  3. AWS_ACCESS_KEY_ID
-  4. AWS_SECRET_ACCESS_KEY
-  
-You are all set!
+## Run the subnet image
+WIP: Working in progress
+The subnet image require at least below environment variables injected when running docker command:
+1. BOOTNODES: Addresses of the bootnodes, seperated by ","
+2. PRIVATE_KEY: Primary key of the wallet
+3. NETWORK_ID: The subnet network id. This shall be unique in your local network.
+4. LOG_LEVEL (Optional): The log level of the running node. Default to 3. 
+5. SYNC_MODE (Optional): The node syncing mode. Available values are full or fast. Default to full.
 
-## How to run different version of XDC on selected nodes
-1. Create a new image tag:
-  - Check out the repo
-  - Run docker build `docker build -t xdc-devnet -f cicd/devnet/Dockerfile .`
-  - Run docker tag `docker tag xdc-devnet:latest xinfinorg/devnet:test-{{put your version number here}}`
-  - Run docker push `docker push xinfinorg/devnet:test-{{Version number from step above}}`
-2. Adjust node-config.json
-  - Download the node-config.json from s3
-  - Add/update the `imageTag` field with value of `test-{{version number you defined in step 1}}` for the selected number of nodes you want to test with
-  - Optional: Adjust the log level by add/updating the field of `logLevel`
-  - Save and upload to s3
-3. Make a dummy PR and get merged. Wait it to be updated.
+The docker container will store the chain data under the path of "/work/xdcchain". If you would like the chain data persisted on your machine, you will need to volume the container.
+An example command as below
+```
+WIP
+```
