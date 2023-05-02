@@ -6,15 +6,19 @@
 
 /tmp
 */**/*un~
-*/**/*.test
 *un~
 .DS_Store
 */**/.DS_Store
-.ethtest
 */**/*tx_database*
 */**/*dapps*
 build/_vendor/pkg
 /devnet
+
+#test
+.ethtest
+*/**/*.test
+consensus/ethash/full-*
+
 #*
 .#*
 *#
