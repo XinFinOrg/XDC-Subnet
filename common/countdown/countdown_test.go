@@ -138,6 +138,7 @@ func TestCountdownShouldBeAbleToStop(t *testing.T) {
 	stopTimer := time.NewTimer(4000 * time.Millisecond)
 	<-stopTimer.C
 	countdown.StopTimer()
+	time.Sleep(500 * time.Millisecond)
 	assert.False(t, countdown.isInitilised())
 }
 
