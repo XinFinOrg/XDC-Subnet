@@ -17,7 +17,6 @@ COPY --from=builder /builder/build/bin/XDC /usr/bin
 RUN chmod +x /usr/bin/XDC
     
 # Copy over files
-ADD cicd/genesis.json /work/genesis.json
 ADD cicd/start.sh /work/start.sh
 
 # Create an empty pwd file
