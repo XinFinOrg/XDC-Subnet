@@ -1,4 +1,5 @@
 #!/bin/bash
+networkId="102"
 if [ ! -d /work/xdcchain/XDC/chaindata ]
 then
   if test -z "$PRIVATE_KEY" 
@@ -7,8 +8,8 @@ then
     exit 1
   elif test -z "$NETWORK_ID"
   then
-    echo "NETWORK_ID environment variable has not been set."
-    exit 1
+    echo "NETWORK_ID environment variable has not been set. Default to 102"
+    networkId=$NETWORK_ID
   elif test -z "$BOOTNODES"
   then
     echo "WARNING: BOOTNODES environment variable has not been set. You should at least provide 1 bootnode address"
@@ -46,7 +47,7 @@ echo "Starting nodes with $bootnodes ..."
 
 XDC --gcmode=full \
 --bootnodes ${BOOTNODES} --syncmode ${syncmode} \
---datadir /work/xdcchain --networkid ${NETWORK_ID} \
+--datadir /work/xdcchain --networkid ${networkId} \
 -port 30303 --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 \
 --rpcport 8545 \
 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,XDPoS \
