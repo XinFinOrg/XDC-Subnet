@@ -4,7 +4,7 @@ import json
 from web3_xdc import Web3
 
 # 1. Load ABI files and connect using web3
-w3 = Web3(Web3.HTTPProvider(NODE_RPC))
+w3 = Web3(Web3.HTTPProvider(MAINNET_RPC))
 with open(SUBNET_CONTRACT_JSON, "r") as f:
   subnet_contract = json.load(f)
 with open(".env", "r") as f:

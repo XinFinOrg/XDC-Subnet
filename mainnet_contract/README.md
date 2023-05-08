@@ -18,38 +18,25 @@ truffle build
 truffle test
 ```
 
-## Contract Deployment:
+## Contract Setup:
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
 1. Fill in the fields in `config.py`
-    * `NODE_RPC`: Targeted XDC devnet, testnet or mainnet node RPC link
+    * `MAINNET_RPC`: Targeted XDC public chain devnet, testnet or mainnet node RPC link
+    * `SUBNET_RPC`: Targeted XDC private subnet chain devnet, testnet or mainnet node RPC link
     * `DEPLOY_INIT_JSON`: Arguments to be provided into contract constructor
     * `SUBNET_CONTRACT_JSON`: Path to compiled Subnet JSON file 
     * `HEADER_CONTRACT_JSON`: Path to compiled HeaderReader JSON file
-2. `DEPLOY_INIT_JSON` should include:
-    * `genesis_header_encoded`: RLP encoded Genesis XDC block bytes in hexstring format
-    * `validators`: List of initial validator addresses
-    * `threshold`: The number of validator signatures to pass block verification
-3. Create a `.env` file which contain a valid account privatekey
+    * `VALIDATORS`: List of initial validator addresses
+    * `GAP`: GAP block number on public chain
+    * `EPOCH`: EPOCH block number on public chain
+    * `genesis_header_encoded`: RLP encoded Genesis XDC block bytes in hexstring format 3. 
+2. Create a `.env` file which contain a valid account privatekey
 
-There are sample for `config.py` and `DEPLOY_INIT_JSON` as a reference. 
+
+## Contract Deployment:
 
 ```
-# Create and Activate python virtual env
-python3 -m venv xdc
-source xdc/bin/activate
-
-# Git clone the modified web3
-git clone https://github.com/span14/web3.py.git
-cd web3.py
-git fetch 
-git checkout v5
-
-# Install modified web3
-python setup.py install
-
-# Back to parent folder and run
-cd ..
-python contract_deployment.py
+./deploy.sh
 ```
 
 ## API Interaction
