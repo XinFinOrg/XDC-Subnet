@@ -17,12 +17,13 @@
 package main
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
 
 	"github.com/XinFinOrg/XDPoSChain/common"
 	"github.com/XinFinOrg/XDPoSChain/core"
@@ -76,7 +77,7 @@ var daoProForkGenesis = `{
 	}
 }`
 
-var daoGenesisHash = common.HexToHash("29a4b5d743bfbda3a7461974d49c62bf23ba5df9c8b01de8256e2ac2a9ae1cd8")
+var daoGenesisHash = common.HexToHash("47ac6b5ca719ffa22f7a9ba3700dff10eb274917aafce1814aa8779dcddda2fe")
 var daoGenesisForkBlock = big.NewInt(314)
 
 // TestDAOForkBlockNewChain tests that the DAO hard-fork number and the nodes support/opposition is correctly

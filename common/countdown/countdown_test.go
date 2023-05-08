@@ -38,7 +38,7 @@ func TestCountdownShouldReset(t *testing.T) {
 	countdown.Reset(fakeI)
 	// Now the countdown should already started
 	assert.True(t, countdown.isInitilised())
-	expectedCalledTime := time.Now().Add(9000 * time.Millisecond)
+	expectedCalledTime := time.Now().Add(8500 * time.Millisecond)
 	resetTimer := time.NewTimer(4000 * time.Millisecond)
 
 firstReset:
@@ -60,7 +60,7 @@ firstReset:
 
 	// Now the countdown is paused after calling the callback function, let's reset it again
 	assert.True(t, countdown.isInitilised())
-	expectedTimeAfterReset := time.Now().Add(5000 * time.Millisecond)
+	expectedTimeAfterReset := time.Now().Add(4500 * time.Millisecond)
 	<-called
 	// Always initilised
 	assert.True(t, countdown.isInitilised())
@@ -86,7 +86,7 @@ func TestCountdownShouldResetEvenIfErrored(t *testing.T) {
 	countdown.Reset(fakeI)
 	// Now the countdown should already started
 	assert.True(t, countdown.isInitilised())
-	expectedCalledTime := time.Now().Add(9000 * time.Millisecond)
+	expectedCalledTime := time.Now().Add(8500 * time.Millisecond)
 	resetTimer := time.NewTimer(4000 * time.Millisecond)
 
 firstReset:
@@ -108,7 +108,7 @@ firstReset:
 
 	// Now the countdown is paused after calling the callback function, let's reset it again
 	assert.True(t, countdown.isInitilised())
-	expectedTimeAfterReset := time.Now().Add(5000 * time.Millisecond)
+	expectedTimeAfterReset := time.Now().Add(4500 * time.Millisecond)
 	<-called
 	// Always initilised
 	assert.True(t, countdown.isInitilised())
@@ -138,6 +138,7 @@ func TestCountdownShouldBeAbleToStop(t *testing.T) {
 	stopTimer := time.NewTimer(4000 * time.Millisecond)
 	<-stopTimer.C
 	countdown.StopTimer()
+	time.Sleep(500 * time.Millisecond)
 	assert.False(t, countdown.isInitilised())
 }
 
