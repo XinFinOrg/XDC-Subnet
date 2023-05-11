@@ -20,23 +20,28 @@ truffle test
 
 ## Contract Setup:
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
-1. Fill in the fields in `config.py`
-    * `MAINNET_RPC`: Targeted XDC public chain devnet, testnet or mainnet node RPC link
-    * `SUBNET_RPC`: Targeted XDC private subnet chain devnet, testnet or mainnet node RPC link
-    * `DEPLOY_INIT_JSON`: Arguments to be provided into contract constructor
-    * `SUBNET_CONTRACT_JSON`: Path to compiled Subnet JSON file 
-    * `HEADER_CONTRACT_JSON`: Path to compiled HeaderReader JSON file
-    * `VALIDATORS`: List of initial validator addresses
+1. Fill in the fields in `config.json`
     * `GAP`: GAP block number on public chain
     * `EPOCH`: EPOCH block number on public chain
-    * `genesis_header_encoded`: RLP encoded Genesis XDC block bytes in hexstring format 3. 
-2. Create a `.env` file which contain a valid account privatekey
+    * `MAINNET_RPC`: Targeted XDC public chain devnet, testnet or mainnet node RPC link
+    * `SUBNET_RPC`: Targeted XDC private subnet chain devnet, testnet or mainnet node RPC link
+    * `DEPLOY_INIT`: Arguments to be provided into contract constructor
+    * `SUBNET_CONTRACT`: Path to compiled Subnet JSON file 
+    * `HEADER_CONTRACT`: Path to compiled HeaderReader JSON file
+    * `VALIDATORS`: List of initial validator addresses
+2. Create a `.env` file which contain a valid account privatekey, check `.env.sample` for example
 
 
 ## Contract Deployment:
-
+And get the deployed contract address
 ```
-./deploy.sh
+docker build -t contract . && docker run -it contract
+
+.....
+.....
+3. contract deploy
+Subnet contract deployed at:  0x1234567890
+Deployment Complete!
 ```
 
 ## API Interaction

@@ -1,7 +1,6 @@
 import os
 import json
 
-from config import *
 from eth_account import Account
 from web3_xdc import Web3
 from dotenv import load_dotenv
