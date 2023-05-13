@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y git build-essential
 
 COPY . /builder
 
-RUN cd /builder && make
+RUN cd /builder && make XDC
 
 # The actual image for subnet containers
 FROM golang:1.14
@@ -17,7 +17,7 @@ COPY --from=builder /builder/build/bin/XDC /usr/bin
 RUN chmod +x /usr/bin/XDC
     
 # Copy over files
-ADD cicd/start.sh /work/start.sh
+ADD docker/node/start.sh /work/start.sh
 
 # Create an empty pwd file
 RUN touch /work/.pwd
