@@ -1,5 +1,20 @@
 #!/bin/sh -x
 
+# Variables
+params=""
+
+# extip
+if [[ ! -z $EXTIP ]]; then
+echo "Set the NAT to extip:${EXTIP}"
+  params="$params -nat extip:${EXTIP}"
+fi
+
+# extip
+if [[ ! -z $NET_RESTRICTING ]]; then
+echo "Restricting the network to: ${NET_RESTRICTING}"
+  params="$params -netrestrict NET_RESTRICTING"
+fi
+
 # file to env
 for env in PRIVATE_KEY; do
   file=$(eval echo "\$${env}_FILE")
@@ -19,6 +34,8 @@ fi
 # dump address
 address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@[$(hostname -i)]:30301"
 
-echo "$address" > ./bootnodes/bootnodes
+echo "🥾 Starting the bootnode with address at $address"
 
-exec bootnode "$@"
+
+
+exec bootnode "$@" $params

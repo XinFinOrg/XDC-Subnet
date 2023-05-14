@@ -37,7 +37,7 @@ jobs:
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - name: Build and push image
       run: |
-        docker build -t xdc-subnet -f docker/node/Dockerfile .
+        docker build -t xdc-subnet -f docker/Dockerfile .
         docker tag xdc-subnet:latest xinfinorg/xdcsubnets:latest
         docker push xinfinorg/xdcsubnets:latest
     

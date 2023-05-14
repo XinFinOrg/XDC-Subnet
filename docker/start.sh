@@ -74,18 +74,18 @@ then
   else
     echo "${PRIVATE_KEY}" > ./private_key
     echo "Creating account from private key"
-    wallet=$(XDC account import --password .pwd --datadir $DATA_DIR --keystore $KEYSTORE_DIR ./private_key | awk -v FS="({|})" '{print $2}')
+    wallet=$(XDC account import --password .pwd --datadir $DATA_DIR ./private_key | awk -v FS="({|})" '{print $2}')
     XDC --datadir $DATA_DIR init /work/genesis.json  
   fi
-  
 else
-  wallet=$(XDC account list --datadir $DATA_DIR --keystore $KEYSTORE_DIR | head -n 1 | awk -v FS="({|})" '{print $2}')
+  echo "Wallet already exist, re-use the same one"
+  wallet=$(XDC account list --datadir $DATA_DIR | head -n 1 | awk -v FS="({|})" '{print $2}')
 fi
 
 echo "Using wallet $wallet"
 params="$params --unlock $wallet"
 
-echo "Starting nodes with $bootnodes ..."
+echo "Starting nodes with bootnodes of: $BOOTNODES ..."
 
 XDC $params \
 --datadir $DATA_DIR \
