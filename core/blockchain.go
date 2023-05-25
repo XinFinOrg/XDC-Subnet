@@ -2531,13 +2531,9 @@ func (bc *BlockChain) UpdateM1() error {
 		// update masternodes
 
 		log.Info("Updating new set of masternodes")
-		// check if block number is increase ms checkpoint
-		maxMasternodes := common.MaxMasternodes
-		if len(ms) > maxMasternodes {
-			err = engine.UpdateMasternodes(bc, bc.CurrentHeader(), ms[:maxMasternodes])
-		} else {
-			err = engine.UpdateMasternodes(bc, bc.CurrentHeader(), ms)
-		}
+		// get block header
+		header := bc.CurrentHeader()
+		err = engine.UpdateMasternodes(bc, header, ms)
 		if err != nil {
 			return err
 		}

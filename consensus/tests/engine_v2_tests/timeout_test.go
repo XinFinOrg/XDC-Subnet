@@ -109,7 +109,7 @@ func TestTimeoutPeriodAndThreadholdConfigChange(t *testing.T) {
 	// Create another block to trigger update parameters
 	blockNum := 1800
 	blockCoinBase := "0x111000000000000000000000000000000123"
-	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 900, blockCoinBase, signer, signFn, nil, nil)
+	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 900, blockCoinBase, signer, signFn, nil, nil, "")
 	currentBlockHeader := currentBlock.Header()
 	currentBlockHeader.Time = big.NewInt(time.Now().Unix())
 	err := blockchain.InsertBlock(currentBlock)
@@ -248,6 +248,7 @@ func TestShouldVerifyTimeoutMessageForFirstV2Block(t *testing.T) {
 	}
 
 	verified, err := engineV2.VerifyTimeoutMessage(blockchain, timeoutMsg)
+	assert.Equal(t, timeoutMsg.GetSigner(), signer)
 	assert.Nil(t, err)
 	assert.True(t, verified)
 
@@ -263,6 +264,7 @@ func TestShouldVerifyTimeoutMessageForFirstV2Block(t *testing.T) {
 	}
 
 	verified, err = engineV2.VerifyTimeoutMessage(blockchain, timeoutMsg)
+	assert.Equal(t, timeoutMsg.GetSigner(), signer)
 	assert.Nil(t, err)
 	assert.True(t, verified)
 }
@@ -286,7 +288,7 @@ func TestShouldVerifyTimeoutMessage(t *testing.T) {
 	assert.True(t, verified)
 }
 
-func TestTimeoutPoolKeeyGoodHygiene(t *testing.T) {
+func TestTimeoutPoolKeyGoodHygiene(t *testing.T) {
 	blockchain, _, _, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 

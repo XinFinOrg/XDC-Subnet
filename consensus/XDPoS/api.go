@@ -53,6 +53,24 @@ type NetworkInformation struct {
 	LendingAddress             common.Address
 }
 
+type SignerTypes struct {
+	CurrentNumber  int
+	CurrentSigners []common.Address
+	MissingSigners []common.Address
+}
+
+type MasternodesStatus struct {
+	Number         uint64
+	Round          types.Round
+	MasternodesLen int
+	Masternodes    []common.Address
+	PenaltyLen     int
+	Penalty        []common.Address
+	Error          error
+}
+
+type MessageStatus map[string]map[string]SignerTypes
+
 // GetSnapshot retrieves the state snapshot at a given block.
 func (api *API) GetSnapshot(number *rpc.BlockNumber) (*utils.PublicApiSnapshot, error) {
 	// Retrieve the requested block number (or current if none requested)
@@ -104,9 +122,136 @@ func (api *API) GetSignersAtHash(hash common.Hash) ([]common.Address, error) {
 	return api.XDPoS.GetAuthorisedSignersFromSnapshot(api.chain, header)
 }
 
-// Get the latest v2 committed block information. Note: This only applies to v2 engine. it doesn't make sense for v1
-func (api *API) GetLatestCommittedBlockHeader() *types.BlockInfo {
-	return api.XDPoS.EngineV2.GetLatestCommittedBlockInfo()
+func (api *API) GetMasternodesByNumber(number *rpc.BlockNumber) MasternodesStatus {
+	var header *types.Header
+	if number == nil || *number == rpc.LatestBlockNumber {
+		header = api.chain.CurrentHeader()
+	} else if *number == rpc.CommittedBlockNumber {
+		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
+		header = api.chain.GetHeaderByHash(hash)
+	} else {
+		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
+	}
+
+	round, err := api.XDPoS.EngineV2.GetRoundNumber(header)
+	if err != nil {
+		return MasternodesStatus{
+			Error: err,
+		}
+	}
+
+	masterNodes := api.XDPoS.EngineV2.GetMasternodes(api.chain, header)
+	penalties := api.XDPoS.EngineV2.GetPenalties(api.chain, header)
+
+	info := MasternodesStatus{
+		Number:         header.Number.Uint64(),
+		Round:          round,
+		MasternodesLen: len(masterNodes),
+		Masternodes:    masterNodes,
+		PenaltyLen:     len(penalties),
+		Penalty:        penalties,
+	}
+	return info
+}
+
+// Get current vote pool and timeout pool content and missing messages
+func (api *API) GetLatestPoolStatus() MessageStatus {
+	header := api.chain.CurrentHeader()
+	masternodes := api.XDPoS.EngineV2.GetMasternodes(api.chain, header)
+
+	receivedVotes := api.XDPoS.EngineV2.ReceivedVotes()
+	receivedTimeouts := api.XDPoS.EngineV2.ReceivedTimeouts()
+	info := make(MessageStatus)
+	info["vote"] = make(map[string]SignerTypes)
+	info["timeout"] = make(map[string]SignerTypes)
+
+	calculateSigners(info["vote"], receivedVotes, masternodes)
+	calculateSigners(info["timeout"], receivedTimeouts, masternodes)
+
+	return info
+}
+
+func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInfo {
+	committed := false
+	latestCommittedBlock := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo()
+	if latestCommittedBlock == nil {
+		return &V2BlockInfo{
+			Hash:  header.Hash(),
+			Error: "can not find latest committed block from consensus",
+		}
+	}
+	if header.Number.Uint64() <= latestCommittedBlock.Number.Uint64() {
+		committed = true && !uncle
+	}
+
+	round, err := api.XDPoS.EngineV2.GetRoundNumber(header)
+
+	if err != nil {
+		return &V2BlockInfo{
+			Hash:  header.Hash(),
+			Error: err.Error(),
+		}
+	}
+
+	encodeBytes, err := rlp.EncodeToBytes(header)
+	if err != nil {
+		return &V2BlockInfo{
+			Hash:  header.Hash(),
+			Error: err.Error(),
+		}
+	}
+
+	block := &V2BlockInfo{
+		Hash:       header.Hash(),
+		ParentHash: header.ParentHash,
+		Number:     header.Number,
+		Round:      round,
+		Committed:  committed,
+		EncodedRLP: base64.StdEncoding.EncodeToString(encodeBytes),
+	}
+	return block
+}
+
+func (api *API) GetV2BlockByNumber(number *rpc.BlockNumber) *V2BlockInfo {
+	var header *types.Header
+	if number == nil || *number == rpc.LatestBlockNumber {
+		header = api.chain.CurrentHeader()
+	} else if *number == rpc.CommittedBlockNumber {
+		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
+		header = api.chain.GetHeaderByHash(hash)
+	} else {
+		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
+	}
+
+	if header == nil {
+		return &V2BlockInfo{
+			Number: big.NewInt(number.Int64()),
+			Error:  "can not find block from this number",
+		}
+	}
+
+	uncle := false
+	return api.GetV2BlockByHeader(header, uncle)
+}
+
+// Confirm V2 Block Committed Status
+func (api *API) GetV2BlockByHash(blockHash common.Hash) *V2BlockInfo {
+	header := api.chain.GetHeaderByHash(blockHash)
+	if header == nil {
+		return &V2BlockInfo{
+			Hash:  blockHash,
+			Error: "can not find block from this hash",
+		}
+	}
+
+	// confirm this is on the main chain
+	chainHeader := api.chain.GetHeaderByNumber(header.Number.Uint64())
+	uncle := false
+	if header.Hash() != chainHeader.Hash() {
+		uncle = true
+	}
+
+	return api.GetV2BlockByHeader(header, uncle)
 }
 
 func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInfo {
@@ -209,4 +354,29 @@ func (api *API) NetworkInformation() NetworkInformation {
 		info.XDCZAddress = common.TRC21IssuerSMC
 	}
 	return info
+}
+
+func calculateSigners(message map[string]SignerTypes, pool map[string]map[common.Hash]utils.PoolObj, masternodes []common.Address) {
+	for name, objs := range pool {
+		var currentSigners []common.Address
+		missingSigners := make([]common.Address, len(masternodes))
+		copy(missingSigners, masternodes)
+
+		num := len(objs)
+		for _, obj := range objs {
+			signer := obj.GetSigner()
+			currentSigners = append(currentSigners, signer)
+			for i, mn := range missingSigners {
+				if mn == signer {
+					missingSigners = append(missingSigners[:i], missingSigners[i+1:]...)
+					break
+				}
+			}
+		}
+		message[name] = SignerTypes{
+			CurrentNumber:  num,
+			CurrentSigners: currentSigners,
+			MissingSigners: missingSigners,
+		}
+	}
 }

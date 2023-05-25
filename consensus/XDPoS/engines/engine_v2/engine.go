@@ -24,6 +24,8 @@ import (
 )
 
 type XDPoS_v2 struct {
+	chainConfig *params.ChainConfig // Chain & network configuration
+
 	config       *params.XDPoSConfig // Consensus engine configuration parameters
 	db           ethdb.Database      // Database to store and retrieve snapshot checkpoints
 	isInitilised bool                // status of v2 variables
@@ -64,7 +66,8 @@ type XDPoS_v2 struct {
 	votePoolCollectionTime time.Time
 }
 
-func New(config *params.XDPoSConfig, db ethdb.Database, waitPeriodCh chan int) *XDPoS_v2 {
+func New(chainConfig *params.ChainConfig, db ethdb.Database, waitPeriodCh chan int) *XDPoS_v2 {
+	config := chainConfig.XDPoS
 	// Setup timeoutTimer
 	duration := time.Duration(config.V2.CurrentConfig.TimeoutPeriod) * time.Second
 	timeoutTimer := countdown.NewCountDown(duration)
@@ -77,6 +80,8 @@ func New(config *params.XDPoSConfig, db ethdb.Database, waitPeriodCh chan int) *
 	timeoutPool := utils.NewPool()
 	votePool := utils.NewPool()
 	engine := &XDPoS_v2{
+		chainConfig: chainConfig,
+
 		config:       config,
 		db:           db,
 		isInitilised: false,
@@ -618,7 +623,7 @@ func (x *XDPoS_v2) VerifyVoteMessage(chain consensus.ChainReader, vote *types.Vo
 		log.Error("[VerifyVoteMessage] fail to get snapshot for a vote message", "blockNum", vote.ProposedBlockInfo.Number, "blockHash", vote.ProposedBlockInfo.Hash, "voteHash", vote.Hash(), "error", err.Error())
 		return false, err
 	}
-	verified, _, err := x.verifyMsgSignature(types.VoteSigHash(&types.VoteForSign{
+	verified, signer, err := x.verifyMsgSignature(types.VoteSigHash(&types.VoteForSign{
 		ProposedBlockInfo: vote.ProposedBlockInfo,
 		GapNumber:         vote.GapNumber,
 	}), vote.Signature, snapshot.NextEpochMasterNodes)
@@ -627,8 +632,11 @@ func (x *XDPoS_v2) VerifyVoteMessage(chain consensus.ChainReader, vote *types.Vo
 			log.Warn("[VerifyVoteMessage] Master node list item", "index", i, "Master node", mn.Hex())
 		}
 		log.Warn("[VerifyVoteMessage] Error while verifying vote message", "votedBlockNum", vote.ProposedBlockInfo.Number.Uint64(), "votedBlockHash", vote.ProposedBlockInfo.Hash.Hex(), "voteHash", vote.Hash(), "error", err.Error())
+		return false, err
 	}
-	return verified, err
+	vote.SetSigner(signer)
+
+	return verified, nil
 }
 
 // Consensus entry point for processing vote message to produce QC
@@ -652,20 +660,27 @@ func (x *XDPoS_v2) VoteHandler(chain consensus.ChainReader, voteMsg *types.Vote)
 */
 func (x *XDPoS_v2) VerifyTimeoutMessage(chain consensus.ChainReader, timeoutMsg *types.Timeout) (bool, error) {
 	snap, err := x.getSnapshot(chain, timeoutMsg.GapNumber, true)
-	if err != nil {
-		log.Error("[VerifyTimeoutMessage] Fail to get snapshot when verifying timeout message!", "messageGapNumber", timeoutMsg.GapNumber)
+	if err != nil || snap == nil {
+		log.Error("[VerifyTimeoutMessage] Fail to get snapshot when verifying timeout message!", "messageGapNumber", timeoutMsg.GapNumber, "err", err)
 		return false, err
 	}
-	if snap == nil || len(snap.NextEpochMasterNodes) == 0 {
-		log.Error("[VerifyTimeoutMessage] Something wrong with the snapshot from gapNumber", "messageGapNumber", timeoutMsg.GapNumber, "snapshot", snap)
+	if len(snap.NextEpochMasterNodes) == 0 {
+		log.Error("[VerifyTimeoutMessage] cannot find nextEpochMasterNodes from snapshot", "messageGapNumber", timeoutMsg.GapNumber)
 		return false, fmt.Errorf("Empty master node lists from snapshot")
 	}
 
-	verified, _, err := x.verifyMsgSignature(types.TimeoutSigHash(&types.TimeoutForSign{
+	verified, signer, err := x.verifyMsgSignature(types.TimeoutSigHash(&types.TimeoutForSign{
 		Round:     timeoutMsg.Round,
 		GapNumber: timeoutMsg.GapNumber,
 	}), timeoutMsg.Signature, snap.NextEpochMasterNodes)
-	return verified, err
+
+	if err != nil {
+		log.Warn("[VerifyTimeoutMessage] cannot verify timeout signature", "err", err)
+		return false, err
+	}
+
+	timeoutMsg.SetSigner(signer)
+	return verified, nil
 }
 
 /*
@@ -902,8 +917,9 @@ func (x *XDPoS_v2) setNewRound(blockChainReader consensus.ChainReader, round typ
 	x.currentRound = round
 	x.timeoutCount = 0
 	x.timeoutWorker.Reset(blockChainReader)
-	//TODO: vote pools
 	x.timeoutPool.Clear()
+	// don't need to clean vote pool, we have other process to clean and it's not good to clean here, some edge case may break
+	// for example round gets bump during collecting vote, so we have to keep vote.
 }
 
 func (x *XDPoS_v2) broadcastToBftChannel(msg interface{}) {
@@ -981,13 +997,27 @@ func (x *XDPoS_v2) GetMasternodesFromEpochSwitchHeader(epochSwitchHeader *types.
 func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
 	if err != nil {
-		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error, potentially bug", "err", err)
+		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Masternodes
 }
 
+// Given header, get master node from the epoch switch block of that epoch
+func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Header) []common.Address {
+	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		return []common.Address{}
+	}
+	return epochSwitchInfo.Penalties
+}
+
+// Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
 func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, []common.Address, error) {
+	// using new max masterndoes
+	maxMasternodes := common.MaxMasternodesV2
+
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {
 		log.Error("[calcMasternodes] Adaptor v2 getSnapshot has error", "err", err)
@@ -998,11 +1028,17 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 
 	if blockNum.Uint64() == x.config.V2.SwitchBlock.Uint64()+1 {
 		log.Info("[calcMasternodes] examing first v2 block")
+		if len(candidates) > maxMasternodes {
+			candidates = candidates[:maxMasternodes]
+		}
 		return candidates, []common.Address{}, nil
 	}
 
 	if x.HookPenalty == nil {
 		log.Info("[calcMasternodes] no hook penalty defined")
+		if len(candidates) > maxMasternodes {
+			candidates = candidates[:maxMasternodes]
+		}
 		return candidates, []common.Address{}, nil
 	}
 	//penalties just for information
@@ -1011,7 +1047,20 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 		log.Error("[calcMasternodes] Adaptor v2 HookPenalty has error", "err", err)
 		return nil, nil, err
 	}
-	return candidates, penalties, nil
+	masternodes := common.RemoveItemFromArray(candidates, penalties)
+	if len(masternodes) > maxMasternodes {
+		masternodes = masternodes[:maxMasternodes]
+	}
+	if len(masternodes) < x.config.V2.CurrentConfig.CertThreshold {
+		log.Warn("[calcMasternodes] Current epoch masternodes less than threshold", "number", blockNum, "masternodes", len(masternodes), "threshold", x.config.V2.CurrentConfig.CertThreshold)
+		for i, a := range masternodes {
+			log.Warn("final masternode", "i", i, "addr", a)
+		}
+		for i, a := range penalties {
+			log.Warn("penalty", "i", i, "addr", a)
+		}
+	}
+	return masternodes, penalties, nil
 
 }
 
