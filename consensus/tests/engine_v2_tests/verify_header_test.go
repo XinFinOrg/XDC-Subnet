@@ -76,7 +76,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	invalidValidatorsSignerBlock := blockchain.GetBlockByNumber(901).Header()
 	invalidValidatorsSignerBlock.Validators = []common.Address{{123}}
 	err = adaptor.VerifyHeader(blockchain, invalidValidatorsSignerBlock, true)
-	assert.Equal(t, utils.ErrInvalidCheckpointSigners, err)
+	assert.Equal(t, utils.ErrValidatorsNotLegit, err)
 
 	// non-epoch switch
 	invalidValidatorsExistBlock := blockchain.GetBlockByNumber(902).Header()

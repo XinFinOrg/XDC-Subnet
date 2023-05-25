@@ -1,0 +1,46 @@
+name: PR tests
+
+on:
+  push:
+    branches:    
+      - main
+  
+jobs:
+  test_on_pr:
+    name: Test, build and push image to registry
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: ${{ github.workspace }}
+      GOBIN: ${{ github.workspace }}/bin
+    defaults:
+      run:
+        working-directory: ${{ env.GOPATH }}/src/XDC-Subnet
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        path: ${{ env.GOPATH }}/src/XDC-Subnet
+    - name: Set up Go 1.14.x
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.14.x' # The Go version to download (if necessary) and use.
+    - name: Run tests
+      run: |
+        make test
+      env:
+        GO111MODULE: auto
+    - name: Docker login
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - name: Build and push image
+      run: |
+        docker build -t xdc-subnet -f cicd/Dockerfile .
+        docker tag xdc-subnet:latest xinfinorg/xdcsubnets:latest
+        docker push xinfinorg/xdcsubnets:latest
+    
+      
+    
+    

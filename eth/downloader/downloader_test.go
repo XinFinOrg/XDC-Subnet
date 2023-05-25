@@ -1365,8 +1365,8 @@ func testBlockHeaderAttackerDropping(t *testing.T, protocol int) {
 	}
 }
 
-//Tests that synchronisation progress (origin block number, current block number
-//and highest block number) is tracked and updated correctly.
+// Tests that synchronisation progress (origin block number, current block number
+// and highest block number) is tracked and updated correctly.
 func TestSyncProgress62(t *testing.T)      { testSyncProgress(t, 62, FullSync) }
 func TestSyncProgress63Full(t *testing.T)  { testSyncProgress(t, 63, FullSync) }
 func TestSyncProgress63Fast(t *testing.T)  { testSyncProgress(t, 63, FastSync) }
@@ -1739,7 +1739,7 @@ func (ftp *floodingTestPeer) RequestHeadersByNumber(from uint64, count, skip int
 }
 
 func testDeliverHeadersHang(t *testing.T, protocol int, mode SyncMode) {
-	t.Parallel()
+	//t.Parallel() sometimes break in ci mode
 
 	master := newTester()
 	defer master.terminate()
