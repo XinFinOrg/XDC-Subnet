@@ -62,7 +62,9 @@ type XDPoS_v1 struct {
 	HookGetSignersFromContract func(blockHash common.Hash) ([]common.Address, error)
 }
 
-/* V1 Block
+/*
+	V1 Block
+
 SignerFn is a signer callback function to request a hash to be signed by a
 backing account.
 type SignerFn func(accounts.Account, []byte) ([]byte, error)
@@ -786,15 +788,8 @@ func (x *XDPoS_v1) Prepare(chain consensus.ChainReader, header *types.Header) er
 
 // Update masternodes into snapshot. In V1, truncating ms[:MaxMasternodes] is done in this function.
 func (x *XDPoS_v1) UpdateMasternodes(chain consensus.ChainReader, header *types.Header, ms []utils.Masternode) error {
-	var maxMasternodes int
-	// check if block number is increase ms checkpoint
-	if x.chainConfig.IsTIPIncreaseMasternodes(header.Number) || (x.config.V2.SwitchBlock != nil && header.Number.Cmp(x.config.V2.SwitchBlock) == 1) {
-		// using new masterndoes
-		maxMasternodes = common.MaxMasternodesV2
-	} else {
-		// using old masterndoes
-		maxMasternodes = common.MaxMasternodes
-	}
+	// subnet start from v2
+	maxMasternodes := common.MaxMasternodesV2
 	if len(ms) > maxMasternodes {
 		ms = ms[:maxMasternodes]
 	}

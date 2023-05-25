@@ -243,6 +243,7 @@ func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n 
 		big.NewInt(99),
 		big.NewInt(100),
 		big.NewInt(100),
+		candidates, //use candidates as grandMasters too
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)
@@ -541,7 +542,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 			blockCoinBase = signer.Hex()
 		}
 		roundNumber := int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
-		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "b345a8560bd51926803dd17677c9f0751193914a851a4ec13063d6bf50220b53")
+		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "5f6a0ed6ac6ae850b98fc00fab523a129a25dc64eb2a9bc475073d264989b876")
 		err = blockchain.InsertBlock(block)
 		if err != nil {
 			t.Fatal(err)
@@ -561,7 +562,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []byte, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb930"
+		merkleRoot = "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	}
 	var header *types.Header
 
