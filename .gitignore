@@ -57,8 +57,3 @@ profile.cov
 **/yarn-error.log
 coverage.txt
 go.sum
-
-
-cicd/devnet/terraform/.terraform
-cicd/devnet/.pwd
-cicd/devnet/tmp/

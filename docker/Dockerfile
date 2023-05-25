@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y git build-essential
 
 COPY . /builder
 
-RUN cd /builder && make
+RUN cd /builder && make XDC && make bootnode && make puppeth
 
 # The actual image for subnet containers
 FROM golang:1.14
@@ -13,12 +13,17 @@ RUN apt-get update && apt-get install -y git build-essential
 
 WORKDIR /work
 
-COPY --from=builder /builder/build/bin/XDC /usr/bin
+COPY --from=builder /builder/build/bin/XDC /usr/bin/XDC
+COPY --from=builder /builder/build/bin/bootnode /usr/bin/bootnode
+COPY --from=builder /builder/build/bin/puppeth /usr/bin/puppeth
+
 RUN chmod +x /usr/bin/XDC
+RUN chmod +x /usr/bin/bootnode
+RUN chmod +x /usr/bin/puppeth
     
 # Copy over files
-ADD cicd/genesis.json /work/genesis.json
-ADD cicd/start.sh /work/start.sh
+ADD docker/start.sh /work/start.sh
+ADD docker/start-bootnode.sh /work/start-bootnode.sh
 
 # Create an empty pwd file
 RUN touch /work/.pwd
@@ -29,5 +34,8 @@ EXPOSE 8545
 EXPOSE 8555
 # port
 EXPOSE 30303
+
+# For bootnode
+EXPOSE 30301
 
 ENTRYPOINT ["bash","/work/start.sh"]

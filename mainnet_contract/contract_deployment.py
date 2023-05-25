@@ -1,16 +1,22 @@
-from config import *
-from eth_account import Account
+import os
 import json
+
+from eth_account import Account
 from web3_xdc import Web3
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 1. Load ABI files and connect using web3
-w3 = Web3(Web3.HTTPProvider(NODE_RPC))
-with open(SUBNET_CONTRACT_JSON, "r") as f:
+with open("config.json", "r") as f:
+  config = json.load(f)
+with open(config['subnet_contract'], "r") as f:
   subnet_contract = json.load(f)
-with open(".env", "r") as f:
-  account = Account.from_key(f.read().strip())
-with open(DEPLOY_INIT_JSON, "r") as f:
-  init = json.load(f)
+with open(config['deploy_init'], "r") as f:
+  blocks = json.load(f)
+
+account = Account.from_key(os.getenv('PRIVATE_KEY'))
+w3 = Web3(Web3.HTTPProvider(config['mainnet_rpc']))
 
 # 2. Deploy Subnet Contract
 with open("lib_address.txt", "r") as f:
@@ -18,11 +24,11 @@ with open("lib_address.txt", "r") as f:
 
 Subnet = w3.eth.contract(abi=subnet_contract["abi"], bytecode=subnet_contract["bytecode"].replace("__HeaderReader__________________________", lib_addr))
 txn2 = Subnet.constructor(
-  init["validators"],
-  init["genesis_header_encoded"], 
-  init["block1_header_encoded"],
-  init["gap"],
-  init["epoch"]
+  config["validators"],
+  blocks["genesis_header_encoded"], 
+  blocks["block1_header_encoded"],
+  config["gap"],
+  config["epoch"]
 ).build_transaction(
   {
     "from": account.address,
