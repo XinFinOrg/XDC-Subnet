@@ -17,8 +17,8 @@
 package runtime
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/core/vm"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/vm"
 )
 
 func NewEnv(cfg *Config) *vm.EVM {

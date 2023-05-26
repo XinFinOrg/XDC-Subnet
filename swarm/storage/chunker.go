@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
 )
 
 /*

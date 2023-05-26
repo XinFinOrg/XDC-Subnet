@@ -17,7 +17,7 @@
 package vm
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 type (

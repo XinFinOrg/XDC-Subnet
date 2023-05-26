@@ -1,6 +1,6 @@
 package engine_v2
 
-import "github.com/XinFinOrg/XDPoSChain/core/types"
+import "github.com/XinFinOrg/XDC-Subnet/core/types"
 
 // the block after gap block, whose NextEpoch validators should not be empty
 func (x *XDPoS_v2) IsGapPlusOneBlock(header *types.Header) bool {

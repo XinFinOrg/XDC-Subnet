@@ -26,7 +26,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 var (

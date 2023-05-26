@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 	"golang.org/x/crypto/pbkdf2"
 )
 

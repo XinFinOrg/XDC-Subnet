@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 	"gopkg.in/urfave/cli.v1"
 )
 

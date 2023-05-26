@@ -22,10 +22,10 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi"
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // Signer is an interaface defining the callback when a contract requires a

@@ -21,8 +21,8 @@ import (
 
 	"sync/atomic"
 
-	"github.com/XinFinOrg/XDPoSChain/consensus"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 type CpuAgent struct {

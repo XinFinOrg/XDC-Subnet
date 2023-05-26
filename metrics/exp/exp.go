@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
 )
 
 type exp struct {

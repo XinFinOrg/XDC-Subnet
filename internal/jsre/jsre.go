@@ -26,8 +26,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/internal/jsre/deps"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/internal/jsre/deps"
 	"github.com/robertkrimen/otto"
 )
 

@@ -22,9 +22,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
-	httpapi "github.com/XinFinOrg/XDPoSChain/swarm/api/http"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	httpapi "github.com/XinFinOrg/XDC-Subnet/swarm/api/http"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
 func NewTestSwarmServer(t *testing.T) *TestSwarmServer {

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build linux || darwin || freebsd
 // +build linux darwin freebsd
 
 package fuse
@@ -27,8 +28,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
 type fileInfo struct {

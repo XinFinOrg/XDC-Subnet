@@ -22,8 +22,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 // Entry is implemented by known node record entry types.

@@ -19,8 +19,8 @@ package vm
 import (
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
 )
 
 // calcMemSize64 calculates the required memory size, and returns

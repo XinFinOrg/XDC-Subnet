@@ -22,11 +22,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
 )
 
-//metrics variables
+// metrics variables
 var (
 	memstorePutCounter    = metrics.NewRegisteredCounter("storage.db.memstore.put.count", nil)
 	memstoreRemoveCounter = metrics.NewRegisteredCounter("storage.db.memstore.rm.count", nil)

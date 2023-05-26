@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
 )
 
 // Memory implements a simple memory model for the ethereum virtual machine.

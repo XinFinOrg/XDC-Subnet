@@ -1,7 +1,7 @@
 package tradingstate
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 func EncodeBytesItem(val interface{}) ([]byte, error) {

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind/backends"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS/utils"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -298,9 +298,9 @@ func TestShouldNotSendVoteMsgIfBlockInfoRoundNotEqualCurrentRound(t *testing.T) 
 }
 
 /*
-	Block and round relationship diagram for this test
-	... - 13(3) - 14(4) - 15(5) - 16(6)
-            \ 14'(7)
+		Block and round relationship diagram for this test
+		... - 13(3) - 14(4) - 15(5) - 16(6)
+	            \ 14'(7)
 */
 func TestShouldNotSendVoteMsgIfBlockNotExtendedFromAncestor(t *testing.T) {
 	// Block number 905, 906 have forks and forkedBlock is the 906th

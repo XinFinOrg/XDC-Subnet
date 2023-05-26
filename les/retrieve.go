@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common/mclock"
+	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
 )
 
 var (

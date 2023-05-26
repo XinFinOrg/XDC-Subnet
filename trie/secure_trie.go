@@ -19,8 +19,8 @@ package trie
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // SecureTrie wraps a trie with key hashing. In a secure trie, all

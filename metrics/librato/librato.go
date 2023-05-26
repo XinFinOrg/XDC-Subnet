@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
 )
 
 // a regexp for extracting the unit from time.Duration.String

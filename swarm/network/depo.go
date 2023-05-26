@@ -22,12 +22,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/metrics"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
-//metrics variables
+// metrics variables
 var (
 	syncReceiveCount  = metrics.NewRegisteredCounter("network.sync.recv.count", nil)
 	syncReceiveIgnore = metrics.NewRegisteredCounter("network.sync.recv.ignore", nil)

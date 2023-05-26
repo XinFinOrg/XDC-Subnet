@@ -20,7 +20,7 @@ import (
 	"hash"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 	"golang.org/x/crypto/sha3"
 )
 

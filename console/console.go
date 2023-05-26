@@ -28,9 +28,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/XinFinOrg/XDPoSChain/internal/jsre"
-	"github.com/XinFinOrg/XDPoSChain/internal/web3ext"
-	"github.com/XinFinOrg/XDPoSChain/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/internal/jsre"
+	"github.com/XinFinOrg/XDC-Subnet/internal/web3ext"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
 	"github.com/mattn/go-colorable"
 	"github.com/peterh/liner"
 	"github.com/robertkrimen/otto"

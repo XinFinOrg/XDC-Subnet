@@ -21,10 +21,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // LendingSigner interface for lending signer transaction
@@ -86,7 +86,7 @@ func LendingSignTx(tx *LendingTransaction, s LendingSigner, prv *ecdsa.PrivateKe
 	return tx.WithSignature(s, sig)
 }
 
-//LendingTxSigner signer
+// LendingTxSigner signer
 type LendingTxSigner struct{}
 
 // Equal compare two signer
@@ -95,7 +95,7 @@ func (lendingsign LendingTxSigner) Equal(s2 LendingSigner) bool {
 	return ok
 }
 
-//SignatureValues returns signature values. This signature needs to be in the [R || S || V] format where V is 0 or 1.
+// SignatureValues returns signature values. This signature needs to be in the [R || S || V] format where V is 0 or 1.
 func (lendingsign LendingTxSigner) SignatureValues(tx *LendingTransaction, sig []byte) (r, s, v *big.Int, err error) {
 	if len(sig) != 65 {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))

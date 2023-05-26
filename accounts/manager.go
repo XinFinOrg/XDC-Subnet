@@ -21,7 +21,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/event"
+	"github.com/XinFinOrg/XDC-Subnet/event"
 )
 
 // Manager is an overarching account manager that can communicate with various

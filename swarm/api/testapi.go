@@ -17,7 +17,7 @@
 package api
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/swarm/network"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/network"
 )
 
 type Control struct {

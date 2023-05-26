@@ -21,8 +21,8 @@ package geth
 import (
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/ethclient"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/ethclient"
 )
 
 // EthereumClient provides access to the Ethereum APIs.

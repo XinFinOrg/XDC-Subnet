@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common/mclock"
+	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
 )
 
 const fcTimeConst = time.Millisecond

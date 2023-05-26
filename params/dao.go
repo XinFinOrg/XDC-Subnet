@@ -19,7 +19,7 @@ package params
 import (
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 // DAOForkBlockExtra is the block header extra-data field to set for the DAO fork

@@ -19,7 +19,7 @@ package vm
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 func TestJumpDestAnalysis(t *testing.T) {

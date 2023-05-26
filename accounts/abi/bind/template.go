@@ -16,7 +16,7 @@
 
 package bind
 
-import "github.com/XinFinOrg/XDPoSChain/accounts/abi"
+import "github.com/XinFinOrg/XDC-Subnet/accounts/abi"
 
 // tmplData is the data structure required to fill the binding template.
 type tmplData struct {

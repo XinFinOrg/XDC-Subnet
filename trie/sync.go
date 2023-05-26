@@ -20,9 +20,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/prque"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/prque"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 )
 
 // ErrNotRequested is returned by the trie sync when it's requested to process a

@@ -22,14 +22,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/contracts/ens"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	"github.com/XinFinOrg/XDPoSChain/swarm/network"
-	"github.com/XinFinOrg/XDPoSChain/swarm/services/swap"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/ens"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/network"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/services/swap"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
 const (
@@ -63,7 +63,7 @@ type Config struct {
 	BootNodes   string
 }
 
-//create a default config with all parameters to set to defaults
+// create a default config with all parameters to set to defaults
 func NewDefaultConfig() (self *Config) {
 
 	self = &Config{
@@ -87,8 +87,8 @@ func NewDefaultConfig() (self *Config) {
 	return
 }
 
-//some config params need to be initialized after the complete
-//config building phase is completed (e.g. due to overriding flags)
+// some config params need to be initialized after the complete
+// config building phase is completed (e.g. due to overriding flags)
 func (self *Config) Init(prvKey *ecdsa.PrivateKey) {
 
 	address := crypto.PubkeyToAddress(prvKey.PublicKey)

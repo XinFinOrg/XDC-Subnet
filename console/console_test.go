@@ -19,20 +19,20 @@ package console
 import (
 	"bytes"
 	"errors"
-	"github.com/XinFinOrg/XDPoSChain/XDCx"
-	"github.com/XinFinOrg/XDPoSChain/XDCxlending"
+	"github.com/XinFinOrg/XDC-Subnet/XDCx"
+	"github.com/XinFinOrg/XDC-Subnet/XDCxlending"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/consensus/ethash"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/eth"
-	"github.com/XinFinOrg/XDPoSChain/internal/jsre"
-	"github.com/XinFinOrg/XDPoSChain/node"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/ethash"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/eth"
+	"github.com/XinFinOrg/XDC-Subnet/internal/jsre"
+	"github.com/XinFinOrg/XDC-Subnet/node"
 )
 
 const (

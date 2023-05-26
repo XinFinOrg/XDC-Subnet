@@ -16,7 +16,7 @@
 
 package ethclient
 
-import "github.com/XinFinOrg/XDPoSChain"
+import "github.com/XinFinOrg/XDC-Subnet"
 
 // Verify that Client implements the ethereum interfaces.
 var (
