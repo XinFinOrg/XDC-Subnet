@@ -3,17 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/XDCxlending/lendingstate"
-	"github.com/XinFinOrg/XDPoSChain/core/state"
+	"github.com/XinFinOrg/XDC-Subnet/XDCxlending/lendingstate"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
 	"math/big"
 	"os"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/contracts/XDCx"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/ethclient"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/XDCx"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/ethclient"
 )
 
 func main() {

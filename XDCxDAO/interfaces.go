@@ -5,8 +5,8 @@
 package XDCxDAO
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 )
 
 const defaultCacheLimit = 1024

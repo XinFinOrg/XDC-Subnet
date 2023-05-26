@@ -28,10 +28,10 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/math"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 var (

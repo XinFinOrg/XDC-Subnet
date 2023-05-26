@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/stretchr/testify/assert"
 )
 

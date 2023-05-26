@@ -16,9 +16,9 @@
 package randomize
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/contracts/randomize/contract"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/randomize/contract"
 )
 
 type Randomize struct {

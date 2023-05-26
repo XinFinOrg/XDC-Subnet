@@ -16,10 +16,11 @@
 package blocksigner
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/contracts/blocksigner/contract"
 	"math/big"
+
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/blocksigner/contract"
 )
 
 type BlockSigner struct {

@@ -24,9 +24,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
-	swarm "github.com/XinFinOrg/XDPoSChain/swarm/api/client"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	swarm "github.com/XinFinOrg/XDC-Subnet/swarm/api/client"
 	"gopkg.in/urfave/cli.v1"
 )
 

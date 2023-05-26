@@ -3,9 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/leveldb"
 	"os"
 	"os/signal"
 	"runtime"
@@ -13,14 +10,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/core/state"
-	"github.com/XinFinOrg/XDPoSChain/eth"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
-	"github.com/XinFinOrg/XDPoSChain/trie"
-	"github.com/hashicorp/golang-lru"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/leveldb"
+
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
+	"github.com/XinFinOrg/XDC-Subnet/eth"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/trie"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 var (

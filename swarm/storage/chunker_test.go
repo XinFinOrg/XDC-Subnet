@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
 )
 
 /*

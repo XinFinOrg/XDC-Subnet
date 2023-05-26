@@ -23,9 +23,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/keystore"
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 	"github.com/pborman/uuid"
 	"gopkg.in/urfave/cli.v1"
 )

@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/state"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/globalsign/mgo/bson"
 )
 

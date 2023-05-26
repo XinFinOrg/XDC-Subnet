@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // SwAP Swarm Accounting Protocol with

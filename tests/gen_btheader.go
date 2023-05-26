@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/common/math"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 var _ = (*btHeaderMarshaling)(nil)

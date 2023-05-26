@@ -19,7 +19,7 @@ package number
 import (
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 var tt256 = new(big.Int).Lsh(big.NewInt(1), 256)
@@ -131,9 +131,9 @@ func (i *Number) SetBytes(x []byte) *Number {
 
 // Cmp compares x and y and returns:
 //
-//     -1 if x <  y
-//     0 if x == y
-//     +1 if x >  y
+//	-1 if x <  y
+//	0 if x == y
+//	+1 if x >  y
 func (i *Number) Cmp(x *Number) int {
 	return i.num.Cmp(x.num)
 }

@@ -24,17 +24,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 
-	"github.com/XinFinOrg/XDPoSChain/XDCxlending/lendingstate"
-	"github.com/XinFinOrg/XDPoSChain/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/XDCxlending/lendingstate"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/state"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/event"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/event"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 

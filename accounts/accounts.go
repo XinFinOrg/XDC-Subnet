@@ -20,10 +20,10 @@ package accounts
 import (
 	"math/big"
 
-	ethereum "github.com/XinFinOrg/XDPoSChain"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/event"
+	ethereum "github.com/XinFinOrg/XDC-Subnet"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/event"
 )
 
 // Account represents an Ethereum account located at a specific location defined

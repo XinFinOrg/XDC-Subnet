@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // manageServers displays a list of servers the user can disconnect from, and an

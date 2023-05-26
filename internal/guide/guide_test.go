@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/keystore"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // Tests that the account management snippets work correctly.

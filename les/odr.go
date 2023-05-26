@@ -19,10 +19,10 @@ package les
 import (
 	"context"
 
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
-	"github.com/XinFinOrg/XDPoSChain/light"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/light"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // LesOdr implements light.OdrBackend

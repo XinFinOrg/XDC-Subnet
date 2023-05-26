@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 type bytesBacked interface {

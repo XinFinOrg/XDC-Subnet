@@ -25,9 +25,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // Tests whether the dataset size calculator works correctly by cross checking the

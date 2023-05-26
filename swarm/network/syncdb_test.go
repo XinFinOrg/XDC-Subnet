@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
 func init() {

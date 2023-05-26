@@ -20,12 +20,12 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind/backends"
-	"github.com/XinFinOrg/XDPoSChain/contracts/ens/contract"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/ens/contract"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 var (

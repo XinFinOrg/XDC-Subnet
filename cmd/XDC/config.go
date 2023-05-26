@@ -29,15 +29,15 @@ import (
 
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/XinFinOrg/XDPoSChain/XDCx"
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/eth"
-	"github.com/XinFinOrg/XDPoSChain/internal/debug"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	"github.com/XinFinOrg/XDPoSChain/params"
-	whisper "github.com/XinFinOrg/XDPoSChain/whisper/whisperv6"
+	"github.com/XinFinOrg/XDC-Subnet/XDCx"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/eth"
+	"github.com/XinFinOrg/XDC-Subnet/internal/debug"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	"github.com/XinFinOrg/XDC-Subnet/params"
+	whisper "github.com/XinFinOrg/XDC-Subnet/whisper/whisperv6"
 	"github.com/naoina/toml"
 )
 

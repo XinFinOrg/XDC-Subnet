@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 func initDbStore(t *testing.T) *DbStore {

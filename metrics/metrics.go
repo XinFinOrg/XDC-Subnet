@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // Enabled is checked by the constructor functions for all of the

@@ -23,7 +23,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
 	mapset "github.com/deckarep/golang-set"
 )
 

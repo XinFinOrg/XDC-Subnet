@@ -20,7 +20,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 func TestTransaction(t *testing.T) {

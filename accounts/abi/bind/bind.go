@@ -17,7 +17,7 @@
 // Package bind generates Ethereum contract Go bindings.
 //
 // Detailed usage document and tutorial available on the go-ethereum Wiki page:
-// https://github.com/XinFinOrg/XDPoSChain/wiki/Native-DApps:-Go-bindings-to-Ethereum-contracts
+// https://github.com/XinFinOrg/XDC-Subnet/wiki/Native-DApps:-Go-bindings-to-Ethereum-contracts
 package bind
 
 import (
@@ -28,7 +28,7 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi"
 	"golang.org/x/tools/imports"
 )
 
@@ -166,9 +166,10 @@ var bindType = map[Lang]func(kind abi.Type) string{
 
 // Helper function for the binding generators.
 // It reads the unmatched characters after the inner type-match,
-//  (since the inner type is a prefix of the total type declaration),
-//  looks for valid arrays (possibly a dynamic one) wrapping the inner type,
-//  and returns the sizes of these arrays.
+//
+//	(since the inner type is a prefix of the total type declaration),
+//	looks for valid arrays (possibly a dynamic one) wrapping the inner type,
+//	and returns the sizes of these arrays.
 //
 // Returned array sizes are in the same order as solidity signatures; inner array size first.
 // Array sizes may also be "", indicating a dynamic array.

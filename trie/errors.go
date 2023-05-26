@@ -19,7 +19,7 @@ package trie
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 // MissingNodeError is returned by the trie functions (TryGet, TryUpdate, TryDelete)

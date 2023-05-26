@@ -22,10 +22,10 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/keystore"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 // NewTransactor is a utility method to easily create a transaction signer from

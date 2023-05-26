@@ -23,10 +23,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
 )
 
 // Genesis block for nodes which don't care about the DAO fork (i.e. not configured)

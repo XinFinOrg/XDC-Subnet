@@ -24,9 +24,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/bmt"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/bmt"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
 )
 
 type Hasher func() hash.Hash

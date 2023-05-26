@@ -22,10 +22,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR

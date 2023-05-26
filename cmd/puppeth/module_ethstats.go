@@ -25,7 +25,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // ethstatsDockerfile is the Dockerfile required to build an ethstats backend

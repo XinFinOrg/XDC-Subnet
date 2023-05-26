@@ -22,8 +22,8 @@ import (
 	"io"
 	"sort"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/internal/debug"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/internal/debug"
 	"gopkg.in/urfave/cli.v1"
 )
 

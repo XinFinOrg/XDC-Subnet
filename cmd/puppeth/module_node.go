@@ -26,8 +26,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // nodeDockerfile is the Dockerfile required to run an Ethereum node.

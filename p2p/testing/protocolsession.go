@@ -22,10 +22,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/p2p/simulations/adapters"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/simulations/adapters"
 )
 
 var errTimedOut = errors.New("timed out")

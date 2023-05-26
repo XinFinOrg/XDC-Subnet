@@ -17,14 +17,14 @@
 package node
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 	"reflect"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
-	"github.com/XinFinOrg/XDPoSChain/event"
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/accounts"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/event"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
 )
 
 // ServiceContext is a collection of service independent options inherited from

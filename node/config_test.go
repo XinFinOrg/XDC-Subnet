@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
 )
 
 // Tests that datadirs can be successfully created, be them manually configured

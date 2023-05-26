@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/memorydb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/memorydb"
 )
 
 // makeTestTrie create a sample test trie to test Node-wise reconstruction.

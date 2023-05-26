@@ -25,10 +25,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
 )
 
 func init() {

@@ -26,11 +26,11 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/crypto/secp256k1"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/secp256k1"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 // Constants to match up protocol versions and messages

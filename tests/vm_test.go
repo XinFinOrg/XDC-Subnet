@@ -17,11 +17,11 @@
 package tests
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 	"math/big"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/core/vm"
+	"github.com/XinFinOrg/XDC-Subnet/core/vm"
 )
 
 func TestVM(t *testing.T) {

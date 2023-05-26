@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build none
 // +build none
 
 // This program generates contract/code.go, which contains the chequebook code
@@ -25,11 +26,11 @@ import (
 	"io/ioutil"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind/backends"
-	"github.com/XinFinOrg/XDPoSChain/contracts/chequebook/contract"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/chequebook/contract"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 var (

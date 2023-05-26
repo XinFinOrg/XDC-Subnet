@@ -5945,7 +5945,7 @@ module.exports = Shh;
  * @author Alex Beregszaszi <alex@rtfs.hu>
  * @date 2016
  *
- * Reference: https://github.com/XinFinOrg/XDPoSChain/blob/swarm/internal/web3ext/web3ext.go#L33
+ * Reference: https://github.com/XinFinOrg/XDC-Subnet/blob/swarm/internal/web3ext/web3ext.go#L33
  */
 
 "use strict";

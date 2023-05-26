@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 	"math"
 	"math/big"
 	"math/rand"
@@ -31,8 +31,8 @@ import (
 
 	check "gopkg.in/check.v1"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // Tests that updating a state trie does not leak any database writes prior to
@@ -125,7 +125,7 @@ func TestIntermediateLeaks(t *testing.T) {
 
 // TestCopy tests that copying a statedb object indeed makes the original and
 // the copy independent of each other. This test is a regression test against
-// https://github.com/XinFinOrg/XDPoSChain/pull/15549.
+// https://github.com/XinFinOrg/XDC-Subnet/pull/15549.
 func TestCopy(t *testing.T) {
 	// Create a random state test to copy and modify "independently"
 	db := rawdb.NewMemoryDatabase()

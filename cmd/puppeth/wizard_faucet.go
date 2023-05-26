@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/keystore"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // deployFaucet queries the user for various input on deploying a faucet, after

@@ -27,9 +27,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/accounts"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	mapset "github.com/deckarep/golang-set"
 )
 

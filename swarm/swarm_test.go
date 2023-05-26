@@ -19,7 +19,7 @@ package swarm
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 func TestParseEnsAPIAddress(t *testing.T) {

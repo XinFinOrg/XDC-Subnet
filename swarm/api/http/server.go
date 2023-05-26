@@ -35,15 +35,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/metrics"
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 	"github.com/rs/cors"
 )
 
-//setup metrics
+// setup metrics
 var (
 	postRawCount     = metrics.NewRegisteredCounter("api.http.post.raw.count", nil)
 	postRawFail      = metrics.NewRegisteredCounter("api.http.post.raw.fail", nil)
@@ -327,10 +327,10 @@ func (s *Server) HandleDelete(w http.ResponseWriter, r *Request) {
 }
 
 // HandleGet handles a GET request to
-// - bzz-raw://<key> and responds with the raw content stored at the
-//   given storage key
-// - bzz-hash://<key> and responds with the hash of the content stored
-//   at the given storage key as a text/plain response
+//   - bzz-raw://<key> and responds with the raw content stored at the
+//     given storage key
+//   - bzz-hash://<key> and responds with the hash of the content stored
+//     at the given storage key as a text/plain response
 func (s *Server) HandleGet(w http.ResponseWriter, r *Request) {
 	getCount.Inc(1)
 	key, err := s.api.Resolve(r.uri)

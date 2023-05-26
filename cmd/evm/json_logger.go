@@ -22,9 +22,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/math"
-	"github.com/XinFinOrg/XDPoSChain/core/vm"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/core/vm"
 )
 
 type JSONLogger struct {

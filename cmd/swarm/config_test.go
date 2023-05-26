@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/rpc"
-	"github.com/XinFinOrg/XDPoSChain/swarm"
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/swarm"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
 
 	"github.com/docker/docker/pkg/reexec"
 )

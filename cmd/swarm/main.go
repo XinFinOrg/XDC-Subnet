@@ -28,22 +28,22 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts"
-	"github.com/XinFinOrg/XDPoSChain/accounts/keystore"
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/console"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/ethclient"
-	"github.com/XinFinOrg/XDPoSChain/internal/debug"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/params"
-	"github.com/XinFinOrg/XDPoSChain/swarm"
-	bzzapi "github.com/XinFinOrg/XDPoSChain/swarm/api"
-	swarmmetrics "github.com/XinFinOrg/XDPoSChain/swarm/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/accounts"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/console"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/ethclient"
+	"github.com/XinFinOrg/XDC-Subnet/internal/debug"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/params"
+	"github.com/XinFinOrg/XDC-Subnet/swarm"
+	bzzapi "github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	swarmmetrics "github.com/XinFinOrg/XDC-Subnet/swarm/metrics"
 
 	"gopkg.in/urfave/cli.v1"
 )
@@ -153,7 +153,7 @@ var (
 	}
 )
 
-//declare a few constant error messages, useful for later error check comparisons in test
+// declare a few constant error messages, useful for later error check comparisons in test
 var (
 	SWARM_ERR_NO_BZZACCOUNT   = "bzzaccount option is required but not set; check your config file, command line or environment variables"
 	SWARM_ERR_SWAP_SET_NO_API = "SWAP is enabled but --swap-api is not set"

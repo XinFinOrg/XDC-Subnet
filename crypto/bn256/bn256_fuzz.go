@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
+//go:build gofuzz
 // +build gofuzz
 
 package bn256
@@ -22,8 +23,8 @@ import (
 	"bytes"
 	"math/big"
 
-	cloudflare "github.com/XinFinOrg/XDPoSChain/crypto/bn256/cloudflare"
-	google "github.com/XinFinOrg/XDPoSChain/crypto/bn256/google"
+	cloudflare "github.com/XinFinOrg/XDC-Subnet/crypto/bn256/cloudflare"
+	google "github.com/XinFinOrg/XDC-Subnet/crypto/bn256/google"
 )
 
 // FuzzAdd fuzzez bn256 addition between the Google and Cloudflare libraries.

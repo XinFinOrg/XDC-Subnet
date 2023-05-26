@@ -25,13 +25,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/p2p/simulations"
-	"github.com/XinFinOrg/XDPoSChain/p2p/simulations/adapters"
-	"github.com/XinFinOrg/XDPoSChain/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/simulations"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/simulations/adapters"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
 )
 
 var adapterType = flag.String("adapter", "sim", `node adapter to use (one of "sim", "exec" or "docker")`)

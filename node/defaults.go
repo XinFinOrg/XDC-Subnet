@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/p2p/nat"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/nat"
 )
 
 const (

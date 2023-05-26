@@ -18,18 +18,18 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/memorydb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/memorydb"
 	"hash"
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/core/state"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/trie"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/trie"
 )
 
 // stateReq represents a batch of state fetch requests groupped together into

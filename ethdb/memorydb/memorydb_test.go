@@ -19,8 +19,8 @@ package memorydb
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/dbtest"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/dbtest"
 )
 
 func TestMemoryDB(t *testing.T) {

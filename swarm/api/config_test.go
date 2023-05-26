@@ -20,8 +20,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 func TestConfig(t *testing.T) {

@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/contracts/trc21issuer"
-	"github.com/XinFinOrg/XDPoSChain/contracts/trc21issuer/simulation"
-	"github.com/XinFinOrg/XDPoSChain/ethclient"
 	"log"
 	"math/big"
 	"time"
+
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/trc21issuer"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/trc21issuer/simulation"
+	"github.com/XinFinOrg/XDC-Subnet/ethclient"
 )
 
 func main() {

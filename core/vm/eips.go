@@ -19,7 +19,7 @@ package vm
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 // EnableEIP enables the given EIP on the config.

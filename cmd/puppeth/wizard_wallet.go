@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // deployWallet creates a new web wallet based on some user input.

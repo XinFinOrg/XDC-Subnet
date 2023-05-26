@@ -23,8 +23,8 @@ import (
 	"math/rand"
 	"reflect"
 
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
 )
 
 const (

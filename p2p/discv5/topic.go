@@ -23,8 +23,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common/mclock"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 const (

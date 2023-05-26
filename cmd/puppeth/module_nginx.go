@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // nginxDockerfile is theis the Dockerfile required to build an nginx reverse-

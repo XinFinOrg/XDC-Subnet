@@ -22,7 +22,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/internal/cmdtest"
+	"github.com/XinFinOrg/XDC-Subnet/internal/cmdtest"
 	"github.com/docker/docker/pkg/reexec"
 )
 

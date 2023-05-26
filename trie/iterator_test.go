@@ -22,8 +22,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/memorydb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/memorydb"
 )
 
 func TestIterator(t *testing.T) {

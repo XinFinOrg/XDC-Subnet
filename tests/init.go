@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 // This table defines supported forks and their chain config.

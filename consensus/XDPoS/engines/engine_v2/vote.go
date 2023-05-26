@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/consensus"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS/utils"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // Once Hot stuff voting rule has verified, this node can then send vote
@@ -108,8 +108,8 @@ func (x *XDPoS_v2) voteHandler(chain consensus.ChainReader, voteMsg *types.Vote)
 }
 
 /*
-	Function that will be called by votePool when it reached threshold.
-	In the engine v2, we will need to generate and process QC
+Function that will be called by votePool when it reached threshold.
+In the engine v2, we will need to generate and process QC
 */
 func (x *XDPoS_v2) onVotePoolThresholdReached(chain consensus.ChainReader, pooledVotes map[common.Hash]utils.PoolObj, currentVoteMsg utils.PoolObj, proposedBlockHeader *types.Header) error {
 

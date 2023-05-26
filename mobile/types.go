@@ -23,9 +23,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 // A Nonce is a 64-bit hash which proves (combined with the mix-hash) that

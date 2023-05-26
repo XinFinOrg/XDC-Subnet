@@ -26,14 +26,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/contracts/chequebook"
-	"github.com/XinFinOrg/XDPoSChain/contracts/chequebook/contract"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/swarm/services/swap/swap"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/chequebook"
+	"github.com/XinFinOrg/XDC-Subnet/contracts/chequebook/contract"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/services/swap/swap"
 )
 
 // SwAP       Swarm Accounting Protocol with
@@ -80,7 +80,7 @@ type PayProfile struct {
 	lock        sync.RWMutex
 }
 
-//create params with default values
+// create params with default values
 func NewDefaultSwapParams() *SwapParams {
 	return &SwapParams{
 		PayProfile: &PayProfile{},
@@ -102,8 +102,8 @@ func NewDefaultSwapParams() *SwapParams {
 	}
 }
 
-//this can only finally be set after all config options (file, cmd line, env vars)
-//have been evaluated
+// this can only finally be set after all config options (file, cmd line, env vars)
+// have been evaluated
 func (self *SwapParams) Init(contract common.Address, prvkey *ecdsa.PrivateKey) {
 	pubkey := &prvkey.PublicKey
 

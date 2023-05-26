@@ -35,9 +35,9 @@ import (
 	"io"
 	"sort"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 const SizeLimit = 300 // maximum encoded size of a node record in bytes

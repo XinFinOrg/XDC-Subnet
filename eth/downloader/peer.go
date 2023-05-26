@@ -29,9 +29,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/event"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/event"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 const (

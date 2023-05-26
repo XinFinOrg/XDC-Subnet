@@ -20,9 +20,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/eth/downloader"
-	"github.com/XinFinOrg/XDPoSChain/light"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/eth/downloader"
+	"github.com/XinFinOrg/XDC-Subnet/light"
 )
 
 const (

@@ -7,10 +7,10 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/common/math"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 var _ = (*genesisSpecMarshaling)(nil)

@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/eth/util"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/eth/util"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 func TestRewardInflation(t *testing.T) {

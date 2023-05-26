@@ -24,8 +24,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common/math"
-	"github.com/XinFinOrg/XDPoSChain/crypto/randentropy"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/randentropy"
 )
 
 const TestCount = 1000

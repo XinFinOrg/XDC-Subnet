@@ -39,7 +39,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 //var dumpEnc bool
