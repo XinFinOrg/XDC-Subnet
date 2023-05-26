@@ -238,7 +238,7 @@ func TestUpdateMultipleMasterNodes(t *testing.T) {
 	t.Logf("Inserting block with propose at 1350...")
 	blockCoinbaseA := "0xaaa0000000000000000000000000000000001350"
 	//Get from block validator error message
-	merkleRoot := "b345a8560bd51926803dd17677c9f0751193914a851a4ec13063d6bf50220b53"
+	merkleRoot := "5f6a0ed6ac6ae850b98fc00fab523a129a25dc64eb2a9bc475073d264989b876"
 	parentBlock := CreateBlock(blockchain, config, currentBlock, 1350, 450, blockCoinbaseA, signer, signFn, nil, nil, merkleRoot)
 	err := blockchain.InsertBlock(parentBlock)
 	assert.Nil(t, err)
