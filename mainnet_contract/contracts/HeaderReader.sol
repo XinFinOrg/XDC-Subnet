@@ -6,7 +6,9 @@ pragma experimental ABIEncoderV2;
 // HeaderReader is a helper library to read fields out of rlp-encoded blocks. 
 // It is mainly consisted of Solidity-RLP(https://github.com/hamdiallam/Solidity-RLP) and 
 // solidity-rlp-encode(https://github.com/bakaoh/solidity-rlp-encode)
-library HeaderReader {
+contract HeaderReader {
+
+  mapping(address => bool) unique_addr;
 
   // Solidity-RLP defined constants and struct
   uint8 constant STRING_SHORT_START = 0x80;
@@ -78,7 +80,6 @@ library HeaderReader {
   */
   function getEpoch(bytes memory header) 
     public 
-    pure 
   returns (address[] memory current, address[] memory next) 
   {
     RLPItem[] memory ls = toList(toRlpItem(header));
@@ -91,10 +92,24 @@ library HeaderReader {
     }
     RLPItem[] memory list1 = toList(ls[17]);
     if (list1.length > 0) {
-      next = new address[](list1.length);
-      for (uint i = 0; i < list1.length; i++) {
-        next[i] = toAddress(list1[i]);
+      RLPItem[] memory list2 = toList(ls[18]);
+      address[] memory penalty = new address[](list2.length);
+      uint counter = 0;
+      for (uint i = 0; i < list2.length; i++) {
+        penalty[i] = toAddress(list2[i]);
+        unique_addr[penalty[i]] = true;
       }
+      next = new address[](list1.length - list2.length);
+      for (uint i = 0; i < list1.length; i++) {
+        address temp = toAddress(list1[i]);
+        if (!unique_addr[temp]) {
+          next[counter] = temp;
+          counter ++;
+        }
+      }
+      for (uint i = 0; i < list2.length; i++) {
+        unique_addr[penalty[i]] = false;
+      } 
     }
   }
 

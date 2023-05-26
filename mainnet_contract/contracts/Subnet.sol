@@ -6,6 +6,8 @@ import "./HeaderReader.sol";
 
 contract Subnet {
 
+  HeaderReader headerReader;
+
   // Compressed subnet header information stored on chain
   struct Header {
     bytes32 parent_hash;
@@ -53,6 +55,7 @@ contract Subnet {
   }
 
   constructor(
+    address lib_address,
     address[] memory initial_validator_set,
     bytes memory genesis_header,
     bytes memory block1_header,
@@ -60,10 +63,11 @@ contract Subnet {
     uint64 epoch
   ) public {
     require(initial_validator_set.length > 0, "Validator Empty");
+    headerReader = HeaderReader(lib_address);
     bytes32 genesis_header_hash = keccak256(genesis_header);
     bytes32 block1_header_hash = keccak256(block1_header);
-    (bytes32 ph, int n) = HeaderReader.getParentHashAndNumber(genesis_header);
-    (bytes32 ph1, int n1, uint64 rn) = HeaderReader.getBlock1Params(block1_header);
+    (bytes32 ph, int n) = headerReader.getParentHashAndNumber(genesis_header);
+    (bytes32 ph1, int n1, uint64 rn) = headerReader.getBlock1Params(block1_header);
     require(n == 0 && n1 == 1, "Invalid Init Block");
     header_tree[genesis_header_hash] = Header({
       parent_hash: ph,
@@ -116,12 +120,12 @@ contract Subnet {
         uint64 prev_round_number,
         bytes32 signHash,
         bytes[] memory sigs
-      ) = HeaderReader.getValidationParams(headers[x]);
+      ) = headerReader.getValidationParams(headers[x]);
     
       (
         address[] memory current,
         address[] memory next
-      ) = HeaderReader.getEpoch(headers[x]);
+      ) = headerReader.getEpoch(headers[x]);
       
       // Verify subnet header meta information
       require(number > 0, "Repeated Genesis");
