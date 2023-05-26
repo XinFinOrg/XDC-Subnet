@@ -37,5 +37,6 @@ EXPOSE 30303
 
 # For bootnode
 EXPOSE 30301
+EXPOSE 30301/udp
 
 ENTRYPOINT ["bash","/work/start.sh"]
