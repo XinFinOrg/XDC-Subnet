@@ -41,23 +41,23 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts"
-	"github.com/XinFinOrg/XDPoSChain/accounts/keystore"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/eth"
-	"github.com/XinFinOrg/XDPoSChain/eth/downloader"
-	"github.com/XinFinOrg/XDPoSChain/ethclient"
-	"github.com/XinFinOrg/XDPoSChain/ethstats"
-	"github.com/XinFinOrg/XDPoSChain/les"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discv5"
-	"github.com/XinFinOrg/XDPoSChain/p2p/nat"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/accounts"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/eth"
+	"github.com/XinFinOrg/XDC-Subnet/eth/downloader"
+	"github.com/XinFinOrg/XDC-Subnet/ethclient"
+	"github.com/XinFinOrg/XDC-Subnet/ethstats"
+	"github.com/XinFinOrg/XDC-Subnet/les"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discv5"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/nat"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"golang.org/x/net/websocket"
 )
 
@@ -450,7 +450,7 @@ func (f *faucet) apiHandler(conn *websocket.Conn) {
 		case *noauthFlag:
 			username, avatar, address, err = authNoAuth(msg.URL)
 		default:
-			err = errors.New("Something funky happened, please open an issue at https://github.com/XinFinOrg/XDPoSChain/issues")
+			err = errors.New("Something funky happened, please open an issue at https://github.com/XinFinOrg/XDC-Subnet/issues")
 		}
 		if err != nil {
 			if err = sendError(conn, err); err != nil {

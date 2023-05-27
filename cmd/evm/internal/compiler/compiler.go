@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/core/asm"
+	"github.com/XinFinOrg/XDC-Subnet/core/asm"
 )
 
 func Compile(fn string, src []byte, debug bool) (string, error) {

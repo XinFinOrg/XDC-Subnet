@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/consensus"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS/utils"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/event"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/event"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 const (
@@ -80,10 +80,10 @@ func (f *Forensics) SetCommittedQCs(headers []types.Header, incomingQC types.Quo
 }
 
 /*
-	Entry point for processing forensics.
-	Triggered once processQC is successfully.
-	Forensics runs in a seperate go routine as its no system critical
-	Link to the flow diagram: https://hashlabs.atlassian.net/wiki/spaces/HASHLABS/pages/97878029/Forensics+Diagram+flow
+Entry point for processing forensics.
+Triggered once processQC is successfully.
+Forensics runs in a seperate go routine as its no system critical
+Link to the flow diagram: https://hashlabs.atlassian.net/wiki/spaces/HASHLABS/pages/97878029/Forensics+Diagram+flow
 */
 func (f *Forensics) ProcessForensics(chain consensus.ChainReader, engine *XDPoS_v2, incomingQC types.QuorumCert) error {
 	log.Debug("Received a QC in forensics", "QC", incomingQC)
@@ -387,10 +387,10 @@ func generateVoteEquivocationId(signer common.Address, round1, round2 types.Roun
 }
 
 /*
-	Entry point for processing vote equivocation.
-	Triggered once handle vote is successfully.
-	Forensics runs in a seperate go routine as its no system critical
-	Link to the flow diagram: https://hashlabs.atlassian.net/wiki/spaces/HASHLABS/pages/99516417/Vote+Equivocation+detection+specification
+Entry point for processing vote equivocation.
+Triggered once handle vote is successfully.
+Forensics runs in a seperate go routine as its no system critical
+Link to the flow diagram: https://hashlabs.atlassian.net/wiki/spaces/HASHLABS/pages/99516417/Vote+Equivocation+detection+specification
 */
 func (f *Forensics) ProcessVoteEquivocation(chain consensus.ChainReader, engine *XDPoS_v2, incomingVote *types.Vote) error {
 	log.Debug("Received a vote in forensics", "vote", incomingVote)

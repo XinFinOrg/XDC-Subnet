@@ -22,7 +22,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 // Interface represents a wrapped version of Go's interface{}, with the capacity

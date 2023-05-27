@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // Various error messages to mark blocks invalid. These should be private to

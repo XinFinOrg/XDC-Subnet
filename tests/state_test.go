@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/core/vm"
+	"github.com/XinFinOrg/XDC-Subnet/core/vm"
 )
 
 func TestState(t *testing.T) {

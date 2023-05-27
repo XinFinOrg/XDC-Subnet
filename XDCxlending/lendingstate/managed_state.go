@@ -19,7 +19,7 @@ package lendingstate
 import (
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 type exchanges struct {

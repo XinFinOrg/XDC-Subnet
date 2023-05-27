@@ -25,8 +25,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
-	"github.com/XinFinOrg/XDPoSChain/swarm/testutil"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/testutil"
 )
 
 // TestClientUploadDownloadRaw test uploading and downloading raw data to swarm

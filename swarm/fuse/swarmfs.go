@@ -17,7 +17,7 @@
 package fuse
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
 	"sync"
 	"time"
 )

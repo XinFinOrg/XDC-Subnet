@@ -19,10 +19,10 @@ package shhclient
 import (
 	"context"
 
-	"github.com/XinFinOrg/XDPoSChain"
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/rpc"
-	whisper "github.com/XinFinOrg/XDPoSChain/whisper/whisperv6"
+	"github.com/XinFinOrg/XDC-Subnet"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
+	whisper "github.com/XinFinOrg/XDC-Subnet/whisper/whisperv6"
 )
 
 // Client defines typed wrappers for the Whisper v6 RPC API.

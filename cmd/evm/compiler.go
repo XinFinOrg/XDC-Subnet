@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/evm/internal/compiler"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/evm/internal/compiler"
 
 	cli "gopkg.in/urfave/cli.v1"
 )

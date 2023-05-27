@@ -2,8 +2,8 @@ package tradingstate
 
 import (
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 	"math/big"
 	"math/rand"
 	"testing"

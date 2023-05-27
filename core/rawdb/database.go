@@ -18,9 +18,9 @@ package rawdb
 
 import (
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/leveldb"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/memorydb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/leveldb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/memorydb"
 )
 
 // freezerdb is a database wrapper that enabled freezer data retrievals.

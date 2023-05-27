@@ -19,7 +19,7 @@ package downloader
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // peerDropFn is a callback type for dropping a peer detected as malicious.

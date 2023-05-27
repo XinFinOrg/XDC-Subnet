@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common/mclock"
+	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
 )
 
 // Subscription represents a stream of events. The carrier of the events is typically a

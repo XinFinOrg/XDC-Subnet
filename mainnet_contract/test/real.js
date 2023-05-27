@@ -48,9 +48,9 @@ contract("Subnet Real Sample Test", async accounts => {
     const block2_hash = web3.utils.sha3(Buffer.from(hex2Arr(block2_encoded.slice(2)))).toString("hex");
     await this.subnet.receiveHeader([block2_encoded]);
 
-    const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
+    const block2_resp = await this.subnet.getHeader(block2_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(finalized, false);
+    assert.equal(block2_resp[4], false);
     assert.equal(latest_blocks["0"][0], block2_hash);
     assert.equal(latest_blocks["1"][0], this.block1_hash);
   });
@@ -73,9 +73,9 @@ contract("Subnet Real Sample Test", async accounts => {
     await this.subnet.receiveHeader([block2_encoded, block3_encoded]);
     await this.subnet.receiveHeader([block4_encoded, block5_encoded]);
 
-    const finalized = await this.subnet.getHeaderConfirmationStatus(block2_hash);
+    const block2_resp = await this.subnet.getHeader(block2_hash);
     const latest_blocks = await this.subnet.getLatestBlocks();
-    assert.equal(finalized, true);
+    assert.equal(block2_resp[4], true);
     assert.equal(latest_blocks["0"][0], block5_hash);
     assert.equal(latest_blocks["1"][0], block2_hash);
 

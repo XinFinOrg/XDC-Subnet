@@ -2,8 +2,13 @@
 pragma solidity >=0.4.21 <0.9.0;
 pragma experimental ABIEncoderV2;
 
+
+// HeaderReader is a helper library to read fields out of rlp-encoded blocks. 
+// It is mainly consisted of Solidity-RLP(https://github.com/hamdiallam/Solidity-RLP) and 
+// solidity-rlp-encode(https://github.com/bakaoh/solidity-rlp-encode)
 library HeaderReader {
 
+  // Solidity-RLP defined constants and struct
   uint8 constant STRING_SHORT_START = 0x80;
   uint8 constant STRING_LONG_START = 0xb8;
   uint8 constant LIST_SHORT_START = 0xc0;
@@ -15,20 +20,39 @@ library HeaderReader {
     uint256 memPtr;
   }
 
+  /*
+  * @param genesis rlp-encoded block header.
+  * @return (parentHash, genesisNum) pair.
+  */
   function getParentHashAndNumber(bytes memory header) public pure returns (bytes32, int) {
     RLPItem[] memory ls = toList(toRlpItem(header));
     return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])));
   }
 
-  function getBlock1Params(bytes memory header) public pure returns (bytes32, int, uint64) {
+  /*
+  * @param block1 rlp-encoded header.
+  * @return (parentHash, blockNum, blockRoundNum).
+  */
+  function getBlock1Params(bytes memory header) 
+    public
+    pure 
+    returns (bytes32, int, uint64) 
+  {
     RLPItem[] memory ls = toList(toRlpItem(header));
     RLPItem[] memory extra = toList(toRlpItem(getExtraData(toBytes(ls[12]))));
     uint64 round_number = uint64(toUint(extra[0]));
     return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number);
   }
 
-  // Returns (parentHash, number, round_number, certificate hash, sigs)
-  function getValidationParams(bytes memory header) public pure returns (bytes32, int, uint64, uint64, bytes32, bytes[] memory) {
+  /*
+  * @param rlp-encoded block header.
+  * @return (parentHash, blockNum, blockRoundNum, signed hash, sigs).
+  */
+  function getValidationParams(bytes memory header) 
+    public 
+    pure 
+    returns (bytes32, int, uint64, uint64, bytes32, bytes[] memory) 
+  {
     RLPItem[] memory ls = toList(toRlpItem(header));
     RLPItem[] memory extra = toList(toRlpItem(getExtraData(toBytes(ls[12]))));
     uint64 round_number = uint64(toUint(extra[0]));
@@ -48,10 +72,17 @@ library HeaderReader {
     return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number, parent_round_number, signHash, sigs);
   }
 
-  function getEpoch(bytes memory header) public pure returns (address[] memory current, address[] memory next) {
+  /*
+  * @param rlp-encoded block header.
+  * @return (currentValidator list, nextValidator list).
+  */
+  function getEpoch(bytes memory header) 
+    public 
+    pure 
+  returns (address[] memory current, address[] memory next) 
+  {
     RLPItem[] memory ls = toList(toRlpItem(header));
     RLPItem[] memory list0 = toList(ls[16]);
-    // RLPItem[] memory list0 = toList(epoch[0]);
     if (list0.length > 0) {
       current = new address[](list0.length);
       for (uint i = 0; i < list0.length; i++) {
@@ -59,7 +90,6 @@ library HeaderReader {
       }
     }
     RLPItem[] memory list1 = toList(ls[17]);
-    // RLPItem[] memory list1 = toList(epoch[1]);
     if (list1.length > 0) {
       next = new address[](list1.length);
       for (uint i = 0; i < list1.length; i++) {
@@ -68,6 +98,10 @@ library HeaderReader {
     }
   }
 
+  /*
+  * @param extra field bytes (version byte + rlp-encoded proposed info).
+  * @return rlp-encoded proposed info.
+  */
   function getExtraData(bytes memory extra) public pure returns (bytes memory) {
     bytes memory extraData = new bytes(extra.length-1);
     uint extraDataPtr;
@@ -78,7 +112,15 @@ library HeaderReader {
     return extraData;
   }
 
-  function createSignHash(bytes32 block_hash, uint64 round_num, int number, uint64 gap_num) internal pure returns (bytes32 signHash) {
+  /*
+  * @param (parentHash, parentRoundNum, parentNum, gapNum).
+  * @return hash of rlp-encoded of [[parentHash, parentRoundNum, parentNum], gapNum].
+  */
+  function createSignHash(bytes32 block_hash, uint64 round_num, int number, uint64 gap_num) 
+    internal 
+    pure 
+  returns (bytes32 signHash) 
+  {
     bytes[] memory x = new bytes[](3);
     x[0] = encodeBytes(abi.encodePacked(block_hash));
     x[1] = encodeUint(round_num);
@@ -119,8 +161,8 @@ library HeaderReader {
   }
 
   /*
-    * @param the RLP item containing the encoded list.
-    */
+  * @param the RLP item containing the encoded list.
+  */
   function toList(RLPItem memory item) internal pure returns (RLPItem[] memory) {
     require(isList(item));
 
@@ -207,12 +249,12 @@ library HeaderReader {
       itemLen = byte0 - STRING_SHORT_START + 1;
     } else if (byte0 < LIST_SHORT_START) {
       assembly {
-          let byteLen := sub(byte0, 0xb7) // # of bytes the actual length is
-          memPtr := add(memPtr, 1) // skip over the first byte
+        let byteLen := sub(byte0, 0xb7) // # of bytes the actual length is
+        memPtr := add(memPtr, 1) // skip over the first byte
 
-          /* 32 byte word size */
-          let dataLen := div(mload(memPtr), exp(256, sub(32, byteLen))) // right shifting to get the len
-          itemLen := add(dataLen, add(byteLen, 1))
+        /* 32 byte word size */
+        let dataLen := div(mload(memPtr), exp(256, sub(32, byteLen))) // right shifting to get the len
+        itemLen := add(dataLen, add(byteLen, 1))
       }
     } else if (byte0 < LIST_LONG_START) {
       itemLen = byte0 - LIST_SHORT_START + 1;
@@ -294,10 +336,10 @@ library HeaderReader {
   }
 
   /**
-    * @dev RLP encodes a byte string.
-    * @param self The byte string to encode.
-    * @return The RLP encoded string in bytes.
-    */
+  * @dev RLP encodes a byte string.
+  * @param self The byte string to encode.
+  * @return The RLP encoded string in bytes.
+  */
   function encodeBytes(bytes memory self) internal pure returns (bytes memory) {
     bytes memory encoded;
     if (self.length == 1 && uint8(self[0]) < 128) {
@@ -309,57 +351,57 @@ library HeaderReader {
   }
 
   /**
-    * @dev RLP encodes a list of RLP encoded byte byte strings.
-    * @param self The list of RLP encoded byte strings.
-    * @return The RLP encoded list of items in bytes.
-    */
+  * @dev RLP encodes a list of RLP encoded byte byte strings.
+  * @param self The list of RLP encoded byte strings.
+  * @return The RLP encoded list of items in bytes.
+  */
   function encodeList(bytes[] memory self) internal pure returns (bytes memory) {
     bytes memory list = flatten(self);
     return concat(encodeLength(list.length, 192), list);
   }
 
   /** 
-    * @dev RLP encodes a uint.
-    * @param self The uint to encode.
-    * @return The RLP encoded uint in bytes.
-    */
+  * @dev RLP encodes a uint.
+  * @param self The uint to encode.
+  * @return The RLP encoded uint in bytes.
+  */
   function encodeUint(uint self) internal pure returns (bytes memory) {
     return encodeBytes(toBinary(self));
   }
 
-    /**
-     * @dev Encode the first byte, followed by the `len` in binary form if `length` is more than 55.
-     * @param len The length of the string or the payload.
-     * @param offset 128 if item is string, 192 if item is list.
-     * @return RLP encoded bytes.
-     */
-    function encodeLength(uint len, uint offset) internal pure returns (bytes memory) {
-      bytes memory encoded;
-      if (len < 56) {
-        encoded = new bytes(1);
-        encoded[0] = bytes32(len + offset)[31];
-      } else {
-        uint lenLen;
-        uint i = 1;
-        while (len / i != 0) {
-          lenLen++;
-          i *= 256;
-        }
-        encoded = new bytes(lenLen + 1);
-        encoded[0] = bytes32(lenLen + offset + 55)[31];
-        for(i = 1; i <= lenLen; i++) {
-            encoded[i] = bytes32((len / (256**(lenLen-i))) % 256)[31];
-        }
+  /**
+  * @dev Encode the first byte, followed by the `len` in binary form if `length` is more than 55.
+  * @param len The length of the string or the payload.
+  * @param offset 128 if item is string, 192 if item is list.
+  * @return RLP encoded bytes.
+  */
+  function encodeLength(uint len, uint offset) internal pure returns (bytes memory) {
+    bytes memory encoded;
+    if (len < 56) {
+      encoded = new bytes(1);
+      encoded[0] = bytes32(len + offset)[31];
+    } else {
+      uint lenLen;
+      uint i = 1;
+      while (len / i != 0) {
+        lenLen++;
+        i *= 256;
       }
-      return encoded;
+      encoded = new bytes(lenLen + 1);
+      encoded[0] = bytes32(lenLen + offset + 55)[31];
+      for(i = 1; i <= lenLen; i++) {
+          encoded[i] = bytes32((len / (256**(lenLen-i))) % 256)[31];
+      }
     }
+    return encoded;
+  }
 
   /**
-    * @dev Encode integer in big endian binary form with no leading zeroes.
-    * @notice TODO: This should be optimized with assembly to save gas costs.
-    * @param _x The integer to encode.
-    * @return RLP encoded bytes.
-    */
+  * @dev Encode integer in big endian binary form with no leading zeroes.
+  * @notice TODO: This should be optimized with assembly to save gas costs.
+  * @param _x The integer to encode.
+  * @return RLP encoded bytes.
+  */
   function toBinary(uint _x) internal pure returns (bytes memory) {
     bytes memory b = new bytes(32);
     assembly { 
@@ -378,12 +420,12 @@ library HeaderReader {
     return res;
   }
 
-    /**
-    * @dev Flattens a list of byte strings into one byte string.
-    * @notice From: https://github.com/sammayo/solidity-rlp-encoder/blob/master/RLPEncode.sol.
-    * @param _list List of byte strings to flatten.
-    * @return The flattened byte string.
-    */
+  /**
+  * @dev Flattens a list of byte strings into one byte string.
+  * @notice From: https://github.com/sammayo/solidity-rlp-encoder/blob/master/RLPEncode.sol.
+  * @param _list List of byte strings to flatten.
+  * @return The flattened byte string.
+  */
   function flatten(bytes[] memory _list) internal pure returns (bytes memory) {
     if (_list.length == 0) {
       return new bytes(0);
@@ -412,12 +454,12 @@ library HeaderReader {
   }
 
   /**
-    * @dev Concatenates two bytes.
-    * @notice From: https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol.
-    * @param _preBytes First byte string.
-    * @param _postBytes Second byte string.
-    * @return Both byte string combined.
-    */
+  * @dev Concatenates two bytes.
+  * @notice From: https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol.
+  * @param _preBytes First byte string.
+  * @param _postBytes Second byte string.
+  * @return Both byte string combined.
+  */
   function concat(bytes memory _preBytes, bytes memory _postBytes) internal pure returns (bytes memory) {
     bytes memory tempBytes;
 

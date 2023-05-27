@@ -3,8 +3,8 @@ package lendingstate
 import (
 	"encoding/json"
 	"errors"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	"math/big"
 )
 

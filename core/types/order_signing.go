@@ -22,9 +22,9 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
 )
 
 // OrderSigner interface for order transaction
@@ -86,7 +86,7 @@ func OrderSignTx(tx *OrderTransaction, s OrderSigner, prv *ecdsa.PrivateKey) (*O
 	return tx.WithSignature(s, sig)
 }
 
-//OrderTxSigner signer
+// OrderTxSigner signer
 type OrderTxSigner struct{}
 
 // Equal compare two signer
@@ -95,7 +95,7 @@ func (ordersign OrderTxSigner) Equal(s2 OrderSigner) bool {
 	return ok
 }
 
-//SignatureValues returns signature values. This signature needs to be in the [R || S || V] format where V is 0 or 1.
+// SignatureValues returns signature values. This signature needs to be in the [R || S || V] format where V is 0 or 1.
 func (ordersign OrderTxSigner) SignatureValues(tx *OrderTransaction, sig []byte) (r, s, v *big.Int, err error) {
 	if len(sig) != 65 {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
@@ -150,7 +150,7 @@ func (ordersign OrderTxSigner) Hash(tx *OrderTransaction) common.Hash {
 	return ordersign.OrderCreateHash(tx)
 }
 
-//MarshalSignature encode signature
+// MarshalSignature encode signature
 func MarshalSignature(R, S, V *big.Int) ([]byte, error) {
 	sigBytes1 := common.BigToHash(R).Bytes()
 	sigBytes2 := common.BigToHash(S).Bytes()

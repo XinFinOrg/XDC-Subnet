@@ -26,11 +26,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/swarm/api"
-	swarm "github.com/XinFinOrg/XDPoSChain/swarm/api/client"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
-	"github.com/XinFinOrg/XDPoSChain/swarm/testutil"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/api"
+	swarm "github.com/XinFinOrg/XDC-Subnet/swarm/api/client"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/testutil"
 )
 
 func TestBzzGetPath(t *testing.T) {

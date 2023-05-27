@@ -42,7 +42,7 @@ import (
 	"fmt"
 	"hash"
 
-	ethcrypto "github.com/XinFinOrg/XDPoSChain/crypto"
+	ethcrypto "github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 var (

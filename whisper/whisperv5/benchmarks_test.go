@@ -19,7 +19,7 @@ package whisperv5
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 func BenchmarkDeriveKeyMaterial(b *testing.B) {

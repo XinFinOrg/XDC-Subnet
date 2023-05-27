@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // ensureVirtualHost checks whether a reverse-proxy is running on the specified

@@ -3,7 +3,7 @@ package util
 import (
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
 )
 
 func RewardInflation(chain consensus.ChainReader, chainReward *big.Int, number uint64, blockPerYear uint64) *big.Int {

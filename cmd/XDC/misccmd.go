@@ -23,10 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/consensus/ethash"
-	"github.com/XinFinOrg/XDPoSChain/eth"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/ethash"
+	"github.com/XinFinOrg/XDC-Subnet/eth"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"gopkg.in/urfave/cli.v1"
 )
 

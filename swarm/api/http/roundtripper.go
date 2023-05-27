@@ -20,17 +20,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 /*
 http roundtripper to register for bzz url scheme
-see https://github.com/XinFinOrg/XDPoSChain/issues/2040
+see https://github.com/XinFinOrg/XDC-Subnet/issues/2040
 Usage:
 
 import (
- "github.com/XinFinOrg/XDPoSChain/common/httpclient"
- "github.com/XinFinOrg/XDPoSChain/swarm/api/http"
+ "github.com/XinFinOrg/XDC-Subnet/common/httpclient"
+ "github.com/XinFinOrg/XDC-Subnet/swarm/api/http"
 )
 client := httpclient.New()
 // for (private) swarm proxy running locally

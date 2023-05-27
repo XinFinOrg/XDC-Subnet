@@ -21,7 +21,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/XinFinOrg/XDPoSChain/eth/tracers/internal/tracers"
+	"github.com/XinFinOrg/XDC-Subnet/eth/tracers/internal/tracers"
 )
 
 // all contains all the built in JavaScript tracers by name.

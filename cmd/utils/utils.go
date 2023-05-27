@@ -1,14 +1,14 @@
 package utils
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/XDCx"
-	"github.com/XinFinOrg/XDPoSChain/XDCxlending"
-	"github.com/XinFinOrg/XDPoSChain/eth"
-	"github.com/XinFinOrg/XDPoSChain/eth/downloader"
-	"github.com/XinFinOrg/XDPoSChain/ethstats"
-	"github.com/XinFinOrg/XDPoSChain/les"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	whisper "github.com/XinFinOrg/XDPoSChain/whisper/whisperv6"
+	"github.com/XinFinOrg/XDC-Subnet/XDCx"
+	"github.com/XinFinOrg/XDC-Subnet/XDCxlending"
+	"github.com/XinFinOrg/XDC-Subnet/eth"
+	"github.com/XinFinOrg/XDC-Subnet/eth/downloader"
+	"github.com/XinFinOrg/XDC-Subnet/ethstats"
+	"github.com/XinFinOrg/XDC-Subnet/les"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	whisper "github.com/XinFinOrg/XDC-Subnet/whisper/whisperv6"
 )
 
 // RegisterEthService adds an Ethereum client to the stack.

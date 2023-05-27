@@ -21,9 +21,9 @@ package geth
 import (
 	"encoding/json"
 
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discv5"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discv5"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 )
 
 // MainnetGenesis returns the JSON spec to use for the main Ethereum network. It

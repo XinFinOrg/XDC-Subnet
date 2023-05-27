@@ -24,13 +24,13 @@ import (
 	"net"
 	"os"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discv5"
-	"github.com/XinFinOrg/XDPoSChain/p2p/nat"
-	"github.com/XinFinOrg/XDPoSChain/p2p/netutil"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discv5"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/nat"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/netutil"
 )
 
 func main() {

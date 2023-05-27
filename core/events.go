@@ -17,8 +17,8 @@
 package core
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // TxPreEvent is posted when a transaction enters the transaction pool.

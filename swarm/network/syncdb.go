@@ -20,8 +20,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 )
@@ -342,7 +342,6 @@ func (self *syncDb) dbRead(useBatches bool, counter uint64, fun func(interface{}
 	}
 }
 
-//
 func (self *syncDb) stop() {
 	close(self.quit)
 	<-self.done

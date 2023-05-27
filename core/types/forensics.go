@@ -1,6 +1,6 @@
 package types
 
-import "github.com/XinFinOrg/XDPoSChain/common"
+import "github.com/XinFinOrg/XDC-Subnet/common"
 
 type ForensicsInfo struct {
 	HashPath        []string   `json:"hashPath"`

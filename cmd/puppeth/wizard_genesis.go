@@ -24,22 +24,22 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 
 	"context"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind/backends"
-	blockSignerContract "github.com/XinFinOrg/XDPoSChain/contracts/blocksigner"
-	multiSignWalletContract "github.com/XinFinOrg/XDPoSChain/contracts/multisigwallet"
-	randomizeContract "github.com/XinFinOrg/XDPoSChain/contracts/randomize"
-	validatorContract "github.com/XinFinOrg/XDPoSChain/contracts/validator"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
+	blockSignerContract "github.com/XinFinOrg/XDC-Subnet/contracts/blocksigner"
+	multiSignWalletContract "github.com/XinFinOrg/XDC-Subnet/contracts/multisigwallet"
+	randomizeContract "github.com/XinFinOrg/XDC-Subnet/contracts/randomize"
+	validatorContract "github.com/XinFinOrg/XDC-Subnet/contracts/validator"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 // makeGenesis creates a new genesis struct based on some user input.

@@ -19,7 +19,7 @@ package bloombits
 import (
 	"errors"
 
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // errSectionOutOfBounds is returned if the user tried to add more bloom filters

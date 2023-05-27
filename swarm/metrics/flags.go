@@ -19,10 +19,10 @@ package metrics
 import (
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	gethmetrics "github.com/XinFinOrg/XDPoSChain/metrics"
-	"github.com/XinFinOrg/XDPoSChain/metrics/influxdb"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	gethmetrics "github.com/XinFinOrg/XDC-Subnet/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/metrics/influxdb"
 	"gopkg.in/urfave/cli.v1"
 )
 

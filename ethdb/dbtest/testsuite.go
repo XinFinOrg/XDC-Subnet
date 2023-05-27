@@ -22,7 +22,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 )
 
 // TestDatabaseSuite runs a suite of tests against a KeyValueStore database

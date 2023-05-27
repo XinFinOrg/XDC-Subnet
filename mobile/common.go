@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.

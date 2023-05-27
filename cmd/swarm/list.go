@@ -22,8 +22,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
-	swarm "github.com/XinFinOrg/XDPoSChain/swarm/api/client"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
+	swarm "github.com/XinFinOrg/XDC-Subnet/swarm/api/client"
 	"gopkg.in/urfave/cli.v1"
 )
 

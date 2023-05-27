@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 func newTestFullNode(v []byte) []interface{} {

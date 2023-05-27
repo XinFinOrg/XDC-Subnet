@@ -19,7 +19,7 @@ package storage
 import (
 	"encoding/binary"
 
-	"github.com/XinFinOrg/XDPoSChain/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
 )
 
 //metrics variables
