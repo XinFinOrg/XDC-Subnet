@@ -1145,6 +1145,7 @@ func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (h
 
 		_, _, failed, err := s.doCall(ctx, args, rpc.LatestBlockNumber, vm.Config{}, 0)
 		if err != nil || failed {
+			log.Warn("[EstimateGas] api", "err", err)
 			return false
 		}
 		return true

@@ -120,11 +120,23 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		}
 
 		if !utils.CompareSignersLists(localMasterNodes, header.Validators) {
+			for i, addr := range localMasterNodes {
+				log.Warn("[verifyHeader] localMasterNodes", "i", i, "addr", addr.Hex())
+			}
+			for i, addr := range header.Validators {
+				log.Warn("[verifyHeader] validatorsAddress", "i", i, "addr", addr.Hex())
+			}
 			return utils.ErrValidatorsNotLegit
 		}
 
 		penaltiesAddress := common.ExtractAddressFromBytes(header.Penalties)
 		if !utils.CompareSignersLists(localPenalties, penaltiesAddress) {
+			for i, addr := range localPenalties {
+				log.Warn("[verifyHeader] localPenalties", "i", i, "addr", addr.Hex())
+			}
+			for i, addr := range penaltiesAddress {
+				log.Warn("[verifyHeader] penaltiesAddress", "i", i, "addr", addr.Hex())
+			}
 			return utils.ErrPenaltiesNotLegit
 		}
 

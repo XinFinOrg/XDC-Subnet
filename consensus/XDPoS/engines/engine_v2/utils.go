@@ -96,7 +96,7 @@ func (x *XDPoS_v2) signSignature(signingHash common.Hash) (types.Signature, erro
 
 	signedHash, err := signFn(accounts.Account{Address: signer}, signingHash.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("Error while signing hash")
+		return nil, fmt.Errorf("Error %v while signing hash", err)
 	}
 	return signedHash, nil
 }
@@ -119,6 +119,7 @@ func (x *XDPoS_v2) verifyMsgSignature(signedHashToBeVerified common.Hash, signat
 		}
 	}
 
+	log.Warn("[verifyMsgSignature] signer is not part of masternode list", "signer", signerAddress, "masternodes", masternodes)
 	return false, signerAddress, nil
 }
 
@@ -137,6 +138,7 @@ func (x *XDPoS_v2) getExtraFields(header *types.Header) (*types.QuorumCert, type
 	var decodedExtraField types.ExtraFields_v2
 	err := utils.DecodeBytesExtraFields(header.Extra, &decodedExtraField)
 	if err != nil {
+		log.Error("[getExtraFields] error on decode extra fields", "err", err, "extra", header.Extra)
 		return nil, types.Round(0), masternodes, err
 	}
 	return decodedExtraField.QuorumCert, decodedExtraField.Round, masternodes, nil

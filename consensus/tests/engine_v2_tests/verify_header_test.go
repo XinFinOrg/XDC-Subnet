@@ -89,7 +89,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	err = adaptor.VerifyHeader(blockchain, invalidPenaltiesExistBlock, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonEpochSwitch, err)
 
-	merkleRoot := "35999dded35e8db12de7e6c1471eb9670c162eec616ecebbaf4fddd4676fb123"
+	merkleRoot := "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	parentNotExistBlock := blockchain.GetBlockByNumber(901).Header()
 	parentNotExistBlock.ParentHash = common.HexToHash(merkleRoot)
 	err = adaptor.VerifyHeader(blockchain, parentNotExistBlock, true)
@@ -421,12 +421,12 @@ func TestShouldVerifyHeadersEvenIfParentsNotYetWrittenIntoDB(t *testing.T) {
 	// Create block 911 but don't write into DB
 	blockNumber := 911
 	roundNumber := int64(blockNumber) - config.XDPoS.V2.SwitchBlock.Int64()
-	block911 := CreateBlock(blockchain, &config, block910, blockNumber, roundNumber, signer.Hex(), signer, signFn, nil, nil)
+	block911 := CreateBlock(blockchain, &config, block910, blockNumber, roundNumber, signer.Hex(), signer, signFn, nil, nil, "")
 
 	// Create block 912 and not write into DB as well
 	blockNumber = 912
 	roundNumber = int64(blockNumber) - config.XDPoS.V2.SwitchBlock.Int64()
-	block912 := CreateBlock(blockchain, &config, block911, blockNumber, roundNumber, signer.Hex(), signer, signFn, nil, nil)
+	block912 := CreateBlock(blockchain, &config, block911, blockNumber, roundNumber, signer.Hex(), signer, signFn, nil, nil, "")
 
 	headersTobeVerified = append(headersTobeVerified, block910.Header(), block911.Header(), block912.Header())
 	// Randomly set full verify

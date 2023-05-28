@@ -136,6 +136,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	assert.Equal(t, types.Round(5), currentRound)
 
 	// Create another vote which is signed by someone not from the master node list
+
 	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn()
 	assert.Nil(t, err)
 	randomlySignedHash, err := randomSignFn(accounts.Account{Address: randomSigner}, voteSigningHash.Bytes())
@@ -147,6 +148,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
+
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ = engineV2.GetPropertiesFaker()
 	// Still using the initlised value because we did not yet go to the next round
 	assert.Nil(t, lockQuorumCert)
@@ -337,7 +339,7 @@ func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
 	// Create a new block but don't inject it into the chain yet
 	blockNum := 906
 	blockCoinBase := fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
-	block := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 6, blockCoinBase, signer, signFn, nil, nil)
+	block := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 6, blockCoinBase, signer, signFn, nil, nil, "")
 
 	blockInfo := &types.BlockInfo{
 		Hash:   block.Header().Hash(),
@@ -506,6 +508,7 @@ func TestVerifyVoteMsg(t *testing.T) {
 	}
 
 	verified, err = engineV2.VerifyVoteMessage(blockchain, voteMsg)
+	assert.Equal(t, voteMsg.GetSigner(), signer)
 	assert.True(t, verified)
 	assert.Nil(t, err)
 }
