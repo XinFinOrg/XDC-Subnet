@@ -19,7 +19,7 @@ package state
 import (
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 type journalEntry interface {

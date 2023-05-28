@@ -22,14 +22,14 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain/core/vm/privacy"
+	"github.com/XinFinOrg/XDC-Subnet/core/vm/privacy"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/math"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
-	"github.com/XinFinOrg/XDPoSChain/crypto/blake2b"
-	"github.com/XinFinOrg/XDPoSChain/crypto/bn256"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/blake2b"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/bn256"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 
 	//lint:ignore SA1019 Needed for precompile
 	"golang.org/x/crypto/ripemd160"

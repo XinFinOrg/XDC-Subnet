@@ -24,8 +24,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common/compiler"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common/compiler"
 )
 
 var (

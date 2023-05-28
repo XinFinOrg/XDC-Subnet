@@ -6,10 +6,10 @@ package contract
 import (
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi"
-	"github.com/XinFinOrg/XDPoSChain/accounts/abi/bind"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // XDCXListingABI is the input ABI used to generate the binding from.

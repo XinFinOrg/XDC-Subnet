@@ -22,8 +22,8 @@ package node
 import (
 	"reflect"
 
-	"github.com/XinFinOrg/XDPoSChain/p2p"
-	"github.com/XinFinOrg/XDPoSChain/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/p2p"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
 )
 
 // NoopService is a trivial implementation of the Service interface.

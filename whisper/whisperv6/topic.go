@@ -19,8 +19,8 @@
 package whisperv6
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
 )
 
 // TopicType represents a cryptographically secure, probabilistic partial

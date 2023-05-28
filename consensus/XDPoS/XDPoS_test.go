@@ -3,8 +3,8 @@ package XDPoS
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/stretchr/testify/assert"
 )
 

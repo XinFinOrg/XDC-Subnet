@@ -23,11 +23,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/XDCx/tradingstate"
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.

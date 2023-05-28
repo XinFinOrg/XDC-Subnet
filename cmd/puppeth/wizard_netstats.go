@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/olekukonko/tablewriter"
 )
 

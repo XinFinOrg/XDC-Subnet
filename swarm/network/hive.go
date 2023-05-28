@@ -22,13 +22,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/metrics"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/p2p/netutil"
-	"github.com/XinFinOrg/XDPoSChain/swarm/network/kademlia"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/netutil"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/network/kademlia"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
 // Hive is the logistic manager of the swarm
@@ -77,7 +77,7 @@ type HiveParams struct {
 	*kademlia.KadParams
 }
 
-//create default params
+// create default params
 func NewDefaultHiveParams() *HiveParams {
 	kad := kademlia.NewDefaultKadParams()
 	// kad.BucketSize = bucketSize
@@ -90,8 +90,8 @@ func NewDefaultHiveParams() *HiveParams {
 	}
 }
 
-//this can only finally be set after all config options (file, cmd line, env vars)
-//have been evaluated
+// this can only finally be set after all config options (file, cmd line, env vars)
+// have been evaluated
 func (self *HiveParams) Init(path string) {
 	self.KadDbPath = filepath.Join(path, "bzz-peers.json")
 }

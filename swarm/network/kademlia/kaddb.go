@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 type NodeData interface {
@@ -164,7 +164,6 @@ offline past peer)
 |proxBin(a)| < |proxBin(b)|
 || (proxBin(a) < proxBin(b) && |proxBin(a)| == |proxBin(b)|)
 || (proxBin(a) == proxBin(b) && lastChecked(a) < lastChecked(b))
-
 
 The second argument returned names the first missing slot found
 */

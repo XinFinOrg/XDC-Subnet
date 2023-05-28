@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/XinFinOrg/XDPoSChain/common/hexutil"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // XDPoS delegated-proof-of-stake protocol constants.

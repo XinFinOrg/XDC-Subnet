@@ -19,8 +19,8 @@ package les
 import (
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common/bitutil"
-	"github.com/XinFinOrg/XDPoSChain/light"
+	"github.com/XinFinOrg/XDC-Subnet/common/bitutil"
+	"github.com/XinFinOrg/XDC-Subnet/light"
 )
 
 const (

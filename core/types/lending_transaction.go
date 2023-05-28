@@ -23,8 +23,8 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/rlp"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/rlp"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -363,7 +363,7 @@ func (s *LendingTxByNonce) Pop() interface{} {
 	return x
 }
 
-//LendingTransactionByNonce sort transaction by nonce
+// LendingTransactionByNonce sort transaction by nonce
 type LendingTransactionByNonce struct {
 	txs    map[common.Address]LendingTransactions
 	heads  LendingTxByNonce

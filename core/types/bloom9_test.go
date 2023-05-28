@@ -54,7 +54,7 @@ func TestBloom(t *testing.T) {
 import (
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/core/state"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
 )
 
 func TestBloom9(t *testing.T) {

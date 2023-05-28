@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
 )
 
 func TestBlockNumberJSONUnmarshal(t *testing.T) {

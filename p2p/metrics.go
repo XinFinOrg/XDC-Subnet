@@ -21,7 +21,7 @@ package p2p
 import (
 	"net"
 
-	"github.com/XinFinOrg/XDPoSChain/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
 )
 
 var (

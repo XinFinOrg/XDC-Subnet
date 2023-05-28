@@ -22,11 +22,11 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/internal/ethapi"
-	"github.com/XinFinOrg/XDPoSChain/params"
-	"github.com/XinFinOrg/XDPoSChain/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/internal/ethapi"
+	"github.com/XinFinOrg/XDC-Subnet/params"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
 )
 
 var maxPrice = big.NewInt(500 * params.Shannon)

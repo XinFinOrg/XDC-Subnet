@@ -21,8 +21,8 @@ package geth
 import (
 	"errors"
 
-	ethereum "github.com/XinFinOrg/XDPoSChain"
-	"github.com/XinFinOrg/XDPoSChain/common"
+	ethereum "github.com/XinFinOrg/XDC-Subnet"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 )
 
 // Subscription represents an event subscription where events are

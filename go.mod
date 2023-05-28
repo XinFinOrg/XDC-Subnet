@@ -1,4 +1,4 @@
-module github.com/XinFinOrg/XDPoSChain
+module github.com/XinFinOrg/XDC-Subnet
 
 go 1.13
 

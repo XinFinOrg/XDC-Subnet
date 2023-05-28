@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 	mapset "github.com/deckarep/golang-set"
 )
 

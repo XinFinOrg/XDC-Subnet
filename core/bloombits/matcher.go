@@ -26,8 +26,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common/bitutil"
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/common/bitutil"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 )
 
 // bloomIndexes represents the bit indexes inside the bloom filter that belong

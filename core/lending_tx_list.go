@@ -20,7 +20,7 @@ import (
 	"container/heap"
 	"sort"
 
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // txSortedMap is a nonce->transaction hash map with a heap based index to allow

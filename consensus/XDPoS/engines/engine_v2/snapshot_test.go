@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/rawdb"
-	"github.com/XinFinOrg/XDPoSChain/ethdb/leveldb"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb/leveldb"
 )
 
 func TestGetMasterNodes(t *testing.T) {

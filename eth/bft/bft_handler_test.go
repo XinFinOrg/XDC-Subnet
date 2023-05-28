@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/consensus"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS/engines/engine_v2"
-	"github.com/XinFinOrg/XDPoSChain/consensus/XDPoS/utils"
-	"github.com/XinFinOrg/XDPoSChain/core"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/engines/engine_v2"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	"github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/stretchr/testify/assert"
 )
 

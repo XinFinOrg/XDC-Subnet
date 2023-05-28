@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/rpc"
 )
 
 // In this example, our client whishes to track the latest 'block number'

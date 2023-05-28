@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/ethdb"
+	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 )
 
 func TestTableDatabase(t *testing.T)            { testTableDatabase(t, "prefix") }

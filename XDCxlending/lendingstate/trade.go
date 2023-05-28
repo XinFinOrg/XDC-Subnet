@@ -2,13 +2,13 @@ package lendingstate
 
 import (
 	"fmt"
-	"github.com/XinFinOrg/XDPoSChain/XDCx/tradingstate"
-	"github.com/XinFinOrg/XDPoSChain/crypto/sha3"
+	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
 	"math/big"
 	"strconv"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/globalsign/mgo/bson"
 )
 

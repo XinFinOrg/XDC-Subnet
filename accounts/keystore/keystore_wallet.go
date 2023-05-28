@@ -19,9 +19,9 @@ package keystore
 import (
 	"math/big"
 
-	ethereum "github.com/XinFinOrg/XDPoSChain"
-	"github.com/XinFinOrg/XDPoSChain/accounts"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	ethereum "github.com/XinFinOrg/XDC-Subnet"
+	"github.com/XinFinOrg/XDC-Subnet/accounts"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 // keystoreWallet implements the accounts.Wallet interface for the original

@@ -26,7 +26,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 // makeWizard creates and returns a new puppeth wizard.

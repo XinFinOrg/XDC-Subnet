@@ -26,8 +26,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"golang.org/x/tools/imports"
 )
 

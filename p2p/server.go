@@ -25,14 +25,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/common/mclock"
-	"github.com/XinFinOrg/XDPoSChain/event"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discv5"
-	"github.com/XinFinOrg/XDPoSChain/p2p/nat"
-	"github.com/XinFinOrg/XDPoSChain/p2p/netutil"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
+	"github.com/XinFinOrg/XDC-Subnet/event"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discv5"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/nat"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/netutil"
 )
 
 const (

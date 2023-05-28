@@ -29,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	mapset "github.com/deckarep/golang-set"
 	"golang.org/x/net/websocket"
 )

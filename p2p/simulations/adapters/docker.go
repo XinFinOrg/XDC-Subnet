@@ -27,9 +27,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/node"
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/node"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
 	"github.com/docker/docker/pkg/reexec"
 )
 

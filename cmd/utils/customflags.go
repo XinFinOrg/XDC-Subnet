@@ -27,7 +27,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/common/math"
 	"gopkg.in/urfave/cli.v1"
 )
 

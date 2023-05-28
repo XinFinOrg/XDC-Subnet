@@ -19,7 +19,7 @@ package event_test
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/event"
+	"github.com/XinFinOrg/XDC-Subnet/event"
 )
 
 func ExampleNewSubscription() {

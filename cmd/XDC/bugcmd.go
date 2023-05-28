@@ -26,10 +26,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/internal/browser"
-	"github.com/XinFinOrg/XDPoSChain/params"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/internal/browser"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 
-	"github.com/XinFinOrg/XDPoSChain/cmd/utils"
+	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -41,7 +41,7 @@ var bugCommand = cli.Command{
 	Category:  "MISCELLANEOUS COMMANDS",
 }
 
-const issueUrl = "https://github.com/XinFinOrg/XDPoSChain/issues/new"
+const issueUrl = "https://github.com/XinFinOrg/XDC-Subnet/issues/new"
 
 // reportBug reports a bug by opening a new URL to the go-ethereum GH issue
 // tracker and setting default values as the issue body.

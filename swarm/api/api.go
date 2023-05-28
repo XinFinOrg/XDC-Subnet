@@ -30,15 +30,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/log"
-	"github.com/XinFinOrg/XDPoSChain/metrics"
-	"github.com/XinFinOrg/XDPoSChain/swarm/storage"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/log"
+	"github.com/XinFinOrg/XDC-Subnet/metrics"
+	"github.com/XinFinOrg/XDC-Subnet/swarm/storage"
 )
 
 var hashMatcher = regexp.MustCompile("^[0-9A-Fa-f]{64}")
 
-//setup metrics
+// setup metrics
 var (
 	apiResolveCount    = metrics.NewRegisteredCounter("api.resolve.count", nil)
 	apiResolveFail     = metrics.NewRegisteredCounter("api.resolve.fail", nil)
@@ -146,7 +146,7 @@ type Api struct {
 	dns Resolver
 }
 
-//the api constructor initialises
+// the api constructor initialises
 func NewApi(dpa *storage.DPA, dns Resolver) (self *Api) {
 	self = &Api{
 		dpa: dpa,

@@ -21,9 +21,9 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/XinFinOrg/XDPoSChain"
-	"github.com/XinFinOrg/XDPoSChain/common"
-	"github.com/XinFinOrg/XDPoSChain/core/types"
+	XDPoSChain "github.com/XinFinOrg/XDC-Subnet"
+	"github.com/XinFinOrg/XDC-Subnet/common"
+	"github.com/XinFinOrg/XDC-Subnet/core/types"
 )
 
 var (

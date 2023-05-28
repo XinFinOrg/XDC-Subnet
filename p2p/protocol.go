@@ -19,7 +19,7 @@ package p2p
 import (
 	"fmt"
 
-	"github.com/XinFinOrg/XDPoSChain/p2p/discover"
+	"github.com/XinFinOrg/XDC-Subnet/p2p/discover"
 )
 
 // Protocol represents a P2P subprotocol implementation.

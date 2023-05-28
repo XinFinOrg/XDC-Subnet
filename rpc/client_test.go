@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/davecgh/go-spew/spew"
 )
 

@@ -24,7 +24,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 )
 
 type brokenLimitedReader struct {
