@@ -38,7 +38,7 @@ if [[ ! -z $EXTIP ]]; then
 fi
 
 echo "🥾 Starting the bootnode with address at $address"
-echo $address > ./bootnodes.list
+echo $address > ./bootnodes/bootnodes.list
 
 
 
