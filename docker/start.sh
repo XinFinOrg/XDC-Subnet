@@ -41,7 +41,7 @@ if [[ ! -z $LOG_LEVEL ]]; then
   echo "Set the log level to ${LOG_LEVEL}"
   params="$params --verbosity ${LOG_LEVEL}"
 else
-  params="$params --verbosity 3"
+  params="$params --verbosity 2"
 fi
 
 # GC mode
