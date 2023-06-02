@@ -86,10 +86,10 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 
 		// get list check penalties signing block & list master nodes wil comeback
 		// start to calc comeback at v2 block + limitPenaltyEpochV2 to avoid reading v1 blocks
-		comebackHeight := (common.LimitPenaltyEpochV2+1)*chain.Config().XDPoS.Epoch + chain.Config().XDPoS.V2.SwitchBlock.Uint64()
+		comebackHeight := (common.LimitPenaltyEpoch+1)*chain.Config().XDPoS.Epoch + chain.Config().XDPoS.V2.SwitchBlock.Uint64()
 		penComebacks := []common.Address{}
 		if number.Uint64() > comebackHeight {
-			pens := adaptor.EngineV2.GetPreviousPenaltyByHash(chain, currentHash, common.LimitPenaltyEpochV2)
+			pens := adaptor.EngineV2.GetPreviousPenaltyByHash(chain, currentHash, common.LimitPenaltyEpoch)
 			for _, p := range pens {
 				for _, addr := range candidates {
 					if p == addr {

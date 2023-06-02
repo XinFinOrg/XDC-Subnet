@@ -1016,7 +1016,7 @@ func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Heade
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
 func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, []common.Address, error) {
 	// using new max masterndoes
-	maxMasternodes := common.MaxMasternodesV2
+	maxMasternodes := common.MaxMasternodes
 
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {
