@@ -123,8 +123,8 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 		return lendingServ
 	}
 
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
-
+	blockchain, err := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
+	fmt.Println(err)
 	backend := &SimulatedBackend{
 		database:   database,
 		blockchain: blockchain,
@@ -176,9 +176,11 @@ func (b *SimulatedBackend) Rollback() {
 
 func (b *SimulatedBackend) rollback() {
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), b.blockchain.Engine(), b.database, 1, func(int, *core.BlockGen) {})
-	statedb, _ := b.blockchain.State()
+	statedb, err := b.blockchain.State()
+	fmt.Println(err)
 
 	b.pendingBlock = blocks[0]
+	fmt.Println(blocks[0])
 	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database())
 }
 

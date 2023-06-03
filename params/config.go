@@ -321,17 +321,6 @@ func (c *XDPoSConfig) String() string {
 	return "XDPoS"
 }
 
-func (c *XDPoSConfig) BlockConsensusVersion(num *big.Int, extraByte []byte, extraCheck bool) string {
-	if extraCheck && (len(extraByte) == 0 || extraByte[0] != 2) {
-		return ConsensusEngineVersion1
-	}
-
-	if c.V2 != nil && c.V2.SwitchBlock != nil && num.Cmp(c.V2.SwitchBlock) > 0 {
-		return ConsensusEngineVersion2
-	}
-	return ConsensusEngineVersion1
-}
-
 func (v *V2) UpdateConfig(round uint64) {
 	v.lock.Lock()
 	defer v.lock.Unlock()

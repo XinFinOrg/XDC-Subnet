@@ -212,7 +212,8 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 		}
 
 		if b.engine != nil {
-			block, _ := b.engine.Finalize(b.chainReader, b.header, statedb, statedb.Copy(), b.txs, b.uncles, b.receipts)
+			block, err := b.engine.Finalize(b.chainReader, b.header, statedb, statedb.Copy(), b.txs, b.uncles, b.receipts)
+			fmt.Println("123", block, err)
 			// Write state changes to db
 			root, err := statedb.Commit(config.IsEIP158(b.header.Number))
 			if err != nil {
