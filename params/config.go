@@ -45,7 +45,6 @@ var (
 			CertThreshold:        5, // To be confirmed once mainnet is ready
 			TimeoutSyncThreshold: 3,
 			TimeoutPeriod:        60,
-			WaitPeriod:           10,
 			MinePeriod:           10,
 		},
 	}
@@ -56,7 +55,6 @@ var (
 			CertThreshold:        3,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        4,
-			WaitPeriod:           1,
 			MinePeriod:           2,
 		},
 	}
@@ -67,7 +65,6 @@ var (
 			CertThreshold:        2,
 			TimeoutSyncThreshold: 5,
 			TimeoutPeriod:        25,
-			WaitPeriod:           10,
 			MinePeriod:           10,
 		},
 	}
@@ -102,7 +99,6 @@ var (
 			CertThreshold:        3,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        4,
-			WaitPeriod:           1,
 			MinePeriod:           2,
 		},
 		10: {
@@ -110,7 +106,6 @@ var (
 			CertThreshold:        5,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        4,
-			WaitPeriod:           2,
 			MinePeriod:           3,
 		},
 		899: {
@@ -118,8 +113,7 @@ var (
 			CertThreshold:        5,
 			TimeoutSyncThreshold: 4,
 			TimeoutPeriod:        5,
-			WaitPeriod:           2,
-			MinePeriod:           3,
+			MinePeriod:           2,
 		},
 	}
 
@@ -310,7 +304,6 @@ type V2 struct {
 
 type V2Config struct {
 	SwitchRound          uint64 `json:"switchRound"`          // v1 to v2 switch block number
-	WaitPeriod           int    `json:"waitPeriod"`           // Miner wait period to check mine event
 	MinePeriod           int    `json:"minePeriod"`           // Miner mine period to mine a block
 	TimeoutSyncThreshold int    `json:"timeoutSyncThreshold"` // send syncInfo after number of timeout
 	TimeoutPeriod        int    `json:"timeoutPeriod"`        // Duration in ms
