@@ -20,14 +20,17 @@ import (
 
 func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConfig *params.ChainConfig) {
 	// Hook scans for bad masternodes and decide to penalty them
-	adaptor.EngineV2.HookPenalty = func(chain consensus.ChainReader, number *big.Int, currentHash common.Hash, candidates []common.Address) ([]common.Address, error) {
+	// Subnet penalty is triggered at gap block, and stopped at previous gap block
+	adaptor.EngineV2.HookPenalty = func(chain consensus.ChainReader, number *big.Int, currentHash common.Hash, candidates []common.Address, config *params.XDPoSConfig) ([]common.Address, error) {
 		start := time.Now()
-		listBlockHash := []common.Hash{}
-		// get list block hash & stats total created block
-		statMiners := make(map[common.Address]int)
-		listBlockHash = append(listBlockHash, currentHash)
 		parentNumber := number.Uint64() - 1
 		parentHash := currentHash
+		// get the previous gap block
+		stopNumber := parentNumber - config.Epoch + 1
+		// prevent overflow
+		if parentNumber+1 < config.Epoch {
+			stopNumber = 0
+		}
 
 		// check and wait the latest block is already in the disk
 		// sometimes blocks are yet inserted into block
@@ -45,16 +48,12 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			}
 		}
 
+		penalties := []common.Address{}
+		// get list block hash & stats total created block
+		statMiners := make(map[common.Address]int)
+
 		for i := uint64(1); ; i++ {
 			parentHeader := chain.GetHeader(parentHash, parentNumber)
-			isEpochSwitch, _, err := adaptor.EngineV2.IsEpochSwitch(parentHeader)
-			if err != nil {
-				log.Error("[HookPenalty] isEpochSwitch", "err", err)
-				return []common.Address{}, err
-			}
-			if isEpochSwitch {
-				break
-			}
 			miner := parentHeader.Coinbase // we can directly use coinbase, since it's verified
 			_, exist := statMiners[miner]
 			if exist {
@@ -62,102 +61,49 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			} else {
 				statMiners[miner] = 1
 			}
-			parentNumber--
-			parentHash = parentHeader.ParentHash
-			listBlockHash = append(listBlockHash, parentHash)
-			log.Debug("[HookPenalty] listBlockHash", "i", i, "len", len(listBlockHash), "parentHash", parentHash, "parentNumber", parentNumber)
-		}
-
-		// add list not miner to penalties
-		preMasternodes := adaptor.EngineV2.GetMasternodesByHash(chain, currentHash)
-		penalties := []common.Address{}
-		for miner, total := range statMiners {
-			if total < common.MinimunMinerBlockPerEpoch {
-				log.Info("[HookPenalty] Find a node does not create enough block", "addr", miner.Hex(), "total", total, "require", common.MinimunMinerBlockPerEpoch)
-				penalties = append(penalties, miner)
+			isEpochSwitch, _, err := adaptor.EngineV2.IsEpochSwitch(parentHeader)
+			if err != nil {
+				log.Error("[HookPenalty] isEpochSwitch", "err", err)
+				return []common.Address{}, err
 			}
-		}
-		for _, addr := range preMasternodes {
-			if _, exist := statMiners[addr]; !exist {
-				log.Info("[HookPenalty] Find a node do not create any block", "addr", addr.Hex())
-				penalties = append(penalties, addr)
-			}
-		}
-
-		// get list check penalties signing block & list master nodes wil comeback
-		// start to calc comeback at v2 block + limitPenaltyEpochV2 to avoid reading v1 blocks
-		comebackHeight := (common.LimitPenaltyEpochV2+1)*chain.Config().XDPoS.Epoch + chain.Config().XDPoS.V2.SwitchBlock.Uint64()
-		penComebacks := []common.Address{}
-		if number.Uint64() > comebackHeight {
-			pens := adaptor.EngineV2.GetPreviousPenaltyByHash(chain, currentHash, common.LimitPenaltyEpochV2)
-			for _, p := range pens {
-				for _, addr := range candidates {
-					if p == addr {
-						log.Info("[HookPenalty] get previous penalty node and add into comeback list", "addr", addr)
-						penComebacks = append(penComebacks, p)
-						break
-					}
-				}
-			}
-		}
-
-		// Loop for each block to check missing sign. with comeback nodes
-		mapBlockHash := map[common.Hash]bool{}
-		startRange := common.RangeReturnSigner - 1
-		// to prevent visiting outside index of listBlockHash
-		if startRange >= len(listBlockHash) {
-			startRange = len(listBlockHash) - 1
-		}
-		for i := startRange; i >= 0; i-- {
-			if len(penComebacks) == 0 {
-				break
-			}
-			blockNumber := number.Uint64() - uint64(i) - 1
-			bhash := listBlockHash[i]
-			if blockNumber%common.MergeSignRange == 0 {
-				mapBlockHash[bhash] = true
-			}
-			signData, ok := adaptor.GetCachedSigningTxs(bhash)
-			if !ok {
-				block := chain.GetBlock(bhash, blockNumber)
-				txs := block.Transactions()
-				signData = adaptor.CacheSigningTxs(bhash, txs)
-			}
-			txs := signData.([]*types.Transaction)
-			// Check signer signed?
-			for _, tx := range txs {
-				blkHash := common.BytesToHash(tx.Data()[len(tx.Data())-32:])
-				from := *tx.From()
-				if mapBlockHash[blkHash] {
-					for j, addr := range penComebacks {
-						if from == addr {
-							// Remove it from dupSigners.
-							penComebacks = append(penComebacks[:j], penComebacks[j+1:]...)
-							break
+			if isEpochSwitch || parentNumber == stopNumber {
+				preMasternodes := adaptor.EngineV2.GetMasternodes(chain, parentHeader)
+				for _, addr := range preMasternodes {
+					total, exist := statMiners[addr]
+					if !exist {
+						log.Info("[HookPenalty] Find a node do not create any block", "addr", addr.Hex())
+						penalties = append(penalties, addr)
+					} else {
+						if total < common.MinimunMinerBlockPerEpoch {
+							log.Info("[HookPenalty] Find a node does not create enough block", "addr", addr.Hex(), "total", total, "require", common.MinimunMinerBlockPerEpoch)
+							penalties = append(penalties, addr)
 						}
 					}
 				}
-			}
-		}
-
-		for _, comeback := range penComebacks {
-			ok := true
-			for _, p := range penalties {
-				if p == comeback {
-					ok = false
+				// clear map
+				statMiners = make(map[common.Address]int)
+				//todo: listBlockHash
+				if parentNumber == stopNumber {
 					break
 				}
 			}
-			if ok {
-				penalties = append(penalties, comeback)
-			}
+
+			parentNumber--
+			parentHash = parentHeader.ParentHash
+			log.Debug("[HookPenalty] listBlockHash", "i", i, "parentHash", parentHash, "parentNumber", parentNumber)
 		}
 
+		mapForDedup := make(map[common.Address]struct{})
+		penaltiesDedup := []common.Address{}
 		for i, p := range penalties {
-			log.Info("[HookPenalty] Final penalty list", "index", i, "addr", p)
+			if _, ok := mapForDedup[p]; !ok {
+				penaltiesDedup = append(penaltiesDedup, p)
+				mapForDedup[p] = struct{}{}
+				log.Info("[HookPenalty] Final penalty list", "index", i, "addr", p)
+			}
 		}
 		log.Info("[HookPenalty] Time Calculated HookPenaltyV2 ", "block", number, "time", common.PrettyDuration(time.Since(start)))
-		return penalties, nil
+		return penaltiesDedup, nil
 	}
 
 	// Hook calculates reward for masternodes
