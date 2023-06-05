@@ -18,9 +18,9 @@ import (
 
 const (
 	// timeout waiting for M1
-	waitPeriod = 10
+	minePeriod = 10
 	// timeout for checkpoint.
-	waitPeriodCheckpoint = 20
+	minePeriodCheckpoint = 20
 )
 
 // XDPoS is the delegated-proof-of-stake consensus engine proposed to support the
