@@ -29,6 +29,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/XDCx"
 	"github.com/XinFinOrg/XDC-Subnet/XDCxlending"
 	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 
 	XDPoSChain "github.com/XinFinOrg/XDC-Subnet"
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
@@ -123,14 +124,20 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 		return lendingServ
 	}
 
-	blockchain, err := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
-	fmt.Println(err)
+	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
 	backend := &SimulatedBackend{
 		database:   database,
 		blockchain: blockchain,
 		config:     genesis.Config,
 		events:     filters.NewEventSystem(new(event.TypeMux), &filterBackend{database, blockchain}, false),
 	}
+	go func() {
+		for range core.CheckpointCh {
+			checkpointChanMsg := <-core.CheckpointCh
+			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+		}
+	}()
+
 	blockchain.Client = backend
 	backend.rollback()
 	return backend
@@ -159,7 +166,6 @@ func NewSimulatedBackend(alloc core.GenesisAlloc) *SimulatedBackend {
 func (b *SimulatedBackend) Commit() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-
 	if _, err := b.blockchain.InsertChain([]*types.Block{b.pendingBlock}); err != nil {
 		panic(err) // This cannot happen unless the simulator is wrong, fail in that case
 	}
@@ -176,11 +182,9 @@ func (b *SimulatedBackend) Rollback() {
 
 func (b *SimulatedBackend) rollback() {
 	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), b.blockchain.Engine(), b.database, 1, func(int, *core.BlockGen) {})
-	statedb, err := b.blockchain.State()
-	fmt.Println(err)
+	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
-	fmt.Println(blocks[0])
 	b.pendingState, _ = state.New(b.pendingBlock.Root(), statedb.Database())
 }
 

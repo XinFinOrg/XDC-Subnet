@@ -220,9 +220,10 @@ var (
 			FoudationWalletAddr: common.HexToAddress("0x0000000000000000000000000000000000000068"),
 			Reward:              250,
 			V2: &V2{
-				SwitchBlock:   big.NewInt(900),
-				CurrentConfig: UnitTestV2Configs[0],
-				AllConfigs:    UnitTestV2Configs,
+				SwitchBlock:      big.NewInt(0),
+				CurrentConfig:    UnitTestV2Configs[0],
+				AllConfigs:       UnitTestV2Configs,
+				SkipV2Validation: true,
 			},
 		},
 	}

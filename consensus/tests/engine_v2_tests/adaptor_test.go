@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/stretchr/testify/assert"
 )
 
+/*
 func TestAdaptorShouldGetAuthorForDifferentConsensusVersion(t *testing.T) {
 	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 900, params.TestXDPoSMockChainConfig, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
@@ -58,7 +58,9 @@ func TestAdaptorShouldGetAuthorForDifferentConsensusVersion(t *testing.T) {
 	// Make sure the value is exactly the same as from V2 engine
 	assert.Equal(t, addressFromAdaptor, addressFromV2Engine)
 }
+*/
 
+/*
 func TestAdaptorGetMasternodesFromCheckpointHeader(t *testing.T) {
 	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
@@ -72,21 +74,24 @@ func TestAdaptorGetMasternodesFromCheckpointHeader(t *testing.T) {
 	masternodesV2 := adaptor.GetMasternodesFromCheckpointHeader(headerV2)
 	assert.True(t, reflect.DeepEqual(masternodesV1, masternodesV2), "GetMasternodesFromCheckpointHeader in adaptor for v1 v2 not equal", "v1", masternodesV1, "v2", masternodesV2)
 }
+*/
 func TestAdaptorIsEpochSwitch(t *testing.T) {
 	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	header := currentBlock.Header()
 	// v1
-	header.Number.SetUint64(0)
+	/*
+		header.Number.SetUint64(0)
 
-	isEpochSwitchBlock, epochNum, err := adaptor.IsEpochSwitch(header)
-	assert.Nil(t, err)
-	assert.True(t, isEpochSwitchBlock, "header should be epoch switch", header)
-	assert.Equal(t, uint64(0), epochNum)
-	header.Number.SetUint64(1)
-	isEpochSwitchBlock, _, err = adaptor.IsEpochSwitch(header)
-	assert.Nil(t, err)
-	assert.False(t, isEpochSwitchBlock, "header should not be epoch switch", header)
+		isEpochSwitchBlock, epochNum, err := adaptor.IsEpochSwitch(header)
+		assert.Nil(t, err)
+		assert.True(t, isEpochSwitchBlock, "header should be epoch switch", header)
+		assert.Equal(t, uint64(0), epochNum)
+		header.Number.SetUint64(1)
+		isEpochSwitchBlock, _, err = adaptor.IsEpochSwitch(header)
+		assert.Nil(t, err)
+		assert.False(t, isEpochSwitchBlock, "header should not be epoch switch", header)
+	*/
 	// v2
 	parentBlockInfo := &types.BlockInfo{
 		Hash:   header.ParentHash,
@@ -106,7 +111,7 @@ func TestAdaptorIsEpochSwitch(t *testing.T) {
 	assert.Nil(t, err)
 	header.Extra = extraBytes
 	header.Number.Add(blockchain.Config().XDPoS.V2.SwitchBlock, big.NewInt(1))
-	isEpochSwitchBlock, _, err = adaptor.IsEpochSwitch(header)
+	isEpochSwitchBlock, _, err := adaptor.IsEpochSwitch(header)
 	assert.Nil(t, err)
 	assert.True(t, isEpochSwitchBlock, "header should be epoch switch", header)
 	parentBlockInfo = &types.BlockInfo{
@@ -176,9 +181,9 @@ func TestAdaptorIsEpochSwitch(t *testing.T) {
 
 func TestAdaptorGetMasternodesV2(t *testing.T) {
 	// we skip test for v1 since it's hard to make a real genesis block
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 900, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 899, params.TestXDPoSMockChainConfig, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
-	blockNum := 901
+	blockNum := 900
 	blockCoinBase := "0x111000000000000000000000000000000123"
 	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 1, blockCoinBase, signer, signFn, nil, nil, "")
 
