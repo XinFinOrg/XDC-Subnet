@@ -5,9 +5,7 @@ pragma experimental ABIEncoderV2;
 // HeaderReader is a helper library to read fields out of rlp-encoded blocks.
 // It is mainly consisted of Solidity-RLP(https://github.com/hamdiallam/Solidity-RLP) and
 // solidity-rlp-encode(https://github.com/bakaoh/solidity-rlp-encode)
-contract HeaderReader {
-    mapping(address => bool) unique_addr;
-
+library HeaderReader {
     // Solidity-RLP defined constants and struct
     uint8 constant STRING_SHORT_START = 0x80;
     uint8 constant STRING_LONG_START = 0xb8;
@@ -18,6 +16,15 @@ contract HeaderReader {
     struct RLPItem {
         uint256 len;
         uint256 memPtr;
+    }
+
+    struct ValidationParams {
+        bytes32 parentHash;
+        int number;
+        uint64 roundNumber;
+        uint64 prevRoundNumber;
+        bytes32 signHash;
+        bytes[] sigs;
     }
 
     /*
@@ -52,11 +59,7 @@ contract HeaderReader {
      */
     function getValidationParams(
         bytes memory header
-    )
-        public
-        pure
-        returns (bytes32, int, uint64, uint64, bytes32, bytes[] memory)
-    {
+    ) public pure returns (ValidationParams memory) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
@@ -80,14 +83,15 @@ contract HeaderReader {
             parent_number,
             uint64(toUint(toList(extra[1])[2]))
         );
-        return (
-            toBytes32(toBytes(ls[0])),
-            int(toUint(ls[8])),
-            round_number,
-            parent_round_number,
-            signHash,
-            sigs
-        );
+        return
+            ValidationParams(
+                toBytes32(toBytes(ls[0])),
+                int(toUint(ls[8])),
+                round_number,
+                parent_round_number,
+                signHash,
+                sigs
+            );
     }
 
     /*
@@ -96,7 +100,7 @@ contract HeaderReader {
      */
     function getEpoch(
         bytes memory header
-    ) public returns (address[] memory current, address[] memory next) {
+    ) public pure returns (address[] memory current, address[] memory next) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory list0 = toList(ls[16]);
         if (list0.length > 0) {
@@ -106,26 +110,39 @@ contract HeaderReader {
             }
         }
         RLPItem[] memory list1 = toList(ls[17]);
+
         if (list1.length > 0) {
             RLPItem[] memory list2 = toList(ls[18]);
+            address[] memory unique_addr = new address[](list2.length);
             address[] memory penalty = new address[](list2.length);
             uint counter = 0;
             for (uint i = 0; i < list2.length; i++) {
                 penalty[i] = toAddress(list2[i]);
-                unique_addr[penalty[i]] = true;
+                unique_addr[i] = penalty[i];
             }
             next = new address[](list1.length - list2.length);
             for (uint i = 0; i < list1.length; i++) {
                 address temp = toAddress(list1[i]);
-                if (!unique_addr[temp]) {
+                if (!addressExist(unique_addr, temp)) {
                     next[counter] = temp;
                     counter++;
                 }
             }
-            for (uint i = 0; i < list2.length; i++) {
-                unique_addr[penalty[i]] = false;
-            }
         }
+    }
+
+    /*
+     * @param (list,addr)
+     * @return does the address exist in the list
+     */
+    function addressExist(
+        address[] memory list,
+        address addr
+    ) public pure returns (bool) {
+        for (uint256 i = 0; i < list.length; i++) {
+            if (list[i] == addr) return true;
+        }
+        return false;
     }
 
     /*
