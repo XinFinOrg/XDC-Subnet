@@ -26,9 +26,9 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 		parentNumber := number.Uint64() - 1
 		parentHash := currentHash
 		// get the previous gap block
-		stopNumber := parentNumber - config.Epoch + 1
+		stopNumber := parentNumber - config.Epoch
 		// prevent overflow
-		if parentNumber+1 < config.Epoch {
+		if parentNumber < config.Epoch {
 			stopNumber = 0
 		}
 

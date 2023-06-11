@@ -87,7 +87,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	invalidPenaltiesExistBlock := blockchain.GetBlockByNumber(902).Header()
 	invalidPenaltiesExistBlock.Penalties = common.Hex2BytesFixed("123131231", 20)
 	err = adaptor.VerifyHeader(blockchain, invalidPenaltiesExistBlock, true)
-	assert.Equal(t, utils.ErrInvalidFieldInNonEpochSwitch, err)
+	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 
 	merkleRoot := "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	parentNotExistBlock := blockchain.GetBlockByNumber(901).Header()
@@ -165,7 +165,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	penaltiesNotLegit := blockchain.GetBlockByNumber(901).Header()
 	penaltiesNotLegit.Penalties = append(penaltiesNotLegit.Penalties, acc1Addr[:]...)
 	err = adaptor.VerifyHeader(blockchain, penaltiesNotLegit, true)
-	assert.Equal(t, utils.ErrPenaltiesNotLegit, err)
+	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 }
 
 func TestConfigSwitchOnDifferentCertThreshold(t *testing.T) {
