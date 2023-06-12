@@ -6,7 +6,9 @@ This folder has provided scripts for:
 
 ## Contract Building and Testing:
 Environmental preparation
-Nodejs 16
+    Nodejs 16
+
+Install dependencies
 ```
  yarn
  ...
