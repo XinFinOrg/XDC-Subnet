@@ -34,12 +34,18 @@ async function main() {
 
   const data0Encoded = getBlockEncoded(data0["result"]["EncodedRLP"]);
   const data1Encoded = getBlockEncoded(data1["result"]["EncodedRLP"]);
+  console.log({ data0Encoded, data1Encoded });
+  const accounts = await hre.ethers.getSigners();
+  let from = accounts[0].address;
 
   const headerReaderFactory = await hre.ethers.getContractFactory(
     "HeaderReader"
   );
 
-  const headerReader = await headerReaderFactory.deploy();
+  const headerReader = await headerReaderFactory.deploy({
+    gasLimit: 6000000,
+    // from: from.replace("0x", "xdc"),
+  });
   await headerReader.deployed();
 
   console.log("headerReader deployed to:", headerReader.address);
@@ -55,7 +61,11 @@ async function main() {
     data0Encoded,
     data1Encoded,
     deployArguments["gap"],
-    deployArguments["epoch"]
+    deployArguments["epoch"],
+    {
+      gasLimit: 6000000,
+      // from: from.replace("0x", "xdc"),
+    }
   );
 
   await subnet.deployed();

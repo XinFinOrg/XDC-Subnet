@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.21 <0.9.0;
+pragma solidity >=0.8.20 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "./libraries/HeaderReader.sol";
@@ -57,7 +57,7 @@ contract Subnet {
         bytes memory block1_header,
         uint64 gap,
         uint64 epoch
-    ) public {
+    ) {
         require(initial_validator_set.length > 0, "Validator Empty");
 
         bytes32 genesis_header_hash = keccak256(genesis_header);

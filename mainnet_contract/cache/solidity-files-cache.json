@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/pie/XDC-Subnet/mainnet_contract/contracts/Subnet.sol": {
-      "lastModificationDate": 1686448947436,
-      "contentHash": "049c1430e2ebc49ef51066b1cc125c92",
+      "lastModificationDate": 1686580390945,
+      "contentHash": "a42193b4fe186f8283502c24c1cba25a",
       "sourceName": "contracts/Subnet.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -32,15 +32,15 @@
         "./libraries/HeaderReader.sol"
       ],
       "versionPragmas": [
-        ">=0.4.21 <0.9.0"
+        ">=0.8.20 <0.9.0"
       ],
       "artifacts": [
         "Subnet"
       ]
     },
     "/Users/pie/XDC-Subnet/mainnet_contract/contracts/libraries/HeaderReader.sol": {
-      "lastModificationDate": 1686450449970,
-      "contentHash": "d7d26a09c25e9cbd2b4eadf366b30683",
+      "lastModificationDate": 1686580403313,
+      "contentHash": "dd8a55fcaaa2a85f1f84bfd4f08ed293",
       "sourceName": "contracts/libraries/HeaderReader.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -67,7 +67,7 @@
       },
       "imports": [],
       "versionPragmas": [
-        ">=0.4.21 <0.9.0"
+        ">=0.8.20 <0.9.0"
       ],
       "artifacts": [
         "HeaderReader"

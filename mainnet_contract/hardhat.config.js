@@ -14,6 +14,10 @@ module.exports = {
     },
   },
   networks: {
+    mainnet: {
+      url: "https://devnetstats.apothem.network/mainnet",
+      accounts: [process.env.PRIVATE_KEY],
+    },
     xdcsubnet: {
       url: "https://devnetstats.apothem.network/subnet",
       accounts: [process.env.PRIVATE_KEY],
