@@ -5,18 +5,16 @@ This folder has provided scripts for:
 - API Interaction with Deployed Subnet Contract
 
 ## Contract Building and Testing:
-Make sure you have installed [TruffleSuite](https://trufflesuite.com/docs/truffle/how-to/install/) ahead.
-
-We have provided the precompiled contracts in JSON format under `./build/contracts`. But if you want to rebuild it in local machine, you can do this under current folder:
+Environmental preparation
+Nodejs 16
 ```
-# Compile contracts in the contracts folder and this automatically generates those json files in ./build/contracts
-
-truffle build
-
-# Test contract functionality in local test network with test scripts written under ./test
-
-truffle test
+ yarn
+ ...
+ ...
+ success Already up-to-date.
+✨  Done in 0.58s.
 ```
+
 
 ## Contract Setup:
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
@@ -35,11 +33,9 @@ This step is recommended to complete in python virtual environment because it is
 ## Contract Deployment:
 And get the deployed contract address
 ```
-docker build -t contract . && docker run -it contract
-
-.....
-.....
-3. contract deploy
+npx hardhat run scripts/deployment.js --network subnet
+...
+...
 Subnet contract deployed at:  0x1234567890
 Deployment Complete!
 ```
