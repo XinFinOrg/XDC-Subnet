@@ -11,10 +11,6 @@ Environmental preparation
 Install dependencies
 ```
  yarn
- ...
- ...
- success Already up-to-date.
-✨  Done in 0.58s.
 ```
 
 
@@ -36,10 +32,6 @@ This step is recommended to complete in python virtual environment because it is
 And get the deployed contract address
 ```
 npx hardhat run scripts/deployment.js --network subnet
-...
-...
-Subnet contract deployed at:  0x1234567890
-Deployment Complete!
 ```
 
 ## API Interaction
