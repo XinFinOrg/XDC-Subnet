@@ -1,85 +1,15 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/pie/XDC-Subnet/mainnet_contract/contracts/HeaderReader.sol": {
-      "lastModificationDate": 1686212701714,
-      "contentHash": "d220bd2c4a4d1a503421194be754b965",
-      "sourceName": "contracts/HeaderReader.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.4.21 <0.9.0"
-      ],
-      "artifacts": [
-        "HeaderReader"
-      ]
-    },
-    "/Users/pie/XDC-Subnet/mainnet_contract/contracts/Migrations.sol": {
-      "lastModificationDate": 1686191730910,
-      "contentHash": "7c7ba25207a9d0e07874874f9f6c626b",
-      "sourceName": "contracts/Migrations.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.4.22 <0.9.0"
-      ],
-      "artifacts": [
-        "Migrations"
-      ]
-    },
     "/Users/pie/XDC-Subnet/mainnet_contract/contracts/Subnet.sol": {
-      "lastModificationDate": 1686280105607,
-      "contentHash": "cb3ab4b62eb4f6d1e2dc0dfebe42b1a6",
+      "lastModificationDate": 1686448947436,
+      "contentHash": "049c1430e2ebc49ef51066b1cc125c92",
       "sourceName": "contracts/Subnet.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -99,7 +29,7 @@
         }
       },
       "imports": [
-        "./library/HeaderReader.sol"
+        "./libraries/HeaderReader.sol"
       ],
       "versionPragmas": [
         ">=0.4.21 <0.9.0"
@@ -108,15 +38,15 @@
         "Subnet"
       ]
     },
-    "/Users/pie/XDC-Subnet/mainnet_contract/contracts/library/HeaderReader.sol": {
-      "lastModificationDate": 1686279948883,
+    "/Users/pie/XDC-Subnet/mainnet_contract/contracts/libraries/HeaderReader.sol": {
+      "lastModificationDate": 1686302948339,
       "contentHash": "d7d26a09c25e9cbd2b4eadf366b30683",
-      "sourceName": "contracts/library/HeaderReader.sol",
+      "sourceName": "contracts/libraries/HeaderReader.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {

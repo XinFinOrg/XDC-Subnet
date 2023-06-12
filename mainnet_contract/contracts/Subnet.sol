@@ -2,7 +2,7 @@
 pragma solidity >=0.4.21 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "./library/HeaderReader.sol";
+import "./libraries/HeaderReader.sol";
 
 contract Subnet {
     // Compressed subnet header information stored on chain
