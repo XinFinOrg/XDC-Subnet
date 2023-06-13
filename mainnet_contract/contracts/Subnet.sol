@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.20 <0.9.0;
 
-import "./libraries/HeaderReader.sol";
+import {HeaderReader} from "./libraries/HeaderReader.sol";
 
 contract Subnet {
     // Compressed subnet header information stored on chain
