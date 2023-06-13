@@ -32,7 +32,6 @@ contract Subnet {
     mapping(int => bytes32) committed_blocks;
     mapping(address => bool) lookup;
     mapping(address => bool) unique_addr;
-    mapping(address => bool) masters;
     mapping(int => Validators) validators;
     Validators current_validators;
     bytes32 latest_block;
@@ -43,12 +42,6 @@ contract Subnet {
     // Event types
     event SubnetBlockAccepted(bytes32 block_hash, int number);
     event SubnetBlockFinalized(bytes32 block_hash, int number);
-
-    // Modifier
-    modifier onlyMasters() {
-        if (!masters[msg.sender]) revert("Masters Only");
-        _;
-    }
 
     constructor(
         address[] memory initial_validator_set,
@@ -85,25 +78,12 @@ contract Subnet {
         });
         current_validators = validators[1];
         setLookup(initial_validator_set);
-        masters[msg.sender] = true;
         latest_block = block1_header_hash;
         latest_finalized_block = block1_header_hash;
         committed_blocks[0] = genesis_header_hash;
         committed_blocks[1] = block1_header_hash;
         GAP = gap;
         EPOCH = epoch;
-    }
-
-    function isMaster(address master) public view returns (bool) {
-        return masters[master];
-    }
-
-    function addMaster(address master) public onlyMasters {
-        masters[master] = true;
-    }
-
-    function removeMaster(address master) public onlyMasters {
-        masters[master] = false;
     }
 
     /*
@@ -113,7 +93,7 @@ contract Subnet {
      * 3. (Conditional) Update Committed Status for ancestor blocks
      * @param list of rlp-encoded block headers.
      */
-    function receiveHeader(bytes[] memory headers) public onlyMasters {
+    function receiveHeader(bytes[] memory headers) public {
         for (uint x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
