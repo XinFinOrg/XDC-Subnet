@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const deployArguments = require("../deploy-arguments");
+const deployArguments = require("../deployArguments");
 const fetch = require("node-fetch").default;
 
 function getBlockEncoded(encodedRLP) {
