@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -14,8 +15,8 @@ module.exports = {
     },
   },
   networks: {
-    mainnet: {
-      url: "https://devnetstats.apothem.network/mainnet",
+    xdcdevnet: {
+      url: "https://devnetstats.apothem.network/devnet",
       accounts: [process.env.PRIVATE_KEY],
     },
     xdcsubnet: {

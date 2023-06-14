@@ -7,6 +7,7 @@ function getBlockEncoded(encodedRLP) {
   return blockEncoded;
 }
 async function main() {
+
   const block0 = {
     jsonrpc: "2.0",
     method: "XDPoS_getV2BlockByNumber",
@@ -34,9 +35,7 @@ async function main() {
 
   const data0Encoded = getBlockEncoded(data0["result"]["EncodedRLP"]);
   const data1Encoded = getBlockEncoded(data1["result"]["EncodedRLP"]);
-  console.log({ data0Encoded, data1Encoded });
-  const accounts = await hre.ethers.getSigners();
-  let from = accounts[0].address;
+  // console.log({ data0Encoded, data1Encoded });
 
   const headerReaderFactory = await hre.ethers.getContractFactory(
     "HeaderReader"
@@ -44,7 +43,6 @@ async function main() {
 
   const headerReader = await headerReaderFactory.deploy({
     gasLimit: 6000000,
-    // from: from.replace("0x", "xdc"),
   });
   await headerReader.deployed();
 
@@ -64,7 +62,6 @@ async function main() {
     deployArguments["epoch"],
     {
       gasLimit: 6000000,
-      // from: from.replace("0x", "xdc"),
     }
   );
 
