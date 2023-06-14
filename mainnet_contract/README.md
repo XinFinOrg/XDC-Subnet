@@ -31,7 +31,7 @@ This step is recommended to complete in python virtual environment because it is
 ## Contract Deployment:
 And get the deployed contract address
 ```
-npx hardhat run scripts/deployment.js --network subnet
+npx hardhat run scripts/deployment.js --network devnet
 ```
 
 ## API Interaction
