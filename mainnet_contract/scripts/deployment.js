@@ -43,7 +43,7 @@ async function main() {
   );
 
   const headerReader = await headerReaderFactory.deploy({
-    gasLimit: 60000000,
+    gasLimit: 6000000,
     // from: from.replace("0x", "xdc"),
   });
   await headerReader.deployed();
@@ -63,7 +63,7 @@ async function main() {
     deployArguments["gap"],
     deployArguments["epoch"],
     {
-      gasLimit: 60000000,
+      gasLimit: 6000000,
       // from: from.replace("0x", "xdc"),
     }
   );
