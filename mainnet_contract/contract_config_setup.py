@@ -15,8 +15,8 @@ r1 = requests.post(url = config['subnet_rpc'], json = block1, headers = headers)
 data0 = r0.json()
 data1 = r1.json()
 
-decodeHex0 = base64.b64decode(data0['result']['EncodedRLP']).hex()
-decodeHex1 = base64.b64decode(data1['result']['EncodedRLP']).hex()
+decodeHex0 = data0['result']['EncodedRLP']
+decodeHex1 = data1['result']['EncodedRLP']
 
 output = {}
 output['genesis_header_encoded'] = '0x' + decodeHex0.upper()

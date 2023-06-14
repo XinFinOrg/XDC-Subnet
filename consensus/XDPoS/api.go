@@ -16,7 +16,7 @@
 package XDPoS
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"math/big"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -207,7 +207,7 @@ func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInf
 		Number:     header.Number,
 		Round:      round,
 		Committed:  committed,
-		EncodedRLP: base64.StdEncoding.EncodeToString(encodeBytes),
+		EncodedRLP: hex.EncodeToString(encodeBytes),
 	}
 	return block
 }
