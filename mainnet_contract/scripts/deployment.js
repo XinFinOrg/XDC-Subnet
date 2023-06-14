@@ -41,9 +41,7 @@ async function main() {
     "HeaderReader"
   );
 
-  const headerReader = await headerReaderFactory.deploy({
-    gasLimit: 6000000,
-  });
+  const headerReader = await headerReaderFactory.deploy();
   await headerReader.deployed();
 
   console.log("headerReader deployed to:", headerReader.address);
@@ -59,10 +57,7 @@ async function main() {
     data0Encoded,
     data1Encoded,
     deployArguments["gap"],
-    deployArguments["epoch"],
-    {
-      gasLimit: 6000000,
-    }
+    deployArguments["epoch"]
   );
 
   await subnet.deployed();
