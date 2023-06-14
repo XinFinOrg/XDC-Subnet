@@ -1236,10 +1236,12 @@ func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.
 		tradingService = engine.GetXDCXService()
 		if tradingService != nil {
 			tradingTrieDb = tradingService.GetStateCache().TrieDB()
+			fmt.Println("init tradingTrieDb")
 		}
 		lendingService = engine.GetLendingService()
 		if lendingService != nil {
 			lendingTrieDb = lendingService.GetStateCache().TrieDB()
+			fmt.Println("init lendingTrieDb")
 		}
 	}
 	triedb := bc.stateCache.TrieDB()

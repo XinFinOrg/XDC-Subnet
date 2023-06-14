@@ -112,7 +112,7 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 
 	// Attach mock trading and lending service
 	var DefaultConfig = XDCx.Config{
-		DataDir: "",
+		DataDir: "XDCx",
 	}
 	XDCXServ := XDCx.New(&DefaultConfig)
 	lendingServ := XDCxlending.New(XDCXServ)

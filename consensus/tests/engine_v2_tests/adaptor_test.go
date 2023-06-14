@@ -1,6 +1,7 @@
 package engine_v2_tests
 
 import (
+	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -61,19 +62,19 @@ func TestAdaptorShouldGetAuthorForDifferentConsensusVersion(t *testing.T) {
 */
 
 /*
-func TestAdaptorGetMasternodesFromCheckpointHeader(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
-	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
-	headerV1 := currentBlock.Header()
-	headerV1.Extra = common.Hex2Bytes("d7830100018358444388676f312e31352e38856c696e757800000000000000000278c350152e15fa6ffc712a5a73d704ce73e2e103d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff065551f0dcac6f00cae11192d462db709be3758ccef312ee5eea8d7bad5374c6a652150515d744508b61c1a4deb4e4e7bf057e4e3824c11fd2569bcb77a52905cda63b5a58507910bed335e4c9d87ae0ecdfafd400")
-	masternodesV1 := adaptor.GetMasternodesFromCheckpointHeader(headerV1)
-	headerV2 := currentBlock.Header()
-	headerV2.Number.Add(blockchain.Config().XDPoS.V2.SwitchBlock, big.NewInt(1))
-	headerV2.Validators = []common.Address{common.HexToAddress("0278c350152e15fa6ffc712a5a73d704ce73e2e1"), common.HexToAddress("03d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff"), common.HexToAddress("065551f0dcac6f00cae11192d462db709be3758c")}
-	headerV2.Extra = []byte{2}
-	masternodesV2 := adaptor.GetMasternodesFromCheckpointHeader(headerV2)
-	assert.True(t, reflect.DeepEqual(masternodesV1, masternodesV2), "GetMasternodesFromCheckpointHeader in adaptor for v1 v2 not equal", "v1", masternodesV1, "v2", masternodesV2)
-}
+	func TestAdaptorGetMasternodesFromCheckpointHeader(t *testing.T) {
+		blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
+		adaptor := blockchain.Engine().(*XDPoS.XDPoS)
+		headerV1 := currentBlock.Header()
+		headerV1.Extra = common.Hex2Bytes("d7830100018358444388676f312e31352e38856c696e757800000000000000000278c350152e15fa6ffc712a5a73d704ce73e2e103d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff065551f0dcac6f00cae11192d462db709be3758ccef312ee5eea8d7bad5374c6a652150515d744508b61c1a4deb4e4e7bf057e4e3824c11fd2569bcb77a52905cda63b5a58507910bed335e4c9d87ae0ecdfafd400")
+		masternodesV1 := adaptor.GetMasternodesFromCheckpointHeader(headerV1)
+		headerV2 := currentBlock.Header()
+		headerV2.Number.Add(blockchain.Config().XDPoS.V2.SwitchBlock, big.NewInt(1))
+		headerV2.Validators = []common.Address{common.HexToAddress("0278c350152e15fa6ffc712a5a73d704ce73e2e1"), common.HexToAddress("03d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff"), common.HexToAddress("065551f0dcac6f00cae11192d462db709be3758c")}
+		headerV2.Extra = []byte{2}
+		masternodesV2 := adaptor.GetMasternodesFromCheckpointHeader(headerV2)
+		assert.True(t, reflect.DeepEqual(masternodesV1, masternodesV2), "GetMasternodesFromCheckpointHeader in adaptor for v1 v2 not equal", "v1", masternodesV1, "v2", masternodesV2)
+	}
 */
 func TestAdaptorIsEpochSwitch(t *testing.T) {
 	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
@@ -185,7 +186,7 @@ func TestAdaptorGetMasternodesV2(t *testing.T) {
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	blockNum := 900
 	blockCoinBase := "0x111000000000000000000000000000000123"
-	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 1, blockCoinBase, signer, signFn, nil, nil, "")
+	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, int64(blockNum), blockCoinBase, signer, signFn, nil, nil, "")
 
 	// block 901 is the first v2 block, and is treated as epoch switch block
 	err := blockchain.InsertBlock(currentBlock)
@@ -194,11 +195,13 @@ func TestAdaptorGetMasternodesV2(t *testing.T) {
 	assert.Equal(t, 5, len(masternodes1))
 	masternodes1ByNumber := adaptor.GetMasternodesByNumber(blockchain, currentBlock.NumberU64())
 	assert.True(t, reflect.DeepEqual(masternodes1, masternodes1ByNumber), "at block number", blockNum)
-	for blockNum = 902; blockNum < 915; blockNum++ {
-		currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, int64(blockNum-900), blockCoinBase, signer, signFn, nil, nil, "")
+	for blockNum = 901; blockNum < 915; blockNum++ {
+		round := int64(blockNum) - params.TestXDPoSMockChainConfig.XDPoS.V2.SwitchBlock.Int64()
+		currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, round, blockCoinBase, signer, signFn, nil, nil, "")
 		err = blockchain.InsertBlock(currentBlock)
 		assert.Nil(t, err)
 		masternodes2 := adaptor.GetMasternodes(blockchain, currentBlock.Header())
+		fmt.Println("masternodes2", len(masternodes2))
 		assert.True(t, reflect.DeepEqual(masternodes1, masternodes2), "at block number", blockNum)
 		masternodes2ByNumber := adaptor.GetMasternodesByNumber(blockchain, currentBlock.NumberU64())
 		assert.True(t, reflect.DeepEqual(masternodes2, masternodes2ByNumber), "at block number", blockNum)

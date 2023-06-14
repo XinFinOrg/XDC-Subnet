@@ -223,6 +223,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 
 		log.Info("[initial] init first snapshot")
 		_, _, masternodes, err := x.getExtraFields(checkpointHeader)
+		fmt.Println("masternodes", masternodes)
 		if err != nil {
 			log.Error("[initial] Error while get masternodes", "error", err)
 			return err

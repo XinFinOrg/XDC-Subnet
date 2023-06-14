@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"sync"
+
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
-	"sync"
 
 	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 	"github.com/XinFinOrg/XDC-Subnet/log"
@@ -35,6 +37,7 @@ func NewBatchDatabase(datadir string, cacheLimit int) *BatchDatabase {
 func NewBatchDatabaseWithEncode(datadir string, cacheLimit int) *BatchDatabase {
 	db, err := rawdb.NewLevelDBDatabase(datadir, 128, 1024, "")
 	if err != nil {
+		fmt.Println("Can't create new DB", "error", err, "datadir", datadir)
 		log.Error("Can't create new DB", "error", err)
 		return nil
 	}
@@ -51,7 +54,7 @@ func NewBatchDatabaseWithEncode(datadir string, cacheLimit int) *BatchDatabase {
 		emptyKey:   EmptyKey(), // pre alloc for comparison
 		cacheLimit: itemCacheLimit,
 	}
-
+	fmt.Println("NewBatchDatabaseWithEncode")
 	return batchDB
 
 }
@@ -105,6 +108,7 @@ func (db *BatchDatabase) Close() error {
 }
 
 func (db *BatchDatabase) NewBatch() ethdb.Batch {
+	fmt.Println("db.db", db.db)
 	return db.db.NewBatch()
 }
 

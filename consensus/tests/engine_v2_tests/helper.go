@@ -30,7 +30,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/XinFinOrg/XDC-Subnet/rlp"
-  "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 type masterNodes map[string]big.Int
@@ -568,7 +568,6 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 
 	if big.NewInt(int64(blockNumber)).Cmp(chainConfig.XDPoS.V2.SwitchBlock) == 1 { // Build engine v2 compatible extra data field
 		extraInBytes := generateV2Extra(roundNumber, currentBlock, signer, signFn, signersKey)
-
 		header = &types.Header{
 			Root:       common.HexToHash(merkleRoot),
 			Number:     big.NewInt(int64(blockNumber)),
@@ -576,57 +575,52 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			Coinbase:   common.HexToAddress(blockCoinBase),
 			Extra:      extraInBytes,
 		}
-		if int64(blockNumber) == (chainConfig.XDPoS.V2.SwitchBlock.Int64() + 1) { // This is the first v2 block, we need to copy the last v1 epoch master node list and inject into v2 validators
+		if int64(blockNumber) == (chainConfig.XDPoS.V2.SwitchBlock.Int64()+1) || roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 { // This is the first v2 block, we need to copy the last v1 epoch master node list and inject into v2 validators
 			// Get last master node list from last v1 block
-			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
-			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
-			header.Validators = masternodesFromV1LastEpoch
-
-		} else if roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 {
-			// epoch switch blocks, copy the master node list and inject into v2 validators
-			// Get last master node list from last v1 block
-			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
-			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
-			header.Validators = masternodesFromV1LastEpoch
-
+			var masternodes []common.Address
+			masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, voterAddr, signer)
+			header.Validators = masternodes
 			if penalties != nil {
 				header.Penalties = penalties
 			}
 		}
-	} else {
-		// V1 block
-		header = &types.Header{
-			Root:       common.HexToHash(merkleRoot),
-			Number:     big.NewInt(int64(blockNumber)),
-			ParentHash: currentBlock.Hash(),
-			Coinbase:   common.HexToAddress(blockCoinBase),
-		}
-
-		// Inject the hardcoded master node list for the last v1 epoch block and all v1 epoch switch blocks (excluding genesis)
-		if big.NewInt(int64(blockNumber)).Cmp(chainConfig.XDPoS.V2.SwitchBlock) == 0 || blockNumber%int(chainConfig.XDPoS.Epoch) == 0 {
-			// reset extra
-			header.Extra = []byte{}
-			if len(header.Extra) < utils.ExtraVanity {
-				header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, utils.ExtraVanity-len(header.Extra))...)
-			}
-			header.Extra = header.Extra[:utils.ExtraVanity]
-			var masternodes []common.Address
-			// Place the test's signer address to the last
-			masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, voterAddr, signer)
-			// masternodesFromV1LastEpoch = masternodes
-			for _, masternode := range masternodes {
-				header.Extra = append(header.Extra, masternode[:]...)
-			}
-			header.Extra = append(header.Extra, make([]byte, utils.ExtraSeal)...)
-
-			// Sign all the things for v1 block use v1 sigHash function
-			sighash, err := signFn(accounts.Account{Address: signer}, blockchain.Engine().(*XDPoS.XDPoS).SigHash(header).Bytes())
-			if err != nil {
-				panic(fmt.Errorf("Error when sign last v1 block hash during test block creation"))
-			}
-			copy(header.Extra[len(header.Extra)-utils.ExtraSeal:], sighash)
-		}
 	}
+	/*
+		} else {
+			// V1 block
+			header = &types.Header{
+				Root:       common.HexToHash(merkleRoot),
+				Number:     big.NewInt(int64(blockNumber)),
+				ParentHash: currentBlock.Hash(),
+				Coinbase:   common.HexToAddress(blockCoinBase),
+			}
+
+			// Inject the hardcoded master node list for the last v1 epoch block and all v1 epoch switch blocks (excluding genesis)
+			if big.NewInt(int64(blockNumber)).Cmp(chainConfig.XDPoS.V2.SwitchBlock) == 0 || blockNumber%int(chainConfig.XDPoS.Epoch) == 0 {
+				// reset extra
+				header.Extra = []byte{}
+				if len(header.Extra) < utils.ExtraVanity {
+					header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, utils.ExtraVanity-len(header.Extra))...)
+				}
+				header.Extra = header.Extra[:utils.ExtraVanity]
+				var masternodes []common.Address
+				// Place the test's signer address to the last
+				masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, voterAddr, signer)
+				// masternodesFromV1LastEpoch = masternodes
+				for _, masternode := range masternodes {
+					header.Extra = append(header.Extra, masternode[:]...)
+				}
+				header.Extra = append(header.Extra, make([]byte, utils.ExtraSeal)...)
+
+				// Sign all the things for v1 block use v1 sigHash function
+				sighash, err := signFn(accounts.Account{Address: signer}, blockchain.Engine().(*XDPoS.XDPoS).SigHash(header).Bytes())
+				if err != nil {
+					panic(fmt.Errorf("Error when sign last v1 block hash during test block creation"))
+				}
+				copy(header.Extra[len(header.Extra)-utils.ExtraSeal:], sighash)
+			}
+		}
+	*/
 	block, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, chainConfig)
 	if err != nil {
 		panic(fmt.Errorf("Fail to create block in test helper, %v", err))

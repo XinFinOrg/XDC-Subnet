@@ -50,6 +50,7 @@ func (x *XDPoS_v2) getEpochSwitchInfo(chain consensus.ChainReader, header *types
 		return nil, err
 	}
 	if isEpochSwitch {
+		fmt.Println("h.Number.Int64()", h.Number.Int64())
 		log.Debug("[getEpochSwitchInfo] header is epoch switch", "hash", hash.Hex(), "number", h.Number.Uint64())
 		quorumCert, round, masternodes, err := x.getExtraFields(h)
 		if err != nil {

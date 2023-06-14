@@ -60,6 +60,7 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	}
 	if !v.bc.HasBlockAndFullState(block.ParentHash(), block.NumberU64()-1) {
 		if !v.bc.HasBlock(block.ParentHash(), block.NumberU64()-1) {
+			fmt.Println("block.ParentHash(), block.NumberU64()-1", block.ParentHash().Hex(), block.NumberU64()-1)
 			return consensus.ErrUnknownAncestor
 		}
 		return consensus.ErrPrunedAncestor
