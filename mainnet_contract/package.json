@@ -4,13 +4,14 @@
     "@nomiclabs/hardhat-waffle": "^2.0.6",
     "dotenv": "^16.1.4",
     "ethereum-waffle": "^3.2.0",
-    "ethers": "^5.7.2",
     "hardhat": "^2.12.2",
-    "hardhat-gas-reporter": "^1.0.9",
     "node-fetch": "2",
-    "web3": "^4.0.1"
+    "patch-package": "^7.0.0"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.1.2"
+  },
+  "scripts": {
+    "postinstall": "patch-package"
   }
 }
