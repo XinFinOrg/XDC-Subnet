@@ -23,9 +23,5 @@ module.exports = {
       url: "https://devnetstats.apothem.network/subnet",
       accounts: [process.env.PRIVATE_KEY],
     },
-    goerli: {
-      url: "https://eth-goerli.g.alchemy.com/v2/h_ejnh49CncsUUiD3NbDieD4Ieuvl_tE",
-      accounts: [process.env.PRIVATE_KEY],
-    },
   },
 };
