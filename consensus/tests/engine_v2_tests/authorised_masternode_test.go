@@ -1,6 +1,7 @@
 package engine_v2_tests
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -44,21 +45,21 @@ func TestIsYourTurnConsensusV2(t *testing.T) {
 	err := blockchain.InsertBlock(currentBlock)
 	assert.Nil(t, err)
 	// Less then Mine Period
-	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
+	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.StringToAddress(fmt.Sprintf("%02d", 2)))
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
 
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 	// The second address is valid as the round starting from 1
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, common.StringToAddress(fmt.Sprintf("%02d", 2)))
 	assert.Nil(t, err)
 	assert.True(t, isYourTurn)
 
 	// The first and third address are not valid
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlock.Header(), common.HexToAddress("xdc703c4b2bD70c169f5717101CaeE543299Fc946C7"))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 1)))
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlock.Header(), common.HexToAddress("xdc71562b71999873DB5b286dF957af199Ec94617F7"))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 3)))
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
 
@@ -70,13 +71,13 @@ func TestIsYourTurnConsensusV2(t *testing.T) {
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 
 	adaptor.EngineV2.SetNewRoundFaker(blockchain, 2, false)
-	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
+	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 2)))
 	assert.False(t, isYourTurn)
 
-	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.HexToAddress("xdc71562b71999873DB5b286dF957af199Ec94617F7"))
+	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 3)))
 	assert.True(t, isYourTurn)
 
-	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.HexToAddress("xdc5F74529C0338546f82389402a01c31fB52c6f434"))
+	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 1)))
 	assert.False(t, isYourTurn)
 
 }
@@ -96,7 +97,7 @@ func TestIsYourTurnConsensusV2CrossConfig(t *testing.T) {
 	assert.Nil(t, err)
 	// after first mine period
 	time.Sleep(time.Duration(firstMinePeriod) * time.Second)
-	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
+	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.StringToAddress(fmt.Sprintf("%02d", 2)))
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
 
@@ -106,7 +107,7 @@ func TestIsYourTurnConsensusV2CrossConfig(t *testing.T) {
 	secondMinePeriod := blockchain.Config().XDPoS.V2.CurrentConfig.MinePeriod
 
 	time.Sleep(time.Duration(secondMinePeriod-firstMinePeriod) * time.Second)
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, common.StringToAddress(fmt.Sprintf("%02d", 2)))
 	assert.Nil(t, err)
 	assert.True(t, isYourTurn)
 }
