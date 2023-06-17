@@ -20,7 +20,7 @@ Test
 
 ## Contract Setup:
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
-1. Fill in the fields in `deploy_arguments.json`
+1. Fill in the fields in `deployment.json`
     * `GAP`: GAP block number on public chain
     * `EPOCH`: EPOCH block number on public chain
     * `MAINNET_RPC`: Targeted XDC public chain devnet, testnet or mainnet node RPC link
