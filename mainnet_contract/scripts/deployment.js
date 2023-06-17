@@ -35,7 +35,7 @@ async function main() {
 
   const data0Encoded = getBlockEncoded(data0["result"]["EncodedRLP"]);
   const data1Encoded = getBlockEncoded(data1["result"]["EncodedRLP"]);
-  // console.log({ data0Encoded, data1Encoded });
+  console.log({ data0Encoded, data1Encoded });
 
   const headerReaderFactory = await hre.ethers.getContractFactory(
     "HeaderReader"
