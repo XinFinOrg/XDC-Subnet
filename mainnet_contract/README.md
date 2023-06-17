@@ -6,13 +6,17 @@ This folder has provided scripts for:
 
 ## Contract Building and Testing:
 Environmental preparation
-    Nodejs 16
+###### Nodejs 16 or higher version
 
 Install dependencies
 ```
  yarn
 ```
 
+Test
+
+    npx hardhat compile
+    npx hardhat test
 
 ## Contract Setup:
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
