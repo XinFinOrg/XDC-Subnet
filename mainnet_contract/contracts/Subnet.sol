@@ -93,7 +93,7 @@ contract Subnet {
      * 3. (Conditional) Update Committed Status for ancestor blocks
      * @param list of rlp-encoded block headers.
      */
-    function receiveHeader(bytes[] memory headers) public {
+    function receiveHeader(bytes[] calldata headers) public {
         for (uint x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
