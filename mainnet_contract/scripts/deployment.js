@@ -2,12 +2,7 @@ const hre = require("hardhat");
 const deployArguments = require("../deployArguments");
 const fetch = require("node-fetch").default;
 
-function getBlockEncoded(encodedRLP) {
-  const blockEncoded = "0x" + Buffer.from(encodedRLP, "base64").toString("hex");
-  return blockEncoded;
-}
 async function main() {
-
   const block0 = {
     jsonrpc: "2.0",
     method: "XDPoS_getV2BlockByNumber",
@@ -33,9 +28,9 @@ async function main() {
   const data0 = await block0res.json();
   const data1 = await block1res.json();
 
-  const data0Encoded = getBlockEncoded(data0["result"]["EncodedRLP"]);
-  const data1Encoded = getBlockEncoded(data1["result"]["EncodedRLP"]);
-  console.log({ data0Encoded, data1Encoded });
+  const data0Encoded = "0x" + data0["result"]["EncodedRLP"];
+  const data1Encoded = "0x" + data1["result"]["EncodedRLP"];
+  // console.log({ data0Encoded, data1Encoded });
 
   const headerReaderFactory = await hre.ethers.getContractFactory(
     "HeaderReader"
