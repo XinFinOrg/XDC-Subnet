@@ -24,13 +24,14 @@ import (
 	contractValidator "github.com/XinFinOrg/XDC-Subnet/contracts/validator/contract"
 	"github.com/XinFinOrg/XDC-Subnet/core"
 	. "github.com/XinFinOrg/XDC-Subnet/core"
+	"github.com/XinFinOrg/XDC-Subnet/core/state"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/core/vm"
 	"github.com/XinFinOrg/XDC-Subnet/crypto"
 	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/XinFinOrg/XDC-Subnet/rlp"
-  "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 type masterNodes map[string]big.Int
@@ -565,7 +566,12 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 		merkleRoot = "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
 	}
 	var header *types.Header
-
+	statedb, err := blockchain.State()
+	if err != nil {
+		fmt.Printf("Err when get statedb!\n")
+		return nil
+	}
+	masternodes := state.GetCandidates(statedb)
 	if big.NewInt(int64(blockNumber)).Cmp(chainConfig.XDPoS.V2.SwitchBlock) == 1 { // Build engine v2 compatible extra data field
 		extraInBytes := generateV2Extra(roundNumber, currentBlock, signer, signFn, signersKey)
 
@@ -576,19 +582,16 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			Coinbase:   common.HexToAddress(blockCoinBase),
 			Extra:      extraInBytes,
 		}
-		if int64(blockNumber) == (chainConfig.XDPoS.V2.SwitchBlock.Int64() + 1) { // This is the first v2 block, we need to copy the last v1 epoch master node list and inject into v2 validators
+		if int64(blockNumber) == (chainConfig.XDPoS.V2.SwitchBlock.Int64() + 1) { // This is the first v2 block, we need v2 validators aka masternodes
 			// Get last master node list from last v1 block
-			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
-			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
-			header.Validators = masternodesFromV1LastEpoch
-
+			header.Validators = masternodes
 		} else if roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 {
-			// epoch switch blocks, copy the master node list and inject into v2 validators
-			// Get last master node list from last v1 block
-			lastv1Block := blockchain.GetBlockByNumber(chainConfig.XDPoS.V2.SwitchBlock.Uint64())
-			masternodesFromV1LastEpoch := decodeMasternodesFromHeaderExtra(lastv1Block.Header())
-			header.Validators = masternodesFromV1LastEpoch
-
+			// epoch switch blocks, we need v2 validators aka masternodes
+			header.Validators = masternodes
+		} else if (header.Number.Uint64()%chainConfig.XDPoS.Epoch) == (chainConfig.XDPoS.Epoch-chainConfig.XDPoS.Gap+1) || header.Number.Uint64() == 1 { // This is the gapPlusOneBlock
+			// gapPlusOneBlock, we need v2 validators aka masternodes as next epoch
+			header.NextValidators = masternodes
+			// Add penalties to gapPlusOneBlock
 			if penalties != nil {
 				header.Penalties = penalties
 			}

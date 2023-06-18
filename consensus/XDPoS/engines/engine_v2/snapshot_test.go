@@ -12,7 +12,7 @@ import (
 
 func TestGetMasterNodes(t *testing.T) {
 	masterNodes := []common.Address{{0x4}, {0x3}, {0x2}, {0x1}}
-	snap := newSnapshot(1, common.Hash{}, masterNodes)
+	snap := newSnapshot(1, common.Hash{}, masterNodes, nil)
 
 	for _, address := range masterNodes {
 		if _, ok := snap.GetMappedMasterNodes()[address]; !ok {
@@ -23,7 +23,7 @@ func TestGetMasterNodes(t *testing.T) {
 }
 
 func TestStoreLoadSnapshot(t *testing.T) {
-	snap := newSnapshot(1, common.Hash{0x1}, nil)
+	snap := newSnapshot(1, common.Hash{0x1}, nil, nil)
 	dir, err := ioutil.TempDir("", "snapshot-test")
 	if err != nil {
 		panic(fmt.Sprintf("can't create temporary directory: %v", err))

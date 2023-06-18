@@ -112,7 +112,7 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 			return utils.ErrEmptyEpochSwitchValidators
 		}
 
-		localMasterNodes, localPenalties, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
+		localMasterNodes, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
 		masterNodes = localMasterNodes
 		if err != nil {
 			log.Error("[verifyHeader] Fail to calculate master nodes list with penalty", "Number", header.Number, "Hash", header.Hash())
@@ -129,24 +129,9 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 			return utils.ErrValidatorsNotLegit
 		}
 
-		penaltiesAddress := common.ExtractAddressFromBytes(header.Penalties)
-		if !utils.CompareSignersLists(localPenalties, penaltiesAddress) {
-			for i, addr := range localPenalties {
-				log.Warn("[verifyHeader] localPenalties", "i", i, "addr", addr.Hex())
-			}
-			for i, addr := range penaltiesAddress {
-				log.Warn("[verifyHeader] penaltiesAddress", "i", i, "addr", addr.Hex())
-			}
-			return utils.ErrPenaltiesNotLegit
-		}
-
 	} else {
 		if len(header.Validators) != 0 {
 			log.Warn("[verifyHeader] Validators.CurrentEpoch shall not have values in non-epochSwitch block", "Hash", header.Hash(), "Number", header.Number, "header.Validators", header.Validators)
-			return utils.ErrInvalidFieldInNonEpochSwitch
-		}
-		if len(header.Penalties) != 0 {
-			log.Warn("[verifyHeader] Penalties shall not have values in non-epochSwitch block", "Hash", header.Hash(), "Number", header.Number, "header.Penalties", header.Penalties)
 			return utils.ErrInvalidFieldInNonEpochSwitch
 		}
 		masterNodes = x.GetMasternodes(chain, header)
@@ -163,9 +148,18 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		if !utils.CompareSignersLists(snapshot.NextEpochMasterNodes, validatorsAddress) {
 			return utils.ErrNextEpochValidatorsNotLegit
 		}
+		penaltiesAddress := common.ExtractAddressFromBytes(header.Penalties)
+		if !utils.CompareSignersLists(snapshot.NextEpochPenalties, penaltiesAddress) {
+			return utils.ErrPenaltiesNotLegit
+		}
+
 	} else {
 		if len(header.NextValidators) != 0 {
 			log.Warn("[verifyHeader] Validators.NextEpoch shall not have values in non-gapPlusOne block", "Hash", header.Hash(), "Number", header.Number, "header.Validators", header.NextValidators)
+			return utils.ErrInvalidFieldInNonGapPlusOneSwitch
+		}
+		if len(header.Penalties) != 0 {
+			log.Warn("[verifyHeader] Penalties shall not have values in non-gapPlusOne block", "Hash", header.Hash(), "Number", header.Number, "header.Penalties", header.Penalties)
 			return utils.ErrInvalidFieldInNonGapPlusOneSwitch
 		}
 	}
