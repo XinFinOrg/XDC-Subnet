@@ -106,7 +106,7 @@ func AttachConsensusV1Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			preMasternodes := adaptor.GetMasternodes(chain, prevHeader)
 			penalties := []common.Address{}
 			for miner, total := range statMiners {
-				if total < common.MinimunMinerBlockPerEpoch {
+				if total < common.MaxMinerNoShowPerEpoch {
 					log.Debug("Find a node not enough requirement create block", "addr", miner.Hex(), "total", total)
 					penalties = append(penalties, miner)
 				}

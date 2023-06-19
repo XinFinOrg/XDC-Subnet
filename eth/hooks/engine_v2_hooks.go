@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sort"
 	"time"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 	"github.com/XinFinOrg/XDC-Subnet/contracts"
 	"github.com/XinFinOrg/XDC-Subnet/core"
 	"github.com/XinFinOrg/XDC-Subnet/core/state"
@@ -49,18 +51,35 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 		}
 
 		penalties := []common.Address{}
+		prevPenalties := []common.Address{}
 		// get list block hash & stats total created block
-		statMiners := make(map[common.Address]int)
-
+		// statMiners := make(map[common.Address]int)
+		listMiners := []common.Address{}
+		listRounds := []types.Round{}
+		listBlockHash := []common.Hash{}
 		for i := uint64(1); ; i++ {
 			parentHeader := chain.GetHeader(parentHash, parentNumber)
-			miner := parentHeader.Coinbase // we can directly use coinbase, since it's verified
-			_, exist := statMiners[miner]
-			if exist {
-				statMiners[miner]++
-			} else {
-				statMiners[miner] = 1
+			// the prev gapPlusOne block
+			if parentNumber == stopNumber+1 {
+				prevPenalties = common.ExtractAddressFromBytes(parentHeader.Penalties)
 			}
+			miner := parentHeader.Coinbase // we can directly use coinbase, since it's verified
+
+			var decodedExtraField types.ExtraFields_v2
+			err := utils.DecodeBytesExtraFields(parentHeader.Extra, &decodedExtraField)
+			if err != nil {
+				log.Error("[HookPenalty] decode extra error")
+				return []common.Address{}, err
+			}
+			listRounds = append(listRounds, decodedExtraField.Round)
+			listMiners = append(listMiners, miner)
+			listBlockHash = append(listBlockHash, parentHash)
+			// _, exist := statMiners[miner]
+			// if exist {
+			// 	statMiners[miner]++
+			// } else {
+			// 	statMiners[miner] = 1
+			// }
 			isEpochSwitch, _, err := adaptor.EngineV2.IsEpochSwitch(parentHeader)
 			if err != nil {
 				log.Error("[HookPenalty] isEpochSwitch", "err", err)
@@ -68,21 +87,45 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			}
 			if isEpochSwitch || parentNumber == stopNumber {
 				preMasternodes := adaptor.EngineV2.GetMasternodes(chain, parentHeader)
-				for _, addr := range preMasternodes {
-					total, exist := statMiners[addr]
-					if !exist {
-						log.Info("[HookPenalty] Find a node do not create any block", "addr", addr.Hex())
-						penalties = append(penalties, addr)
-					} else {
-						if total < common.MinimunMinerBlockPerEpoch {
-							log.Info("[HookPenalty] Find a node does not create enough block", "addr", addr.Hex(), "total", total, "require", common.MinimunMinerBlockPerEpoch)
-							penalties = append(penalties, addr)
-						}
+				// masternodeOrderMap := make(map[common.Address]common.Address)
+				// for i, addr := range preMasternodes {
+				// 	if i+1 == len(preMasternodes) {
+				// 		break
+				// 	}
+				// 	masternodeOrderMap[addr] = preMasternodes[i+1]
+				// }
+				// get masternodes who should mine in a round but did not
+				masternodeNoShow := make(map[common.Address]int)
+				// listMiners is chronological reversed, so for loop go reversed too
+				for i := len(listMiners) - 1; i >= 1; i-- {
+					for round := listRounds[i] + 1; round < listRounds[i-1]; round++ {
+						leaderIndex := uint64(round) % config.Epoch % uint64(len(preMasternodes))
+						masternodeShouldShow := preMasternodes[leaderIndex]
+						// value has default value 0, so this is ok
+						masternodeNoShow[masternodeShouldShow] = masternodeNoShow[masternodeShouldShow] + 1
 					}
 				}
+				for addr, cnt := range masternodeNoShow {
+					if cnt >= common.MaxMinerNoShowPerEpoch {
+						log.Info("[HookPenalty] Find a node has missed mining", "addr", addr.Hex(), "noshow", cnt, "allowed", common.MaxMinerNoShowPerEpoch)
+						penalties = append(penalties, addr)
+					}
+				}
+				// 	total, exist := statMiners[addr]
+				// 	if !exist {
+				// 		log.Info("[HookPenalty] Find a node do not create any block", "addr", addr.Hex())
+				// 		penalties = append(penalties, addr)
+				// 	} else {
+				// 		if total < common.MinimunMinerBlockPerEpoch {
+				// 			log.Info("[HookPenalty] Find a node does not create enough block", "addr", addr.Hex(), "total", total, "require", common.MinimunMinerBlockPerEpoch)
+				// 			penalties = append(penalties, addr)
+				// 		}
+				// 	}
+				// }
 				// clear map
-				statMiners = make(map[common.Address]int)
-				//todo: listBlockHash
+				// statMiners = make(map[common.Address]int)
+				listMiners = []common.Address{}
+				// listBlockHash = []common.Hash{}
 				if parentNumber == stopNumber {
 					break
 				}
@@ -93,6 +136,8 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			log.Debug("[HookPenalty] listBlockHash", "i", i, "parentHash", parentHash, "parentNumber", parentNumber)
 		}
 
+		// process prev penalties: calculate comeback blocks and remove them from prev penalties, then add remaining to final penalty
+		_ = prevPenalties
 		mapForDedup := make(map[common.Address]struct{})
 		penaltiesDedup := []common.Address{}
 		for i, p := range penalties {
@@ -102,6 +147,8 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 				log.Info("[HookPenalty] Final penalty list", "index", i, "addr", p)
 			}
 		}
+		// sort to ensure determinitic list
+		sort.Slice(penaltiesDedup, func(i, j int) bool { return penaltiesDedup[i].Str() < penaltiesDedup[j].Str() })
 		log.Info("[HookPenalty] Time Calculated HookPenaltyV2 ", "block", number, "time", common.PrettyDuration(time.Since(start)))
 		return penaltiesDedup, nil
 	}

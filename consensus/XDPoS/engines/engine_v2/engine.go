@@ -513,7 +513,7 @@ func (x *XDPoS_v2) UpdateMasternodes(chain consensus.ChainReader, header *types.
 		var err error
 		penalties, err = x.HookPenalty(chain, header.Number, header.ParentHash, masterNodes, x.config)
 		if err != nil {
-			log.Error("[calcMasternodes] Adaptor v2 HookPenalty has error", "err", err)
+			log.Error("[UpdateMasternodes] Adaptor v2 HookPenalty has error", "err", err)
 			return err
 		}
 	}
@@ -1012,6 +1012,16 @@ func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Hea
 }
 
 // Given header, get master node from the epoch switch block of that epoch
+func (x *XDPoS_v2) GetEpochSwitchBlockNumber(chain consensus.ChainReader, header *types.Header) *big.Int {
+	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		return header.Number
+	}
+	return epochSwitchInfo.EpochSwitchBlockInfo.Number
+}
+
+// Given header, get master node from the epoch switch block of that epoch
 func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
 	if err != nil {
@@ -1059,17 +1069,6 @@ func (x *XDPoS_v2) GetMasternodesByHash(chain consensus.ChainReader, hash common
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Masternodes
-}
-
-// Given hash, get master node from the epoch switch block of the previous `limit` epoch
-func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash common.Hash, limit int) []common.Address {
-	epochSwitchInfo, err := x.getPreviousEpochSwitchInfoByHash(chain, hash, limit)
-	if err != nil {
-		log.Error("[GetPreviousPenaltyByHash] Adaptor v2 getPreviousEpochSwitchInfoByHash has error, potentially bug", "err", err)
-		return []common.Address{}
-	}
-	header := chain.GetHeaderByHash(epochSwitchInfo.EpochSwitchBlockInfo.Hash)
-	return common.ExtractAddressFromBytes(header.Penalties)
 }
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {

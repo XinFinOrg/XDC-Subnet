@@ -24,7 +24,7 @@ const (
 	DefaultMinGasPrice         = 250000000
 	MergeSignRange             = 15
 	RangeReturnSigner          = 150
-	MinimunMinerBlockPerEpoch  = 1
+	MaxMinerNoShowPerEpoch     = 1
 
 	OneYear                    = uint64(365 * 86400)
 	LiquidateLendingTradeBlock = uint64(100)
