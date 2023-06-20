@@ -30,8 +30,20 @@ const encoded = (block) => {
   return "0x" + block.toString("hex");
 };
 const getGenesis = (validators) => {
+  const voteForSignHash = ethers.utils.keccak256(
+    Buffer.from(
+      RLP.encode([
+        [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          0,
+          0,
+        ],
+        0,
+      ])
+    )
+  );
   const version = new Uint8Array([2]);
-  const sigs = getSigs(validators);
+  const sigs = getSigs(voteForSignHash, validators, 3);
   return Buffer.from(
     RLP.encode([
       util.zeros(32),
@@ -71,28 +83,17 @@ const getGenesis = (validators) => {
   );
 };
 
-const getSigs = (validators) => {
-  const voteForSignHash = ethers.utils.keccak256(
-    Buffer.from(
-      RLP.encode([
-        [
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-          0,
-          0,
-        ],
-        0,
-      ])
-    )
-  );
+const getSigs = (voteForSignHash, validators, sigNum) => {
   const rawSigs = [];
-  for (const validator of validators) {
+  for (let i = 0; i < sigNum; i++) {
     rawSigs.push(
       secp256k1.ecdsaSign(
         hex2Arr(voteForSignHash.substring(2)),
-        hex2Arr(validator.privateKey.substring(2))
+        hex2Arr(validators[i].privateKey.substring(2))
       )
     );
   }
+
   const sigs = rawSigs.map((x) => {
     var res = new Uint8Array(65);
     res.set(x.signature, 0);
@@ -118,25 +119,11 @@ const composeAndSignBlock = (
     Buffer.from(RLP.encode([[parent_hash, prn, number - 1], 0]))
   );
 
-  var raw_sigs = [];
-  for (let i = 0; i < threshold; i++) {
-    raw_sigs.push(
-      secp256k1.ecdsaSign(
-        hex2Arr(voteForSignHash.substring(2)),
-        hex2Arr(validators[i].privateKey.substring(2))
-      )
-    );
-  }
-  var sigs = raw_sigs.map((x) => {
-    var res = new Uint8Array(65);
-    res.set(x.signature, 0);
-    res.set([x.recid], 64);
-    return "0x" + Buffer.from(res).toString("hex");
-  });
+  const sigs = getSigs(voteForSignHash, validators, threshold);
 
   var block = {
-    parent_hash: parent_hash,
-    uncle_hash:
+    parentHash: parent_hash,
+    uncleHash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     coinbase:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -164,7 +151,7 @@ const composeAndSignBlock = (
     penalties: new Uint8Array(8),
   };
 
-  var block_encoded = Buffer.from(
+  var blockBuffer = Buffer.from(
     RLP.encode([
       util.toBuffer(parent_hash),
       util.zeros(32),
@@ -191,8 +178,7 @@ const composeAndSignBlock = (
     ])
   );
 
-  var block_hash = ethers.utils.keccak256(block_encoded).toString("hex");
-  return [block, "0x" + block_encoded.toString("hex"), block_hash];
+  return [block, encoded(blockBuffer), hash(blockBuffer)];
 };
 
 describe("Subnet", () => {
