@@ -78,7 +78,7 @@ const getGenesis = (validators) => {
       new Uint8Array(8),
       [],
       [],
-      new Uint8Array(8),
+      [],
     ])
   );
 };
@@ -148,7 +148,7 @@ const composeAndSignBlock = (
     validator: new Uint8Array(8),
     validators: current,
     nextValidators: next,
-    penalties: new Uint8Array(8),
+    penalties: [],
   };
 
   var blockBuffer = Buffer.from(
@@ -174,7 +174,7 @@ const composeAndSignBlock = (
       new Uint8Array(8),
       current,
       next,
-      new Uint8Array(8),
+      [],
     ])
   );
 
@@ -463,26 +463,33 @@ describe("Subnet", () => {
         newValidators.map((item) => item.address),
         []
       );
-      const r1 = await custom.receiveHeader([
-        block2Encoded,
-        block3Encoded,
-        block4Encoded,
-      ]);
-      console.log(r1);
-      const r2 = await custom.receiveHeader([
-        block5Encoded,
-        block6Encoded,
-        block7Encoded,
-      ]);
-      console.log(r2);
-      const r3 = await custom.receiveHeader([
+      await custom.receiveHeader([block2Encoded, block3Encoded, block4Encoded]);
+
+      await custom.receiveHeader([block5Encoded, block6Encoded, block7Encoded]);
+
+      await custom.receiveHeader([
         block8Encoded,
         block9Encoded,
         block10Encoded,
       ]);
-      console.log(r3);
+
       const block7Resp = await custom.getHeader(block7Hash);
-      console.log(block7Resp);
+
+      expect(block7Resp[0]).to.eq(block6Hash);
+      expect(block7Resp[1]).to.eq(7);
+      expect(block7Resp[2]).to.eq(7);
+      expect(block7Resp[4]).to.eq(true);
+      const latestBlocks = await custom.getLatestBlocks();
+      expect(latestBlocks[0][0]).to.eq(block10Hash);
+      expect(latestBlocks[1][0]).to.eq(block7Hash);
+
+      const blockHeader7Resp = await custom.getHeaderByNumber(7);
+      expect(blockHeader7Resp[0]).to.eq(block7Hash);
+      expect(blockHeader7Resp[1]).to.eq(7);
+
+      const blockHeader8Resp = await custom.getHeaderByNumber(8);
+      expect(blockHeader8Resp[0]).to.eq(block8Hash);
+      expect(blockHeader8Resp[1]).to.eq(8);
     });
 
     it("switch a validator set in special case", async () => {
@@ -528,6 +535,39 @@ describe("Subnet", () => {
       );
 
       const newValidators = createValidators(3);
+      const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
+        6,
+        9,
+        5,
+        block5Hash,
+        customValidators,
+        2,
+        [],
+        newValidators.map((item) => item.address)
+      );
+      const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
+        7,
+        10,
+        9,
+        block6Hash,
+        customValidators,
+        2,
+        newValidators.map((item) => item.address),
+        []
+      );
+      await custom.receiveHeader([block2Encoded, block3Encoded, block4Encoded]);
+      await custom.receiveHeader([block5Encoded, block6Encoded, block7Encoded]);
+      const latestBlocks = await custom.getLatestBlocks();
+      expect(latestBlocks[0][0]).to.eq(block7Hash);
+      expect(latestBlocks[1][0]).to.eq(block2Hash);
+
+      const block5HeaderResp = await custom.getHeaderByNumber(5);
+      expect(block5HeaderResp[0]).to.eq(block5Hash);
+      expect(block5HeaderResp[1]).to.eq(5);
+
+      const block2HeaderResp = await custom.getHeaderByNumber(2);
+      expect(block2HeaderResp[0]).to.eq(block2Hash);
+      expect(block2HeaderResp[1]).to.eq(2);
     });
   });
 });
