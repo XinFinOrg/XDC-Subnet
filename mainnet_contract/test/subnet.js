@@ -5,6 +5,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const secp256k1 = require("secp256k1");
 const RLP = require("rlp");
+const util = require("@ethereumjs/util");
 const hex2Arr = (hexString) => {
   if (hexString.length % 2 !== 0) {
     throw "Must have an even number of hex digits to convert to bytes";
@@ -21,6 +22,86 @@ function blockToHash(blockEncoded) {
     .keccak256(Buffer.from(hex2Arr(blockEncoded.slice(2))))
     .toString("hex");
 }
+const hash = (block) => {
+  return ethers.utils.keccak256(block);
+};
+
+const encoded = (block) => {
+  return "0x" + block.toString("hex");
+};
+const getGenesis = (validators) => {
+  const version = new Uint8Array([2]);
+  const sigs = getSigs(validators);
+  return Buffer.from(
+    RLP.encode([
+      util.zeros(32),
+      util.zeros(32),
+      util.zeros(32),
+      util.zeros(32),
+      util.zeros(32),
+      util.zeros(32),
+      new Uint8Array(256),
+      util.bigIntToUnpaddedBuffer(0),
+      util.bigIntToUnpaddedBuffer(0),
+      util.bigIntToUnpaddedBuffer(0),
+      util.bigIntToUnpaddedBuffer(0),
+      util.bigIntToUnpaddedBuffer(0),
+      new Uint8Array([
+        ...version,
+        ...RLP.encode([
+          0,
+          [
+            [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              0,
+              0,
+            ],
+            sigs,
+            0,
+          ],
+        ]),
+      ]),
+      util.zeros(32),
+      new Uint8Array(8),
+      new Uint8Array(8),
+      [],
+      [],
+      new Uint8Array(8),
+    ])
+  );
+};
+
+const getSigs = (validators) => {
+  const voteForSignHash = ethers.utils.keccak256(
+    Buffer.from(
+      RLP.encode([
+        [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          0,
+          0,
+        ],
+        0,
+      ])
+    )
+  );
+  const rawSigs = [];
+  for (const validator of validators) {
+    rawSigs.push(
+      secp256k1.ecdsaSign(
+        hex2Arr(voteForSignHash.substring(2)),
+        hex2Arr(validator.privateKey.substring(2))
+      )
+    );
+  }
+  const sigs = rawSigs.map((x) => {
+    var res = new Uint8Array(65);
+    res.set(x.signature, 0);
+    res.set([x.recid], 64);
+    return "0x" + Buffer.from(res).toString("hex");
+  });
+
+  return sigs;
+};
 
 const composeAndSignBlock = (
   number,
@@ -117,6 +198,9 @@ const composeAndSignBlock = (
 describe("Subnet", () => {
   let subnet;
   let custom;
+  let customValidators;
+  let customBlock0;
+  let customeBlock1;
 
   const fixture = async () => {
     const headerReaderFactory = await ethers.getContractFactory("HeaderReader");
@@ -139,24 +223,48 @@ describe("Subnet", () => {
       450,
       900
     );
-    const validators = [];
+    const customValidators = [];
     for (let i = 0; i < 3; i++) {
-      validators.push(ethers.Wallet.createRandom());
+      customValidators.push(ethers.Wallet.createRandom());
     }
-    let custom;
-    // custom = await factory.deploy(
-    //   validators,
-    //   "0xf90296a00000000000000000000000000000000000000000000000000000000000000000a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347940000000000000000000000000000000000000000a017df135a4fad193293e2d89501be8a53ae7622310bba56b80b7e57b7580ceb99a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421b901000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001808347b7608084645213d3b89d00000000000000000000000000000000000000000000000000000000000000005058dfe24ef6b537b5bc47116a45f0428da182fa888c073313b36cf03cf1f739f39443551ff12bbeefea93e384a6ccaaf28e33790a2d1b2625bf964d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000088000000000000000080c0c080",
-    //   "0xf902e7a082c3605bed0c24cf03a45bb146d88e62a67742c122e85686455e2282f2796125a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d4934794888c073313b36cf03cf1f739f39443551ff12bbea0c1dc283417f209d60a1b4a884d4da715781817b5a83a9c642a3e3ef9901a0f38a01b638e0cd65c922db5a78f927aea590dc2f05bfd4f87009396d27030c6a4d029a037677206c85d7bf905a2f29d9380c65c8d6f7231b1c5a36cb628bc5ccc0fe4d0b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000101841908b100826308846468da3caa02e801e6e3a082c3605bed0c24cf03a45bb146d88e62a67742c122e85686455e2282f27961258080c080a00000000000000000000000000000000000000000000000000000000000000000880000000000000000b8412c0644873d33a0045348ba247d083dbf22ae86cd35403ac6f0cdd3bcf2c71a2a3ba9799b991bf5e1eab2351809e7fc3b4ad54650bc7fcda9c3f5422c11914a8700f83f945058dfe24ef6b537b5bc47116a45f0428da182fa94888c073313b36cf03cf1f739f39443551ff12bbe94efea93e384a6ccaaf28e33790a2d1b2625bf964df83f945058dfe24ef6b537b5bc47116a45f0428da182fa94888c073313b36cf03cf1f739f39443551ff12bbe94efea93e384a6ccaaf28e33790a2d1b2625bf964d80",
-    //   5,
-    //   10
-    // );
-    const result = { subnet, custom };
+    const block0 = getGenesis(customValidators);
+    const block0Hash = hash(block0);
+    const block0Encoded = encoded(block0);
+    const [block1, block1Encoded, block1Hash] = composeAndSignBlock(
+      1,
+      1,
+      0,
+      block0Hash,
+      customValidators,
+      2,
+      [],
+      []
+    );
+
+    const custom = await factory.deploy(
+      customValidators.map((item) => {
+        return item.address;
+      }),
+      block0Encoded,
+      block1Encoded,
+      5,
+      10
+    );
+    const customBlock0 = { hash: block0Hash, encoded: block0Encoded };
+    const customeBlock1 = { hash: block1Hash, encoded: block1Encoded };
+    const result = {
+      subnet,
+      custom,
+      customValidators,
+      customBlock0,
+      customeBlock1,
+    };
     return result;
   };
 
   beforeEach("deploy fixture", async () => {
-    ({ subnet, custom } = await loadFixture(fixture));
+    ({ subnet, custom, customValidators, customBlock0, customeBlock1 } =
+      await loadFixture(fixture));
   });
 
   describe("test xdc subnet real block data", () => {
@@ -202,10 +310,75 @@ describe("Subnet", () => {
 
   describe("test custom block data", () => {
     it("receive new header", async () => {
-      //TODO
+      const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
+        2,
+        2,
+        1,
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        []
+      );
+      await custom.receiveHeader([block2Encoded]);
+
+      const block2Resp = await custom.getHeader(block2Hash);
+      const latestBlocks = await custom.getLatestBlocks();
+
+      expect(block2Resp[4]).to.eq(false);
+
+      expect(latestBlocks[0][0]).to.eq(block2Hash);
     });
     it("confirm a received block", async () => {
-      //TODO
+      const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
+        2,
+        2,
+        1,
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block3, block3Encoded, block3Hash] = composeAndSignBlock(
+        3,
+        3,
+        2,
+        block2Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block4, block4Encoded, block4Hash] = composeAndSignBlock(
+        4,
+        4,
+        3,
+        block3Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block5, block5Encoded, block5Hash] = composeAndSignBlock(
+        5,
+        5,
+        4,
+        block4Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      await custom.receiveHeader([block2Encoded, block3Encoded]);
+      await custom.receiveHeader([block4Encoded, block5Encoded]);
+
+      const block2Resp = await custom.getHeader(block2Hash);
+      const latestBlocks = await custom.getLatestBlocks();
+
+      expect(block2Resp[4]).to.eq(true);
+      expect(latestBlocks[0][0]).to.eq(block5Hash);
+      expect(latestBlocks[1][0]).to.eq(block2Hash);
     });
   });
 });

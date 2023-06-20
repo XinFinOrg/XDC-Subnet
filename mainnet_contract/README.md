@@ -32,9 +32,7 @@ This step is recommended to complete in python virtual environment because it is
 ## Contract Deployment:
 And get the deployed contract address
 ```
-npx hardhat run scripts/deployment.js --network devnet
+npx hardhat run scripts/deployment.js --network xdcdevnet
 ```
 
-## API Interaction
-Refer to `README.md` under `./API`
 
