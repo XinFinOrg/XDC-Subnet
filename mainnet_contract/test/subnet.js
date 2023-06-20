@@ -180,7 +180,13 @@ const composeAndSignBlock = (
 
   return [block, encoded(blockBuffer), hash(blockBuffer)];
 };
-
+function createValidators(num) {
+  const validators = [];
+  for (let i = 0; i < num; i++) {
+    validators.push(ethers.Wallet.createRandom());
+  }
+  return validators;
+}
 describe("Subnet", () => {
   let subnet;
   let custom;
@@ -209,10 +215,7 @@ describe("Subnet", () => {
       450,
       900
     );
-    const customValidators = [];
-    for (let i = 0; i < 3; i++) {
-      customValidators.push(ethers.Wallet.createRandom());
-    }
+    const customValidators = createValidators(3);
     const block0 = getGenesis(customValidators);
     const block0Hash = hash(block0);
     const block0Encoded = encoded(block0);
@@ -365,6 +368,166 @@ describe("Subnet", () => {
       expect(block2Resp[4]).to.eq(true);
       expect(latestBlocks[0][0]).to.eq(block5Hash);
       expect(latestBlocks[1][0]).to.eq(block2Hash);
+    });
+    it("switch a validator set", async () => {
+      const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
+        2,
+        2,
+        1,
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block3, block3Encoded, block3Hash] = composeAndSignBlock(
+        3,
+        3,
+        2,
+        block2Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block4, block4Encoded, block4Hash] = composeAndSignBlock(
+        4,
+        4,
+        3,
+        block3Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block5, block5Encoded, block5Hash] = composeAndSignBlock(
+        5,
+        5,
+        4,
+        block4Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+
+      const newValidators = createValidators(3);
+
+      const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
+        6,
+        6,
+        5,
+        block5Hash,
+        customValidators,
+        2,
+        [],
+        newValidators.map((item) => item.address)
+      );
+      const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
+        7,
+        7,
+        6,
+        block6Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block8, block8Encoded, block8Hash] = composeAndSignBlock(
+        8,
+        8,
+        7,
+        block7Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block9, block9Encoded, block9Hash] = composeAndSignBlock(
+        9,
+        9,
+        8,
+        block8Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block10, block10Encoded, block10Hash] = composeAndSignBlock(
+        10,
+        10,
+        9,
+        block9Hash,
+        newValidators,
+        2,
+        newValidators.map((item) => item.address),
+        []
+      );
+      const r1 = await custom.receiveHeader([
+        block2Encoded,
+        block3Encoded,
+        block4Encoded,
+      ]);
+      console.log(r1);
+      const r2 = await custom.receiveHeader([
+        block5Encoded,
+        block6Encoded,
+        block7Encoded,
+      ]);
+      console.log(r2);
+      const r3 = await custom.receiveHeader([
+        block8Encoded,
+        block9Encoded,
+        block10Encoded,
+      ]);
+      console.log(r3);
+      const block7Resp = await custom.getHeader(block7Hash);
+      console.log(block7Resp);
+    });
+
+    it("switch a validator set in special case", async () => {
+      const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
+        2,
+        2,
+        1,
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block3, block3Encoded, block3Hash] = composeAndSignBlock(
+        3,
+        3,
+        2,
+        block2Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block4, block4Encoded, block4Hash] = composeAndSignBlock(
+        4,
+        4,
+        3,
+        block3Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block5, block5Encoded, block5Hash] = composeAndSignBlock(
+        5,
+        5,
+        4,
+        block4Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+
+      const newValidators = createValidators(3);
     });
   });
 });
