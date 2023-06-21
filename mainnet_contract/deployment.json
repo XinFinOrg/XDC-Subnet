@@ -6,6 +6,6 @@
   ],
   "gap": 450,
   "epoch": 900,
-  "mainnetRpc": "https://devnetstats.apothem.network/mainnet",
-  "subnetRpc": "https://devnetstats.apothem.network/subnet"
+  "xdcdevnet": "https://devnetstats.apothem.network/devnet",
+  "xdcsubnet": "https://devnetstats.apothem.network/subnet"
 }

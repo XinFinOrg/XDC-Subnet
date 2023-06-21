@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const deployArguments = require("../deployment.json");
+const deploy = require("../deployment.json");
 const fetch = require("node-fetch").default;
 
 async function main() {
@@ -15,12 +15,12 @@ async function main() {
     params: ["0x1"],
     id: 1,
   };
-  const block0res = await fetch(deployArguments["subnetRpc"], {
+  const block0res = await fetch(deploy["xdcsubnet"], {
     method: "POST",
     body: JSON.stringify(block0),
     headers: { "Content-Type": "application/json" },
   });
-  const block1res = await fetch(deployArguments["subnetRpc"], {
+  const block1res = await fetch(deploy["xdcsubnet"], {
     method: "POST",
     body: JSON.stringify(block1),
     headers: { "Content-Type": "application/json" },
@@ -28,8 +28,8 @@ async function main() {
   const data0 = await block0res.json();
   const data1 = await block1res.json();
 
-  const data0Encoded = "0x" + data0["result"]["EncodedRLP"];
-  const data1Encoded = "0x" + data1["result"]["EncodedRLP"];
+  const data0Encoded = "0x" + data0["result"]["HexRLP"];
+  const data1Encoded = "0x" + data1["result"]["HexRLP"];
   // console.log({ data0Encoded, data1Encoded });
 
   const headerReaderFactory = await hre.ethers.getContractFactory(
@@ -48,11 +48,11 @@ async function main() {
   });
 
   const subnet = await subnetFactory.deploy(
-    deployArguments["validators"],
+    deploy["validators"],
     data0Encoded,
     data1Encoded,
-    deployArguments["gap"],
-    deployArguments["epoch"]
+    deploy["gap"],
+    deploy["epoch"]
   );
 
   await subnet.deployed();

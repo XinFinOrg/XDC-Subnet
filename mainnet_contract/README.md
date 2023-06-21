@@ -2,7 +2,6 @@
 This folder has provided scripts for:
 - Contract Building and Testing
 - Contract Deployment
-- API Interaction with Deployed Subnet Contract
 
 ## Contract Building and Testing:
 Environmental preparation
