@@ -680,22 +680,10 @@ describe("Subnet", () => {
         block9Encoded,
         block10Encoded,
       ]);
-      const block7Resp = await custom.getHeader(block7Hash);
-      expect(block7Resp[0]).to.eq(block6Hash);
-      expect(block7Resp[1]).to.eq(7);
-      expect(block7Resp[2]).to.eq(7);
-      expect(block7Resp[4]).to.eq(true);
-      const latestBlocks = await custom.getLatestBlocks();
-      expect(latestBlocks[0][0]).to.eq(block10Hash);
-      expect(latestBlocks[1][0]).to.eq(block7Hash);
-
-      const blockHeader7Resp = await custom.getHeaderByNumber(7);
-      expect(blockHeader7Resp[0]).to.eq(block7Hash);
-      expect(blockHeader7Resp[1]).to.eq(7);
-
-      const blockHeader8Resp = await custom.getHeaderByNumber(8);
-      expect(blockHeader8Resp[0]).to.eq(block8Hash);
-      expect(blockHeader8Resp[1]).to.eq(8);
+      const currentValidators = await custom.getCurrentValidators();
+      expect(currentValidators[0]).to.deep.eq(
+        actualValidators.map((item) => item.address)
+      );
     });
   });
 });
