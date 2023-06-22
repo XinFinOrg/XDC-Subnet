@@ -9,7 +9,7 @@ Environmental preparation
 
 Install dependencies
 ```
- yarn
+yarn
 ```
 
 Test
