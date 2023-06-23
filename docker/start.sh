@@ -82,6 +82,16 @@ else
   wallet=$(XDC account list --datadir $DATA_DIR | head -n 1 | awk -v FS="({|})" '{print $2}')
 fi
 
+
+# Stats server
+if [[ ! -z $STATS_SERVICE_ADDRESS ] && [ ! -z $STATS_SECRET ]]; then
+  echo "Setting up stats server communication to ${STATS_SERVICE_ADDRESS} with name ${INSTANCE_NAME}-${wallet}"
+  netstats="${INSTANCE_NAME}-${wallet}:${STATS_SECRET}@${STATS_SERVICE_ADDRESS}"
+  params="$params --ethstats ${netstats}"
+else
+  echo "STATS_SERVICE_ADDRESS or STATS_SECRET not set. Skipping the stats server set up. Won't emit any messages"
+fi
+
 echo "Using wallet $wallet"
 params="$params --unlock $wallet"
 
