@@ -387,6 +387,7 @@ func (x *XDPoS_v2) Finalize(chain consensus.ChainReader, header *types.Header, s
 
 	isEpochSwitch, _, err := x.IsEpochSwitch(header)
 	if err != nil {
+		fmt.Println("Finalize", err)
 		log.Error("[Finalize] IsEpochSwitch bug!", "err", err)
 		return nil, err
 	}
@@ -1024,7 +1025,7 @@ func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Heade
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
 func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, error) {
 	// using new max masterndoes
-	maxMasternodes := common.MaxMasternodesV2
+	maxMasternodes := common.MaxMasternodes
 
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {
@@ -1074,6 +1075,7 @@ func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash co
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {
 	parent := chain.GetBlock(x.highestQuorumCert.ProposedBlockInfo.Hash, x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
+	fmt.Println(" x.highestQuorumCert.ProposedBlockInfo.Number.Uint64()", x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
 	if parent == nil {
 		log.Error("[FindParentBlockToAssign] Can not find parent block from highestQC proposedBlockInfo", "x.highestQuorumCert.ProposedBlockInfo.Hash", x.highestQuorumCert.ProposedBlockInfo.Hash, "x.highestQuorumCert.ProposedBlockInfo.Number", x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
 	}

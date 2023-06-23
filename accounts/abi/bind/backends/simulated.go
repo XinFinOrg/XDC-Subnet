@@ -26,9 +26,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDC-Subnet/XDCx"
-	"github.com/XinFinOrg/XDC-Subnet/XDCxlending"
 	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 
 	XDPoSChain "github.com/XinFinOrg/XDC-Subnet"
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
@@ -37,7 +36,6 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/math"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
-	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 
 	"github.com/XinFinOrg/XDC-Subnet/consensus/ethash"
 	"github.com/XinFinOrg/XDC-Subnet/core"
@@ -109,20 +107,21 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 	genesis.MustCommit(database)
 	consensus := XDPoS.NewFaker(database, chainConfig)
 
-	// Attach mock trading and lending service
-	var DefaultConfig = XDCx.Config{
-		DataDir: "",
-	}
-	XDCXServ := XDCx.New(&DefaultConfig)
-	lendingServ := XDCxlending.New(XDCXServ)
+	/*
+		// Attach mock trading and lending service
+		var DefaultConfig = XDCx.Config{
+			DataDir: "",
+		}
+		XDCXServ := XDCx.New(&DefaultConfig)
+		lendingServ := XDCxlending.New(XDCXServ)
 
-	consensus.GetXDCXService = func() utils.TradingService {
-		return XDCXServ
-	}
-	consensus.GetLendingService = func() utils.LendingService {
-		return lendingServ
-	}
-
+		consensus.GetXDCXService = func() utils.TradingService {
+			return XDCXServ
+		}
+		consensus.GetLendingService = func() utils.LendingService {
+			return lendingServ
+		}
+	*/
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
 
 	backend := &SimulatedBackend{
@@ -131,6 +130,14 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 		config:     genesis.Config,
 		events:     filters.NewEventSystem(new(event.TypeMux), &filterBackend{database, blockchain}, false),
 	}
+
+	go func() {
+		for range core.CheckpointCh {
+			checkpointChanMsg := <-core.CheckpointCh
+			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+		}
+	}()
+
 	blockchain.Client = backend
 	backend.rollback()
 	return backend

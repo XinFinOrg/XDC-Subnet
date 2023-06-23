@@ -14,10 +14,8 @@ const (
 	EpocBlockSecret            = 800
 	EpocBlockOpening           = 850
 	EpocBlockRandomize         = 900
-	MaxMasternodes             = 18
-	MaxMasternodesV2           = 108
-	LimitPenaltyEpoch          = 4
-	LimitPenaltyEpochV2        = 0
+	MaxMasternodes             = 108
+	LimitPenaltyEpoch          = 0
 	BlocksPerYearTest          = uint64(200000)
 	BlocksPerYear              = uint64(15768000)
 	LimitThresholdNonceInQueue = 10
@@ -33,16 +31,16 @@ const (
 var Rewound = uint64(0)
 
 var TIP2019Block = big.NewInt(1)
-var TIPSigning = big.NewInt(225000)
-var TIPRandomize = big.NewInt(225000)
-var TIPV2SwitchBlock = big.NewInt(7074000)
+var TIPSigning = big.NewInt(0)
+var TIPRandomize = big.NewInt(0)
+var TIPV2SwitchBlock = big.NewInt(0)
 
-var TIPNoHalvingMNReward = big.NewInt(429987) // hardfork no halving masternodes reward
-var BlackListHFNumber = uint64(225000)
-var TIPXDCX = big.NewInt(225000)
-var TIPXDCXLending = big.NewInt(225000)
-var TIPXDCXCancellationFee = big.NewInt(225000)
-var TIPXDCXCancellationFeeTestnet = big.NewInt(225000)
+var TIPNoHalvingMNReward = big.NewInt(0) // hardfork no halving masternodes reward
+var BlackListHFNumber = uint64(0)
+var TIPXDCX = big.NewInt(0)
+var TIPXDCXLending = big.NewInt(0)
+var TIPXDCXCancellationFee = big.NewInt(0)
+var TIPXDCXCancellationFeeTestnet = big.NewInt(0)
 
 var TIPXDCXTestnet = big.NewInt(0)
 var IsTestnet bool = false

@@ -387,6 +387,7 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 
 	currentBlock := blockchain.Genesis()
 
+	var roundNumber int64
 	var currentForkBlock *types.Block
 
 	go func() {
@@ -403,7 +404,7 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 		if int64(i) > chainConfig.XDPoS.V2.SwitchBlock.Int64() {
 			blockCoinBase = signer.Hex()
 		}
-		roundNumber := int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
+		roundNumber = int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
 		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "")
 
 		err = blockchain.InsertBlock(block)
@@ -448,6 +449,15 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 
 		currentBlock = block
 	}
+
+	quorumCert := &types.QuorumCert{
+		ProposedBlockInfo: &types.BlockInfo{
+			Hash:   currentBlock.Hash(),
+			Round:  types.Round(roundNumber),
+			Number: currentBlock.Number(),
+		},
+	}
+	engine.EngineV2.ProcessQCFaker(blockchain, quorumCert)
 
 	// Update Signer as there is no previous signer assigned
 	err = UpdateSigner(blockchain)
@@ -596,40 +606,8 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 				header.Penalties = penalties
 			}
 		}
-	} else {
-		// V1 block
-		header = &types.Header{
-			Root:       common.HexToHash(merkleRoot),
-			Number:     big.NewInt(int64(blockNumber)),
-			ParentHash: currentBlock.Hash(),
-			Coinbase:   common.HexToAddress(blockCoinBase),
-		}
-
-		// Inject the hardcoded master node list for the last v1 epoch block and all v1 epoch switch blocks (excluding genesis)
-		if big.NewInt(int64(blockNumber)).Cmp(chainConfig.XDPoS.V2.SwitchBlock) == 0 || blockNumber%int(chainConfig.XDPoS.Epoch) == 0 {
-			// reset extra
-			header.Extra = []byte{}
-			if len(header.Extra) < utils.ExtraVanity {
-				header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, utils.ExtraVanity-len(header.Extra))...)
-			}
-			header.Extra = header.Extra[:utils.ExtraVanity]
-			var masternodes []common.Address
-			// Place the test's signer address to the last
-			masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, voterAddr, signer)
-			// masternodesFromV1LastEpoch = masternodes
-			for _, masternode := range masternodes {
-				header.Extra = append(header.Extra, masternode[:]...)
-			}
-			header.Extra = append(header.Extra, make([]byte, utils.ExtraSeal)...)
-
-			// Sign all the things for v1 block use v1 sigHash function
-			sighash, err := signFn(accounts.Account{Address: signer}, blockchain.Engine().(*XDPoS.XDPoS).SigHash(header).Bytes())
-			if err != nil {
-				panic(fmt.Errorf("Error when sign last v1 block hash during test block creation"))
-			}
-			copy(header.Extra[len(header.Extra)-utils.ExtraSeal:], sighash)
-		}
 	}
+
 	block, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, chainConfig)
 	if err != nil {
 		panic(fmt.Errorf("Fail to create block in test helper, %v", err))

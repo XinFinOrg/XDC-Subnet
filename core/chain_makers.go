@@ -246,6 +246,22 @@ func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.S
 		time = new(big.Int).Add(parent.Time(), big.NewInt(10)) // block time is fixed at 10 seconds
 	}
 
+	extra := types.ExtraFields_v2{
+		Round: types.Round(parent.NumberU64() + 1),
+		QuorumCert: &types.QuorumCert{
+			ProposedBlockInfo: &types.BlockInfo{
+				Hash:   parent.Hash(),
+				Round:  types.Round(parent.NumberU64()),
+				Number: parent.Number(),
+			},
+		},
+	}
+
+	extraBytes, err := extra.EncodeToBytes()
+	if err != nil {
+		panic(fmt.Sprintf("make v2 extra failed: %v", err))
+	}
+
 	return &types.Header{
 		Root:       state.IntermediateRoot(chain.Config().IsEIP158(parent.Number())),
 		ParentHash: parent.Hash(),
@@ -259,6 +275,7 @@ func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.S
 		GasLimit: CalcGasLimit(parent),
 		Number:   new(big.Int).Add(parent.Number(), common.Big1),
 		Time:     time,
+		Extra:    extraBytes,
 	}
 }
 
