@@ -40,7 +40,7 @@ type V2BlockInfo struct {
 	Number     *big.Int
 	ParentHash common.Hash
 	Committed  bool
-	EncodedRLP string
+	HexRLP     string
 	Error      string
 }
 
@@ -207,7 +207,7 @@ func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInf
 		Number:     header.Number,
 		Round:      round,
 		Committed:  committed,
-		EncodedRLP: hex.EncodeToString(encodeBytes),
+		HexRLP:     hex.EncodeToString(encodeBytes),
 	}
 	return block
 }
