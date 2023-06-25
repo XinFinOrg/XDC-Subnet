@@ -84,12 +84,24 @@ fi
 
 
 # Stats server
-if [[ ! -z $STATS_SERVICE_ADDRESS ] && [ ! -z $STATS_SECRET ]]; then
+if [[ ! -z $STATS_SERVICE_ADDRESS ]]; then
   echo "Setting up stats server communication to ${STATS_SERVICE_ADDRESS} with name ${INSTANCE_NAME}-${wallet}"
-  netstats="${INSTANCE_NAME}-${wallet}:${STATS_SECRET}@${STATS_SERVICE_ADDRESS}"
+  statsSecret = "subnet-stats-server"
+  if [ ! -z $STATS_SECRET ]]; then
+    statsSecret = $STATS_SECRET
+  fi
+  
+  statsHostName = ""
+  if [! -z $INSTANCE_NAME]; then
+    statsHostName = "${INSTANCE_NAME}-${wallet}"
+  else
+    statsHostName = "${wallet}"
+  fi
+  
+  netstats="${statsHostName}:${STATS_SECRET}@${STATS_SERVICE_ADDRESS}"
   params="$params --ethstats ${netstats}"
 else
-  echo "STATS_SERVICE_ADDRESS or STATS_SECRET not set. Skipping the stats server set up. Won't emit any messages"
+  echo "STATS_SERVICE_ADDRESS not set. Skipping the stats server set up. Won't emit any messages"
 fi
 
 echo "Using wallet $wallet"
