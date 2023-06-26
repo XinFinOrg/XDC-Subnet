@@ -1,9 +1,10 @@
-name: PR tests
+name: Build and update image
 
 on:
   push:
     branches:    
       - master
+  workflow_dispatch:    #allow manual trigger to workflow
   
 jobs:
   test_on_pr:
