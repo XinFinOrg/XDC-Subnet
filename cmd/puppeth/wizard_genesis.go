@@ -146,7 +146,7 @@ func (w *wizard) makeGenesis() {
 
 		fmt.Println()
 		fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodesV2/3*2+1)
-		genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = w.readDefaultInt(common.MaxMasternodesV2)/3*2 + 1
+		genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = w.readDefaultInt(common.MaxMasternodesV2/3*2 + 1)
 
 		genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
 
