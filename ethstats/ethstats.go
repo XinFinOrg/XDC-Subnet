@@ -31,7 +31,6 @@ import (
 	"time"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
-	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/core"
@@ -57,17 +56,17 @@ const (
 	chainHeadChanSize = 10
 )
 
-type consensusEngine interface {
-	// SubscribeForensicsEvent should return an event subscription of
-	// ForensicsEvent and send events to the given channel.
-	SubscribeForensicsEvent(chan<- types.ForensicsEvent) event.Subscription
-}
+// type consensusEngine interface {
+// 	// SubscribeForensicsEvent should return an event subscription of
+// 	// ForensicsEvent and send events to the given channel.
+// 	SubscribeForensicsEvent(chan<- types.ForensicsEvent) event.Subscription
+// }
 
-type txPool interface {
-	// SubscribeTxPreEvent should return an event subscription of
-	// TxPreEvent and send events to the given channel.
-	SubscribeTxPreEvent(chan<- core.TxPreEvent) event.Subscription
-}
+// type txPool interface {
+// 	// SubscribeTxPreEvent should return an event subscription of
+// 	// TxPreEvent and send events to the given channel.
+// 	SubscribeTxPreEvent(chan<- core.TxPreEvent) event.Subscription
+// }
 
 type blockChain interface {
 	SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription
@@ -146,50 +145,52 @@ func (s *Service) Stop() error {
 func (s *Service) loop() {
 	// Subscribe to chain events to execute updates on
 	var blockchain blockChain
-	var txpool txPool
-	var engine consensusEngine
+	// var txpool txPool
+	// var engine consensusEngine
 	if s.eth != nil {
 		blockchain = s.eth.BlockChain()
-		txpool = s.eth.TxPool()
-		engine = s.eth.Engine().(*XDPoS.XDPoS)
+		// txpool = s.eth.TxPool()
+		// engine = s.eth.Engine().(*XDPoS.XDPoS)
 	} else {
 		blockchain = s.les.BlockChain()
-		txpool = s.les.TxPool()
+		// txpool = s.les.TxPool()
 	}
 
 	chainHeadCh := make(chan core.ChainHeadEvent, chainHeadChanSize)
 	headSub := blockchain.SubscribeChainHeadEvent(chainHeadCh)
 	defer headSub.Unsubscribe()
 
-	txEventCh := make(chan core.TxPreEvent, txChanSize)
-	txSub := txpool.SubscribeTxPreEvent(txEventCh)
-	defer txSub.Unsubscribe()
+	//txEventCh := make(chan core.TxPreEvent, txChanSize)
+	//txSub := txpool.SubscribeTxPreEvent(txEventCh)
+	//defer txSub.Unsubscribe()
 
 	// Forensics events
-	forensicsEventCh := make(chan types.ForensicsEvent)
-	if engine != nil {
-		forensicsSub := engine.SubscribeForensicsEvent(forensicsEventCh)
-		defer forensicsSub.Unsubscribe()
-	}
+	// forensicsEventCh := make(chan types.ForensicsEvent)
+	// if engine != nil {
+	// 	forensicsSub := engine.SubscribeForensicsEvent(forensicsEventCh)
+	// 	defer forensicsSub.Unsubscribe()
+	// }
 
 	// Start a goroutine that exhausts the subsciptions to avoid events piling up
 	var (
-		quitCh      = make(chan struct{})
-		headCh      = make(chan *types.Block, 1)
-		txCh        = make(chan struct{}, 1)
-		forensicsCh = make(chan *types.ForensicProof, 1)
+		quitCh = make(chan struct{})
+		headCh = make(chan *types.Block, 1)
+		// txCh        = make(chan struct{}, 1)
+		// forensicsCh = make(chan *types.ForensicProof, 1)
 	)
 	go func() {
-		var lastTx mclock.AbsTime
+		// var lastTx mclock.AbsTime
 
 	HandleLoop:
 		for {
 			select {
-			case forensics := <-forensicsEventCh:
-				select {
-				case forensicsCh <- forensics.ForensicsProof:
-				default:
-				}
+			/*
+				case forensics := <-forensicsEventCh:
+					select {
+					case forensicsCh <- forensics.ForensicsProof:
+					default:
+					}
+			*/
 			// Notify of chain head events, but drop if too frequent
 			case head := <-chainHeadCh:
 				select {
@@ -198,20 +199,21 @@ func (s *Service) loop() {
 				}
 
 			// Notify of new transaction events, but drop if too frequent
-			case <-txEventCh:
-				if time.Duration(mclock.Now()-lastTx) < time.Second {
-					continue
-				}
-				lastTx = mclock.Now()
+			/*
+				case <-txEventCh:
+					if time.Duration(mclock.Now()-lastTx) < time.Second {
+						continue
+					}
+					lastTx = mclock.Now()
 
-				select {
-				case txCh <- struct{}{}:
-				default:
-				}
-
+					select {
+					case txCh <- struct{}{}:
+					default:
+					}
+			*/
 			// node stopped
-			case <-txSub.Err():
-				break HandleLoop
+			// case <-txSub.Err():
+			// 	break HandleLoop
 			case <-headSub.Err():
 				break HandleLoop
 			}
@@ -283,17 +285,17 @@ func (s *Service) loop() {
 				if err = s.reportBlock(conn, head); err != nil {
 					log.Warn("Block stats report failed", "err", err)
 				}
-				if err = s.reportPending(conn); err != nil {
-					log.Warn("Post-block transaction stats report failed", "err", err)
-				}
-			case <-txCh:
-				if err = s.reportPending(conn); err != nil {
-					log.Warn("Transaction stats report failed", "err", err)
-				}
-			case forensicsReport := <-forensicsCh:
-				if err = s.reportForensics(conn, forensicsReport); err != nil {
-					log.Error("Forensics proof stats report failed", "err", err)
-				}
+				// if err = s.reportPending(conn); err != nil {
+				// 	log.Warn("Post-block transaction stats report failed", "err", err)
+				// }
+				// case <-txCh:
+				// 	if err = s.reportPending(conn); err != nil {
+				// 		log.Warn("Transaction stats report failed", "err", err)
+				// 	}
+				// case forensicsReport := <-forensicsCh:
+				// 	if err = s.reportForensics(conn, forensicsReport); err != nil {
+				// 		log.Error("Forensics proof stats report failed", "err", err)
+				// 	}
 			}
 		}
 		// Make sure the connection is closed
@@ -564,18 +566,18 @@ func (s *Service) reportBlock(conn *websocket.Conn, block *types.Block) error {
 }
 
 // reportForensics forward the forensics repors it to the stats server.
-func (s *Service) reportForensics(conn *websocket.Conn, forensicsProof *types.ForensicProof) error {
-	log.Info("Sending Forensics report to ethstats", "ForensicsType", forensicsProof.ForensicsType)
+// func (s *Service) reportForensics(conn *websocket.Conn, forensicsProof *types.ForensicProof) error {
+// 	log.Info("Sending Forensics report to ethstats", "ForensicsType", forensicsProof.ForensicsType)
 
-	stats := map[string]interface{}{
-		"id":             s.node,
-		"forensicsProof": forensicsProof,
-	}
-	report := map[string][]interface{}{
-		"emit": {"forensics", stats},
-	}
-	return websocket.JSON.Send(conn, report)
-}
+// 	stats := map[string]interface{}{
+// 		"id":             s.node,
+// 		"forensicsProof": forensicsProof,
+// 	}
+// 	report := map[string][]interface{}{
+// 		"emit": {"forensics", stats},
+// 	}
+// 	return websocket.JSON.Send(conn, report)
+// }
 
 // assembleBlockStats retrieves any required metadata to report a single block
 // and assembles the block stats. If block is nil, the current head is processed.

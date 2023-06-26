@@ -59,7 +59,7 @@ type XDPoS_v2 struct {
 	highestCommitBlock *types.BlockInfo
 
 	HookReward  func(chain consensus.ChainReader, state *state.StateDB, parentState *state.StateDB, header *types.Header) (map[string]interface{}, error)
-	HookPenalty func(chain consensus.ChainReader, number *big.Int, parentHash common.Hash, candidates []common.Address) ([]common.Address, error)
+	HookPenalty func(chain consensus.ChainReader, number *big.Int, parentHash common.Hash, candidates []common.Address, config *params.XDPoSConfig) ([]common.Address, error)
 
 	ForensicsProcessor *Forensics
 
@@ -227,7 +227,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 			log.Error("[initial] Error while get masternodes", "error", err)
 			return err
 		}
-		snap := newSnapshot(lastGapNum, lastGapHeader.Hash(), masternodes)
+		snap := newSnapshot(lastGapNum, lastGapHeader.Hash(), masternodes, nil)
 		x.snapshots.Add(snap.Hash, snap)
 		err = storeSnapshot(snap, x.db)
 		if err != nil {
@@ -339,16 +339,12 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 		return err
 	}
 	if isEpochSwitchBlock {
-		masterNodes, penalties, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
+		masterNodes, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
 		if err != nil {
 			return err
 		}
 
 		header.Validators = masterNodes
-
-		for _, v := range penalties {
-			header.Penalties = append(header.Penalties, v[:]...)
-		}
 	}
 
 	isGapPlusOneBlock := x.IsGapPlusOneBlock(header)
@@ -360,7 +356,9 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 			return err
 		}
 		header.NextValidators = snapshot.NextEpochMasterNodes
-
+		for _, v := range snapshot.NextEpochPenalties {
+			header.Penalties = append(header.Penalties, v[:]...)
+		}
 	}
 
 	// Mix digest is reserved for now, set to empty
@@ -509,9 +507,19 @@ func (x *XDPoS_v2) UpdateMasternodes(chain consensus.ChainReader, header *types.
 	for _, m := range ms {
 		masterNodes = append(masterNodes, m.Address)
 	}
+	// Subnet stores penalties in snapshot
+	penalties := []common.Address{}
+	if x.HookPenalty != nil {
+		var err error
+		penalties, err = x.HookPenalty(chain, header.Number, header.ParentHash, masterNodes, x.config)
+		if err != nil {
+			log.Error("[calcMasternodes] Adaptor v2 HookPenalty has error", "err", err)
+			return err
+		}
+	}
 
 	x.lock.RLock()
-	snap := newSnapshot(number, header.Hash(), masterNodes)
+	snap := newSnapshot(number, header.Hash(), masterNodes, penalties)
 	log.Info("[UpdateMasternodes] take snapshot", "number", number, "hash", header.Hash())
 	x.lock.RUnlock()
 
@@ -1014,39 +1022,19 @@ func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Heade
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
-func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, []common.Address, error) {
+func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, error) {
 	// using new max masterndoes
 	maxMasternodes := common.MaxMasternodesV2
 
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {
 		log.Error("[calcMasternodes] Adaptor v2 getSnapshot has error", "err", err)
-		return nil, nil, err
+		return nil, err
 	}
 	// candidates are masternodes
 	candidates := snap.NextEpochMasterNodes
-
-	if blockNum.Uint64() == x.config.V2.SwitchBlock.Uint64()+1 {
-		log.Info("[calcMasternodes] examing first v2 block")
-		if len(candidates) > maxMasternodes {
-			candidates = candidates[:maxMasternodes]
-		}
-		return candidates, []common.Address{}, nil
-	}
-
-	if x.HookPenalty == nil {
-		log.Info("[calcMasternodes] no hook penalty defined")
-		if len(candidates) > maxMasternodes {
-			candidates = candidates[:maxMasternodes]
-		}
-		return candidates, []common.Address{}, nil
-	}
-	//penalties just for information
-	penalties, err := x.HookPenalty(chain, blockNum, parentHash, candidates)
-	if err != nil {
-		log.Error("[calcMasternodes] Adaptor v2 HookPenalty has error", "err", err)
-		return nil, nil, err
-	}
+	// penalties are from snapshot too
+	penalties := snap.NextEpochPenalties
 	masternodes := common.RemoveItemFromArray(candidates, penalties)
 	if len(masternodes) > maxMasternodes {
 		masternodes = masternodes[:maxMasternodes]
@@ -1060,8 +1048,7 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 			log.Warn("penalty", "i", i, "addr", a)
 		}
 	}
-	return masternodes, penalties, nil
-
+	return masternodes, nil
 }
 
 // Given hash, get master node from the epoch switch block of the epoch

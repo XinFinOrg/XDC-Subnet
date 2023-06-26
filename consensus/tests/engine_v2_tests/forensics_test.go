@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
-	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
@@ -54,20 +53,18 @@ func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 
-	// Create another vote which is signed by someone not from the master node list
-	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn()
-	assert.Nil(t, err)
-	randomlySignedHash, err := randomSignFn(accounts.Account{Address: randomSigner}, voteSigningHash.Bytes())
+	// Create a vote message that should trigger vote pool hook, but master-signed votes is not enough
+	signedHash = SignHashByPK(acc2Key, voteSigningHash.Bytes())
 	assert.Nil(t, err)
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
-		Signature:         randomlySignedHash,
+		Signature:         signedHash,
 		GapNumber:         450,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 
-	// Create a vote message that should trigger vote pool hook and increment the round to 6
+	// Create a vote message that should trigger vote pool hook, and master-signed votes is enough and increment the round to 6
 	signedHash = SignHashByPK(acc3Key, voteSigningHash.Bytes())
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,

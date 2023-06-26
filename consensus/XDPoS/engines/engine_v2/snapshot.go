@@ -18,14 +18,17 @@ type SnapshotV2 struct {
 
 	// MasterNodes will get assigned on updateM1
 	NextEpochMasterNodes []common.Address `json:"masterNodes"` // Set of authorized master nodes at this moment for next epoch
+	// Penalty, subnet record it during snapshot
+	NextEpochPenalties []common.Address `json:"penalties"` // Set of master nodes to be removed from master nodes for next epoch
 }
 
 // create new snapshot for next epoch to use
-func newSnapshot(number uint64, hash common.Hash, masternodes []common.Address) *SnapshotV2 {
+func newSnapshot(number uint64, hash common.Hash, masternodes []common.Address, penalties []common.Address) *SnapshotV2 {
 	snap := &SnapshotV2{
 		Number:               number,
 		Hash:                 hash,
 		NextEpochMasterNodes: masternodes,
+		NextEpochPenalties:   penalties,
 	}
 	return snap
 }

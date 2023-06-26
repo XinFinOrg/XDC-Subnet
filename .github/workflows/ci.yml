@@ -3,7 +3,7 @@ name: PR tests
 on:
   push:
     branches:    
-      - main
+      - master
   
 jobs:
   test_on_pr:
