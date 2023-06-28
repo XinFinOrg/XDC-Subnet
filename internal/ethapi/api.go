@@ -717,7 +717,7 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 		epochNumber              rpc.EpochNumber // if epoch == "latest", print the latest epoch number to epochNumber
 		masternodes, penaltyList []common.Address
 		candidates               []utils.Masternode
-		penalties                []byte
+		penalties                []common.Address
 		err                      error
 	)
 
@@ -820,7 +820,7 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 		}
 		penalties = append(penalties, checkpointHeader.Penalties...)
 	}
-	penaltyList = common.ExtractAddressFromBytes(penalties)
+	penaltyList = penalties
 
 	// map slashing status
 	for _, pen := range penaltyList {
@@ -840,9 +840,8 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 		checkpointNumber rpc.BlockNumber
 		epochNumber      rpc.EpochNumber
 		masternodes      []common.Address
-		penaltyList      []common.Address
 		candidates       []utils.Masternode
-		penalties        []byte
+		penalties        []common.Address
 		err              error
 	)
 	result := map[string]interface{}{
@@ -935,7 +934,6 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 		result[fieldCandidates] = candidatesStatusMap
 		return result, nil
 	}
-	penaltyList = common.ExtractAddressFromBytes(penalties)
 
 	var topCandidates []utils.Masternode
 	if len(candidates) > common.MaxMasternodes {
@@ -945,7 +943,7 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 	}
 	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top 150 candidates
 	// if it's SLASHED but it's out of top 150, the status should be still PROPOSED
-	for _, pen := range penaltyList {
+	for _, pen := range penalties {
 		for _, candidate := range topCandidates {
 			if candidate.Address == pen && candidatesStatusMap[pen.String()] != nil {
 				candidatesStatusMap[pen.String()][fieldStatus] = statusSlashed
@@ -1256,7 +1254,7 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 		"validator":        hexutil.Bytes(head.Validator),
 		"validators":       head.Validators,
 		"nextValidators":   head.NextValidators,
-		"penalties":        hexutil.Bytes(head.Penalties),
+		"penalties":        head.Penalties,
 	}
 
 	if inclTx {

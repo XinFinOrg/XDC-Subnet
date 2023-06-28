@@ -122,8 +122,7 @@ func AttachConsensusV1Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			penComebacks := []common.Address{}
 			if combackEpoch > 0 {
 				combackHeader := chain.GetHeaderByNumber(combackEpoch)
-				penalties := common.ExtractAddressFromBytes(combackHeader.Penalties)
-				for _, penaltie := range penalties {
+				for _, penaltie := range combackHeader.Penalties {
 					for _, addr := range candidates {
 						if penaltie == addr {
 							penComebacks = append(penComebacks, penaltie)
