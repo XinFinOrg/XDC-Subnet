@@ -148,8 +148,7 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		if !utils.CompareSignersLists(snapshot.NextEpochMasterNodes, validatorsAddress) {
 			return utils.ErrNextEpochValidatorsNotLegit
 		}
-		penaltiesAddress := common.ExtractAddressFromBytes(header.Penalties)
-		if !utils.CompareSignersLists(snapshot.NextEpochPenalties, penaltiesAddress) {
+		if !utils.CompareSignersLists(snapshot.NextEpochPenalties, header.Penalties) {
 			return utils.ErrPenaltiesNotLegit
 		}
 

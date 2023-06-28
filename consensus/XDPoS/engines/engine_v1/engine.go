@@ -294,8 +294,7 @@ func (x *XDPoS_v1) checkSignersOnCheckpoint(chain consensus.ChainReader, header 
 		for _, address := range penPenalties {
 			log.Debug("Penalty Info", "address", address, "number", number)
 		}
-		bytePenalties := common.ExtractAddressToBytes(penPenalties)
-		if !bytes.Equal(header.Penalties, bytePenalties) {
+		if !utils.CompareSignersLists(header.Penalties, penPenalties) {
 			return utils.ErrInvalidCheckpointPenalties
 		}
 	}
@@ -751,7 +750,7 @@ func (x *XDPoS_v1) Prepare(chain consensus.ChainReader, header *types.Header) er
 				for _, address := range penMasternodes {
 					log.Debug("Penalty status", "address", address, "number", number)
 				}
-				header.Penalties = common.ExtractAddressToBytes(penMasternodes)
+				header.Penalties = penMasternodes
 			}
 		}
 		// Prevent penalized masternode(s) within 4 recent epochs
@@ -1002,8 +1001,7 @@ func removePenaltiesFromBlock(chain consensus.ChainReader, masternodes []common.
 	block := chain.GetBlock(header.Hash(), epochNumber)
 	penalties := block.Penalties()
 	if penalties != nil {
-		prevPenalties := common.ExtractAddressFromBytes(penalties)
-		masternodes = common.RemoveItemFromArray(masternodes, prevPenalties)
+		masternodes = common.RemoveItemFromArray(masternodes, penalties)
 	}
 	return masternodes
 }
