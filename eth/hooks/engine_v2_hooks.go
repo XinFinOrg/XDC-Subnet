@@ -24,8 +24,8 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 	// Subnet penalty is triggered at gap block, and stopped at previous gap block
 	adaptor.EngineV2.HookPenalty = func(chain consensus.ChainReader, number *big.Int, currentHash common.Hash, candidates []common.Address, config *params.XDPoSConfig) ([]common.Address, error) {
 		start := time.Now()
-		listBlockHash := []common.Hash{}
-		listBlockNumber := []uint64{}
+		blockHashes := []common.Hash{}
+		blockNumbers := []uint64{}
 
 		parentNumber := number.Uint64() - 1
 		parentHash := currentHash
@@ -64,10 +64,10 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			if parentNumber == stopNumber+1 {
 				prevPenalties = common.ExtractAddressFromBytes(parentHeader.Penalties)
 			}
-			listBlockHash = append(listBlockHash, parentHash)
-			listBlockNumber = append(listBlockNumber, parentNumber)
+			blockHashes = append(blockHashes, parentHash)
+			blockNumbers = append(blockNumbers, parentNumber)
 			miner := parentHeader.Coinbase // we can directly use coinbase, since it's verified
-			statMiners[miner] = statMiners[miner] + 1
+			statMiners[miner]++
 			isEpochSwitch, _, err := adaptor.EngineV2.IsEpochSwitch(parentHeader)
 			if err != nil {
 				log.Error("[HookPenalty] isEpochSwitch", "err", err)
@@ -112,12 +112,12 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			startRange = 0
 		}
 		// search signing tx, from small number to large one
-		for i := len(listBlockNumber) - 1; i >= 0; i-- {
-			blockNumber := listBlockNumber[i]
+		for i := len(blockNumbers) - 1; i >= 0; i-- {
+			blockNumber := blockNumbers[i]
 			if blockNumber < startRange {
 				continue
 			}
-			bhash := listBlockHash[i]
+			bhash := blockHashes[i]
 			if blockNumber%common.MergeSignRange == 0 {
 				mapBlockHash[bhash] = true
 			}
