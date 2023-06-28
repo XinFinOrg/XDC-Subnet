@@ -317,3 +317,14 @@ func ExtractAddressFromBytes(bytePenalties []byte) []Address {
 	}
 	return penalties
 }
+
+func CopyAddresses(addresses []Address) []Address {
+	if addresses == nil {
+		return nil
+	}
+
+	copyAddresses := make([]Address, len(addresses))
+	copy(copyAddresses, addresses)
+
+	return copyAddresses
+}

@@ -356,9 +356,7 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 			return err
 		}
 		header.NextValidators = snapshot.NextEpochMasterNodes
-		for _, v := range snapshot.NextEpochPenalties {
-			header.Penalties = append(header.Penalties, v[:]...)
-		}
+		header.Penalties = snapshot.NextEpochPenalties
 	}
 
 	// Mix digest is reserved for now, set to empty
@@ -1069,7 +1067,7 @@ func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash co
 		return []common.Address{}
 	}
 	header := chain.GetHeaderByHash(epochSwitchInfo.EpochSwitchBlockInfo.Hash)
-	return common.ExtractAddressFromBytes(header.Penalties)
+	return header.Penalties
 }
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {
