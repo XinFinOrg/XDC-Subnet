@@ -28,6 +28,30 @@ echo "Set the NAT to extip:${EXTIP}"
   params="$params --nat extip:${EXTIP}"
 fi
 
+# port
+if [[ ! -z $PORT ]]; then
+echo "Set PORT to ${PORT}"
+  params="$params --port ${PORT}"
+else
+  params="$params --port 30303"
+fi
+
+# rpcport
+if [[ ! -z $RPCPORT ]]; then
+echo "Set RPCPORT to ${RPCPORT}"
+  params="$params --rpcport ${RPCPORT}"
+else
+  params="$params --rpcport 8545"
+fi
+
+# wsport
+if [[ ! -z $WSPORT ]]; then
+echo "Set WSPORT ${WSPORT}"
+  params="$params --wsport ${WSPORT}"
+else
+  params="$params --wsport 8555"
+fi
+
 # syncmode
 if [[ ! -z $SYNC_MODE ]]; then
   echo "Set the sync mode to ${SYNC_MODE}"
@@ -86,19 +110,21 @@ fi
 # Stats server
 if [[ ! -z $STATS_SERVICE_ADDRESS ]]; then
   echo "Setting up stats server communication to ${STATS_SERVICE_ADDRESS} with name ${INSTANCE_NAME}-${wallet}"
-  statsSecret = "subnet-stats-server"
-  if [ ! -z $STATS_SECRET ]]; then
-    statsSecret = $STATS_SECRET
+  statsSecret="subnet-stats-server"
+  if [ ! -z $STATS_SECRET ]; then
+    statsSecret="${STATS_SECRET}"
   fi
   
-  statsHostName = ""
-  if [! -z $INSTANCE_NAME]; then
-    statsHostName = "${INSTANCE_NAME}-${wallet}"
+  statsHostName=""
+  if [ ! -z $INSTANCE_NAME ]; then
+    statsHostName="${INSTANCE_NAME}-${wallet}"
   else
-    statsHostName = "${wallet}"
+    statsHostName="${wallet}"
   fi
   
-  netstats="${statsHostName}:${STATS_SECRET}@${STATS_SERVICE_ADDRESS}"
+  netstats="${statsHostName}:${statsSecret}@${STATS_SERVICE_ADDRESS}"
+  echo "Sending events to stats service at ${netstats}"
+  
   params="$params --ethstats ${netstats}"
 else
   echo "STATS_SERVICE_ADDRESS not set. Skipping the stats server set up. Won't emit any messages"
@@ -111,16 +137,13 @@ echo "Starting nodes with bootnodes of: $BOOTNODES ..."
 
 XDC $params \
 --datadir $DATA_DIR \
---port 30303 \
 --rpc \
 --rpccorsdomain "*" \
 --rpcaddr 0.0.0.0 \
---rpcport 8545 \
 --rpcvhosts "*" \
 --password /work/.pwd \
 --gasprice "1" \
 --targetgaslimit "420000000" \
 --ws --wsaddr=0.0.0.0 \
---wsport 8555 \
 --mine \
 --wsorigins "*" 2>&1 >>$DATA_DIR/xdc.log | tee --append $DATA_DIR/xdc.log
