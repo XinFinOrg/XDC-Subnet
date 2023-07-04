@@ -62,7 +62,7 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			parentHeader := chain.GetHeader(parentHash, parentNumber)
 			// the prev gapPlusOne block
 			if parentNumber == stopNumber+1 {
-				prevPenalties = common.ExtractAddressFromBytes(parentHeader.Penalties)
+				prevPenalties = parentHeader.Penalties
 			}
 			blockHashes = append(blockHashes, parentHash)
 			blockNumbers = append(blockNumbers, parentNumber)
