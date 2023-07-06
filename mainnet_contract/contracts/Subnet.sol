@@ -207,6 +207,7 @@ contract Subnet {
                 parent_hash: validationParams.parentHash,
                 mix: (uint256(validationParams.number) << 129) |
                     (uint256(validationParams.roundNumber) << 65) |
+                    // init mainnet_num value to 0
                     (uint256(0) << 1)
             });
             emit SubnetBlockAccepted(block_hash, validationParams.number);
@@ -240,6 +241,7 @@ contract Subnet {
 
     function setCommittedStatus(bytes32 start_block) internal {
         while ((header_tree[start_block].mix & 1) != 1) {
+            //change mainnet_num value 0 to block.number
             header_tree[start_block].mix =
                 (uint256(
                     int256(uint256(uint64(header_tree[start_block].mix >> 129)))
