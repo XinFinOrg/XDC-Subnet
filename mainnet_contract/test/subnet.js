@@ -313,6 +313,8 @@ describe("Subnet", () => {
       const block2Hash = blockToHash(block2Encoded);
       const block3Hash = blockToHash(block3Encoded);
       const block2Resp = await subnet.getHeader(block2Hash);
+      expect(block2Resp[1]).to.eq(2);
+      expect(block2Resp[2]).to.eq(3);
       expect(block2Resp[3]).to.not.eq(0);
       const block3Resp = await subnet.getHeader(block3Hash);
       expect(block3Resp[3]).to.eq(0);
@@ -751,6 +753,8 @@ describe("Subnet", () => {
       await custom.receiveHeader([block4Encoded, block5Encoded]);
 
       const block2Resp = await custom.getHeader(block2Hash);
+      expect(block2Resp[1]).to.eq(2);
+      expect(block2Resp[2]).to.eq(2);
       expect(block2Resp[3]).to.not.eq(0);
       const block3Resp = await custom.getHeader(block3Hash);
       expect(block3Resp[3]).to.eq(0);
