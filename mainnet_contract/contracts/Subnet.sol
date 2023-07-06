@@ -241,14 +241,9 @@ contract Subnet {
 
     function setCommittedStatus(bytes32 start_block) internal {
         while ((header_tree[start_block].mix & 1) != 1) {
+            header_tree[start_block].mix |= 1;
             //change mainnet_num value 0 to block.number
-            header_tree[start_block].mix =
-                (uint256(
-                    int256(uint256(uint64(header_tree[start_block].mix >> 129)))
-                ) << 129) |
-                (uint256(uint64(header_tree[start_block].mix >> 65)) << 65) |
-                (uint256(block.number) << 1) |
-                1;
+            header_tree[start_block].mix |= block.number << 1;
             committed_blocks[
                 int256(uint256(uint64(header_tree[start_block].mix >> 129)))
             ] = start_block;
