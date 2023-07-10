@@ -320,7 +320,6 @@ describe("Subnet", () => {
       expect(block2Resp[4]).to.eq(true);
       const block3Resp = await subnet.getHeader(block3Hash);
       expect(block3Resp[3]).to.eq(-1);
-      console.log(block3Resp)
     });
   });
 
