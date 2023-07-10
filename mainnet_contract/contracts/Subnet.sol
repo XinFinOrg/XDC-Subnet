@@ -6,6 +6,7 @@ import {HeaderReader} from "./libraries/HeaderReader.sol";
 contract Subnet {
     // Compressed subnet header information stored on chain
     struct Header {
+        int256 mainnet_num;
         bytes32 parent_hash;
         uint256 mix; // padding 63 | uint64 number | uint64 round_num | uint64 mainnet_num | bool finalized
     }
@@ -63,14 +64,20 @@ contract Subnet {
         require(n == 0 && n1 == 1, "Invalid Init Block");
         header_tree[genesis_header_hash] = Header({
             parent_hash: ph,
-            mix: (uint256(n) << 129) | (uint256(block.number) << 1) | 1
+            mix: (uint256(n) << 129) |
+                //stay here
+                (uint256(block.number) << 1) |
+                1,
+            mainnet_num: int256(block.number)
         });
         header_tree[block1_header_hash] = Header({
             parent_hash: ph1,
             mix: (uint256(n1) << 129) |
                 (uint256(rn) << 65) |
+                //stay here
                 (uint256(block.number) << 1) |
-                1
+                1,
+            mainnet_num: int256(block.number)
         });
         validators[1] = Validators({
             set: initial_validator_set,
@@ -206,9 +213,8 @@ contract Subnet {
             header_tree[block_hash] = Header({
                 parent_hash: validationParams.parentHash,
                 mix: (uint256(validationParams.number) << 129) |
-                    (uint256(validationParams.roundNumber) << 65) |
-                    // init mainnet_num value to 0
-                    (uint256(0) << 1)
+                    (uint256(validationParams.roundNumber) << 65),
+                mainnet_num: int256(-1)
             });
             emit SubnetBlockAccepted(block_hash, validationParams.number);
             if (
@@ -242,8 +248,8 @@ contract Subnet {
     function setCommittedStatus(bytes32 start_block) internal {
         while ((header_tree[start_block].mix & 1) != 1) {
             header_tree[start_block].mix |= 1;
-            //change mainnet_num value 0 to block.number
-            header_tree[start_block].mix |= block.number << 1;
+            //change mainnet_num value -1 to block.number
+            header_tree[start_block].mainnet_num = int256(block.number);
             committed_blocks[
                 int256(uint256(uint64(header_tree[start_block].mix >> 129)))
             ] = start_block;
@@ -335,9 +341,7 @@ contract Subnet {
                     uint256(uint64(header_tree[block_hash].mix >> 129))
                 ),
                 round_num: uint64(header_tree[block_hash].mix >> 65),
-                mainnet_num: int256(
-                    uint256(uint64(header_tree[block_hash].mix >> 1))
-                ),
+                mainnet_num: header_tree[block_hash].mainnet_num,
                 finalized: (header_tree[block_hash].mix & 1) == 1
             });
     }
