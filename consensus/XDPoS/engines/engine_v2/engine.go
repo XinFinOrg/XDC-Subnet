@@ -227,7 +227,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 			log.Error("[initial] Error while get masternodes", "error", err)
 			return err
 		}
-		snap := newSnapshot(lastGapNum, lastGapHeader.Hash(), masternodes, nil)
+		snap := newSnapshot(lastGapNum, lastGapHeader.Hash(), masternodes, []common.Address{})
 		x.snapshots.Add(snap.Hash, snap)
 		err = storeSnapshot(snap, x.db)
 		if err != nil {
