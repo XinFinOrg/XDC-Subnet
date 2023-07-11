@@ -29,8 +29,10 @@ jobs:
         run: |
           cd mainnet_contract
           yarn
-          npx hardhat compile
-          npx hardhat test
+          yarn hardhat compile
+          yarn hardhat test
+        env:
+          
       - name: Run tests
         run: |
           make test
