@@ -3,7 +3,7 @@ name: Build and update image
 on:
   push:
     branches:
-      - test-github-ci
+      - master
   workflow_dispatch: #allow manual trigger to workflow
 
 jobs:
