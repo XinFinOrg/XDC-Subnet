@@ -2,10 +2,10 @@ name: Build and update image
 
 on:
   push:
-    branches:    
+    branches:
       - master
-  workflow_dispatch:    #allow manual trigger to workflow
-  
+  workflow_dispatch: #allow manual trigger to workflow
+
 jobs:
   test_on_pr:
     name: Test, build and push image to registry
@@ -17,31 +17,37 @@ jobs:
       run:
         working-directory: ${{ env.GOPATH }}/src/XDC-Subnet
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
-      with:
-        path: ${{ env.GOPATH }}/src/XDC-Subnet
-    - name: Set up Go 1.14.x
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.14.x' # The Go version to download (if necessary) and use.
-    - name: Run tests
-      run: |
-        make test
-      env:
-        GO111MODULE: auto
-    - name: Docker login
-      env:
-        DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
-        DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
-      run: |
-        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - name: Build and push image
-      run: |
-        docker build -t xdc-subnet -f docker/Dockerfile .
-        docker tag xdc-subnet:latest xinfinorg/xdcsubnets:latest
-        docker push xinfinorg/xdcsubnets:latest
-    
-      
-    
-    
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.GOPATH }}/src/XDC-Subnet
+      - name: Set up Go 1.14.x
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.14.x" # The Go version to download (if necessary) and use.
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'      
+      - name: Check smart contract
+        run: |
+          cd mainnet_contract
+          yarn
+          npx hardhat compile
+          npx hardhat test
+      - name: Run tests
+        run: |
+          make test
+        env:
+          GO111MODULE: auto
+      - name: Docker login
+        env:
+          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - name: Build and push image
+        run: |
+          docker build -t xdc-subnet -f docker/Dockerfile .
+          docker tag xdc-subnet:latest xinfinorg/xdcsubnets:latest
+          docker push xinfinorg/xdcsubnets:latest
