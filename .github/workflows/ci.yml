@@ -25,12 +25,16 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "1.14.x" # The Go version to download (if necessary) and use.
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'      
       - name: Check smart contract
         run: |
           cd mainnet_contract
           yarn
-          yarn hardhat compile
-          yarn hardhat test
+          npx hardhat compile
+          npx hardhat test
       - name: Run tests
         run: |
           make test
