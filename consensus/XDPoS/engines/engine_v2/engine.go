@@ -1003,6 +1003,29 @@ func (x *XDPoS_v2) GetMasternodesFromEpochSwitchHeader(epochSwitchHeader *types.
 	return masternodes
 }
 
+// func (x *XDPoS_v2) GetNodesFromEpochSwitchHeader(epochSwitchHeader *types.Header) ([]common.Address, []common.Address, []common.Address) {
+// 	if epochSwitchHeader == nil {
+// 		log.Error("[GetNodesFromSnapshot] nil epochSwitchHeader")
+// 		return []common.Address{}, []common.Address{}, []common.Address{}
+// 	}
+// 	// snapshot, err := x.getSnapshot(chain, epochSwitchHeader.Number.Uint64(), false)
+
+// 	// candidates := snapsnot.masternodes
+// 	candidates = snapshot.NextEpochMasterNodes
+// 	penalties := epochSwitchHeader.Penalties
+// 	masternodes := epochSwitchHeader.Validators
+// 	masternodes = common.RemoveItemFromArray(masternodes, penalties)
+// 	// maxMasternodes := common.MaxMasternodesV2
+// 	standbynodes := []common.Address{}
+
+// 	// if len(masternodes) > maxMasternodes {
+// 	//  standbynodes = masternodes[maxMasternodes:]
+// 	//  masternodes = masternodes[:maxMasternodes]
+// 	// }
+
+// 	return masternodes, penalties, standbynodes
+// }
+
 // Given header, get master node from the epoch switch block of that epoch
 func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
@@ -1021,6 +1044,43 @@ func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Heade
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Penalties
+}
+
+func (x *XDPoS_v2) GetNodes(chain consensus.ChainReader, header *types.Header) ([]common.Address, []common.Address, []common.Address, []common.Address) {
+	snapshot, err := x.getSnapshot(chain, header.Number.Uint64(), false)
+	if err != nil {
+		log.Error("[GetNodes] snapshot error ", "err", err)
+		return []common.Address{}, []common.Address{}, []common.Address{}, []common.Address{}
+	}
+	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		log.Error("[GetNodes] ", "get epoch switch err", err)
+		return []common.Address{}, []common.Address{}, []common.Address{}, []common.Address{}
+	}
+	candidates := snapshot.NextEpochMasterNodes
+	penalties := snapshot.NextEpochPenalties
+	penaltiesEpochSwitch := epochSwitchInfo.Penalties
+	if comparePenalties(penalties, penaltiesEpochSwitch) {
+		log.Error("[GetNodes] penalties from snapshot is not equal to penalties from epochSwitchInfo")
+		log.Error("penalties", penalties)
+		log.Error("pentaltiesEpochSwitch", penaltiesEpochSwitch)
+	}
+	masternodes := epochSwitchInfo.Masternodes
+	standbynodes := masternodes
+	standbynodes = common.RemoveItemFromArray(standbynodes, penalties)
+	return candidates, masternodes, penalties, standbynodes
+}
+
+func comparePenalties(p1 []common.Address, p2 []common.Address) bool {
+	if len(p1) != len(p2) {
+		return false
+	}
+	for i, v := range p1 {
+		if v != p2[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.

@@ -62,13 +62,17 @@ type SignerTypes struct {
 }
 
 type MasternodesStatus struct {
-	Number         uint64
-	Round          types.Round
-	MasternodesLen int
-	Masternodes    []common.Address
-	PenaltyLen     int
-	Penalty        []common.Address
-	Error          error
+	Number          uint64
+	Round           types.Round
+	CandidatesLen   int
+	Candidates      []common.Address
+	MasternodesLen  int
+	Masternodes     []common.Address
+	PenaltyLen      int
+	Penalty         []common.Address
+	StandbynodesLen int
+	Standbynodes    []common.Address
+	Error           error
 }
 
 type MessageStatus map[string]map[string]SignerTypes
@@ -152,6 +156,43 @@ func (api *API) GetMasternodesByNumber(number *rpc.BlockNumber) MasternodesStatu
 		Masternodes:    masterNodes,
 		PenaltyLen:     len(penalties),
 		Penalty:        penalties,
+	}
+	return info
+}
+
+func (api *API) GetMasternodesByNumberTest(number *rpc.BlockNumber) MasternodesStatus {
+	var header *types.Header
+	if number == nil || *number == rpc.LatestBlockNumber {
+		header = api.chain.CurrentHeader()
+	} else if *number == rpc.CommittedBlockNumber {
+		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
+		header = api.chain.GetHeaderByHash(hash)
+	} else {
+		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
+	}
+
+	round, err := api.XDPoS.EngineV2.GetRoundNumber(header)
+	if err != nil {
+		return MasternodesStatus{
+			Error: err,
+		}
+	}
+
+	// masterNodes := api.XDPoS.EngineV2.GetMasternodes(api.chain, header)
+	// penalties := api.XDPoS.EngineV2.GetPenalties(api.chain, header)
+	candidates, masternodes, penalties, standbynodes := api.XDPoS.EngineV2.GetNodes(api.chain, header)
+
+	info := MasternodesStatus{
+		Number:          header.Number.Uint64(),
+		Round:           round,
+		CandidatesLen:   len(candidates),
+		Candidates:      candidates,
+		MasternodesLen:  len(masternodes),
+		Masternodes:     masternodes,
+		PenaltyLen:      len(penalties),
+		Penalty:         penalties,
+		StandbynodesLen: len(standbynodes),
+		Standbynodes:    standbynodes,
 	}
 	return info
 }
