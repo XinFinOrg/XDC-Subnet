@@ -17,11 +17,17 @@ module.exports = {
   networks: {
     xdcdevnet: {
       url: deploy["xdcdevnet"],
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [
+        process.env.PRIVATE_KEY ||
+          "1234567890123456789012345678901234567890123456789012345678901234",
+      ],
     },
     xdcsubnet: {
       url: deploy["xdcsubnet"],
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [
+        process.env.PRIVATE_KEY ||
+          "1234567890123456789012345678901234567890123456789012345678901234",
+      ],
     },
   },
 };
