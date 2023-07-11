@@ -31,8 +31,6 @@ jobs:
           yarn
           yarn hardhat compile
           yarn hardhat test
-        env:
-          
       - name: Run tests
         run: |
           make test
