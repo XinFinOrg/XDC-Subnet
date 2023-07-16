@@ -33,8 +33,8 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 		// get the previous gap block
 		stopNumber := parentNumber + 1 - config.Epoch
 		// prevent overflow
-		if parentNumber+1 < config.Epoch {
-			stopNumber = 0
+		if parentNumber+1 <= config.Epoch {
+			stopNumber = 1
 		}
 
 		// check and wait the latest block is already in the disk
@@ -73,7 +73,8 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 				log.Error("[HookPenalty] isEpochSwitch", "err", err)
 				return []common.Address{}, err
 			}
-			if isEpochSwitch || parentNumber == stopNumber {
+			if isEpochSwitch || parentNumber <= stopNumber {
+				log.Debug("[HookPenalty]", "isEpochSwitch", isEpochSwitch, "parentNumber", parentNumber, "stopNumber", stopNumber)
 				preMasternodes := adaptor.EngineV2.GetMasternodes(chain, parentHeader)
 				for _, addr := range preMasternodes {
 					total, exist := statMiners[addr]
@@ -90,7 +91,7 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 				// clear map
 				statMiners = map[common.Address]int{}
 
-				if parentNumber == stopNumber {
+				if parentNumber <= stopNumber {
 					break
 				}
 			}

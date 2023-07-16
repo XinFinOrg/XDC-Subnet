@@ -56,8 +56,15 @@ func (x *XDPoS_v2) getEpochSwitchInfo(chain consensus.ChainReader, header *types
 			log.Error("[getEpochSwitchInfo] get extra field", "err", err, "number", h.Number.Uint64())
 			return nil, err
 		}
+
+		snap, err := x.getSnapshot(chain, h.Number.Uint64(), false)
+		if err != nil {
+			log.Error("[getEpochSwitchInfo] get snapshot error", "err", err, "number", h.Number.Uint64())
+			return nil, err
+		}
+
 		epochSwitchInfo := &types.EpochSwitchInfo{
-			Penalties:   h.Penalties,
+			Penalties:   snap.NextEpochPenalties,
 			Masternodes: masternodes,
 			EpochSwitchBlockInfo: &types.BlockInfo{
 				Hash:   hash,
