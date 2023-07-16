@@ -201,13 +201,13 @@ contract Subnet {
                     validationParams.signHash,
                     validationParams.sigs[i]
                 );
-                if (lookup[signer] != true) revert("Verification Fail");
+                if (lookup[signer] != true) revert("Verification Fail : lookup[signer] is not true");
                 signer_list[i] = signer;
             }
             (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
-            if (!is_unique) revert("Verification Fail");
+            if (!is_unique) revert("Verification Fail : is_unique is false");
             if (unique_counter < current_validators.threshold)
-                revert("Verification Fail");
+                revert("Verification Fail : unique_counter lower current_validators.threshold");
 
             // Store subnet header
             header_tree[block_hash] = Header({
