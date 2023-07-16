@@ -16,7 +16,7 @@
 package XDPoS
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"math/big"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -40,7 +40,9 @@ type V2BlockInfo struct {
 	Number     *big.Int
 	ParentHash common.Hash
 	Committed  bool
-	EncodedRLP string
+	Miner      common.Hash
+	Timestamp  *big.Int
+	HexRLP     string
 	Error      string
 }
 
@@ -207,7 +209,9 @@ func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInf
 		Number:     header.Number,
 		Round:      round,
 		Committed:  committed,
-		EncodedRLP: base64.StdEncoding.EncodeToString(encodeBytes),
+		Miner:      header.Coinbase.Hash(),
+		Timestamp:  header.Time,
+		HexRLP:     hex.EncodeToString(encodeBytes),
 	}
 	return block
 }

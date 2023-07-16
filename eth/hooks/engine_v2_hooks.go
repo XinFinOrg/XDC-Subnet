@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sort"
 	"time"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -23,13 +24,17 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 	// Subnet penalty is triggered at gap block, and stopped at previous gap block
 	adaptor.EngineV2.HookPenalty = func(chain consensus.ChainReader, number *big.Int, currentHash common.Hash, candidates []common.Address, config *params.XDPoSConfig) ([]common.Address, error) {
 		start := time.Now()
+		blockHashes := []common.Hash{}
+		blockNumbers := []uint64{}
+
 		parentNumber := number.Uint64() - 1
 		parentHash := currentHash
+		// number is usually gap block, and parentNumber = gap -1. so stop = parentNumber -Epoch +1
 		// get the previous gap block
-		stopNumber := parentNumber - config.Epoch
+		stopNumber := parentNumber + 1 - config.Epoch
 		// prevent overflow
-		if parentNumber < config.Epoch {
-			stopNumber = 0
+		if parentNumber+1 <= config.Epoch {
+			stopNumber = 1
 		}
 
 		// check and wait the latest block is already in the disk
@@ -49,24 +54,27 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 		}
 
 		penalties := []common.Address{}
+		prevPenalties := []common.Address{}
 		// get list block hash & stats total created block
-		statMiners := make(map[common.Address]int)
+		statMiners := map[common.Address]int{}
 
 		for i := uint64(1); ; i++ {
 			parentHeader := chain.GetHeader(parentHash, parentNumber)
-			miner := parentHeader.Coinbase // we can directly use coinbase, since it's verified
-			_, exist := statMiners[miner]
-			if exist {
-				statMiners[miner]++
-			} else {
-				statMiners[miner] = 1
+			// the prev gapPlusOne block
+			if parentNumber == stopNumber+1 {
+				prevPenalties = parentHeader.Penalties
 			}
+			blockHashes = append(blockHashes, parentHash)
+			blockNumbers = append(blockNumbers, parentNumber)
+			miner := parentHeader.Coinbase // we can directly use coinbase, since it's verified
+			statMiners[miner]++
 			isEpochSwitch, _, err := adaptor.EngineV2.IsEpochSwitch(parentHeader)
 			if err != nil {
 				log.Error("[HookPenalty] isEpochSwitch", "err", err)
 				return []common.Address{}, err
 			}
-			if isEpochSwitch || parentNumber == stopNumber {
+			if isEpochSwitch || parentNumber <= stopNumber {
+				log.Debug("[HookPenalty]", "isEpochSwitch", isEpochSwitch, "parentNumber", parentNumber, "stopNumber", stopNumber)
 				preMasternodes := adaptor.EngineV2.GetMasternodes(chain, parentHeader)
 				for _, addr := range preMasternodes {
 					total, exist := statMiners[addr]
@@ -81,9 +89,9 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 					}
 				}
 				// clear map
-				statMiners = make(map[common.Address]int)
-				//todo: listBlockHash
-				if parentNumber == stopNumber {
+				statMiners = map[common.Address]int{}
+
+				if parentNumber <= stopNumber {
 					break
 				}
 			}
@@ -93,15 +101,57 @@ func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConf
 			log.Debug("[HookPenalty] listBlockHash", "i", i, "parentHash", parentHash, "parentNumber", parentNumber)
 		}
 
-		mapForDedup := make(map[common.Address]struct{})
-		penaltiesDedup := []common.Address{}
-		for i, p := range penalties {
-			if _, ok := mapForDedup[p]; !ok {
-				penaltiesDedup = append(penaltiesDedup, p)
-				mapForDedup[p] = struct{}{}
-				log.Info("[HookPenalty] Final penalty list", "index", i, "addr", p)
+		// Add previous penalty
+		penalties = append(penalties, prevPenalties...)
+
+		// Loop for each block to check signing tx, tx signer can be removed from penalty
+		comebacks := map[common.Address]bool{}
+		mapBlockHash := map[common.Hash]bool{}
+		startRange := number.Uint64() - common.RangeReturnSigner + 1
+		// to prevent overflow
+		if number.Uint64() < common.RangeReturnSigner-1 {
+			startRange = 0
+		}
+		// search signing tx, from small number to large one
+		for i := len(blockNumbers) - 1; i >= 0; i-- {
+			blockNumber := blockNumbers[i]
+			if blockNumber < startRange {
+				continue
+			}
+			bhash := blockHashes[i]
+			if blockNumber%common.MergeSignRange == 0 {
+				mapBlockHash[bhash] = true
+			}
+			signData, ok := adaptor.GetCachedSigningTxs(bhash)
+			if !ok {
+				block := chain.GetBlock(bhash, blockNumber)
+				txs := block.Transactions()
+				signData = adaptor.CacheSigningTxs(bhash, txs)
+			}
+			txs := signData.([]*types.Transaction)
+			for _, tx := range txs {
+				blkHash := common.BytesToHash(tx.Data()[len(tx.Data())-32:])
+				from := *tx.From()
+				if mapBlockHash[blkHash] {
+					comebacks[from] = true
+				}
 			}
 		}
+		// dedup penalties and remove comebacks
+		mapForDedup := map[common.Address]bool{}
+		penaltiesDedup := []common.Address{}
+		for _, p := range penalties {
+			if !mapForDedup[p] && !comebacks[p] {
+				penaltiesDedup = append(penaltiesDedup, p)
+				mapForDedup[p] = true
+				log.Info("[HookPenalty] Final penalty contains", "addr", p)
+			}
+		}
+		// sort it to ensure same order for all nodes
+		sort.Slice(penaltiesDedup, func(i, j int) bool {
+			return penaltiesDedup[i].Hex() < penaltiesDedup[j].Hex()
+		})
+
 		log.Info("[HookPenalty] Time Calculated HookPenaltyV2 ", "block", number, "time", common.PrettyDuration(time.Since(start)))
 		return penaltiesDedup, nil
 	}

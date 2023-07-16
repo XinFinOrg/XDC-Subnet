@@ -85,7 +85,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	assert.Equal(t, utils.ErrInvalidFieldInNonEpochSwitch, err)
 
 	invalidPenaltiesExistBlock := blockchain.GetBlockByNumber(902).Header()
-	invalidPenaltiesExistBlock.Penalties = common.Hex2BytesFixed("123131231", 20)
+	invalidPenaltiesExistBlock.Penalties = []common.Address{{123}}
 	err = adaptor.VerifyHeader(blockchain, invalidPenaltiesExistBlock, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 
@@ -163,7 +163,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 
 	// Make the penalties not legit by adding something to the penalty
 	penaltiesNotLegit := blockchain.GetBlockByNumber(901).Header()
-	penaltiesNotLegit.Penalties = append(penaltiesNotLegit.Penalties, acc1Addr[:]...)
+	penaltiesNotLegit.Penalties = append(penaltiesNotLegit.Penalties, acc1Addr)
 	err = adaptor.VerifyHeader(blockchain, penaltiesNotLegit, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 }
