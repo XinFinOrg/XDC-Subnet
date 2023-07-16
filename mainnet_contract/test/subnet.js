@@ -242,14 +242,14 @@ describe("Subnet", () => {
     );
     const customBlock0 = { hash: block0Hash, encoded: block0Encoded };
     const customeBlock1 = { hash: block1Hash, encoded: block1Encoded };
-    const result = {
+
+    return {
       subnet,
       custom,
       customValidators,
       customBlock0,
       customeBlock1,
     };
-    return result;
   };
 
   beforeEach("deploy fixture", async () => {
@@ -313,7 +313,7 @@ describe("Subnet", () => {
       const block2Hash = blockToHash(block2Encoded);
       const block3Hash = blockToHash(block3Encoded);
       const block2Resp = await subnet.getHeader(block2Hash);
-   
+
       expect(block2Resp[1]).to.eq(2);
       expect(block2Resp[2]).to.eq(3);
       expect(block2Resp[3]).to.not.eq(-1);

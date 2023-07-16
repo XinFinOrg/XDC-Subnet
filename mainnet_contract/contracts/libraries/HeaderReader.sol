@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.19 ;
+pragma solidity =0.8.19;
 
 // HeaderReader is a helper library to read fields out of rlp-encoded blocks.
 // It is mainly consisted of Solidity-RLP(https://github.com/hamdiallam/Solidity-RLP) and
@@ -223,7 +223,7 @@ library HeaderReader {
     function toList(
         RLPItem memory item
     ) internal pure returns (RLPItem[] memory) {
-        require(isList(item));
+        require(isList(item), "item is not list");
 
         uint256 items = numItems(item);
         RLPItem[] memory result = new RLPItem[](items);
