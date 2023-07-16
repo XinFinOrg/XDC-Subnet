@@ -267,6 +267,10 @@ func (x *XDPoS_v2) YourTurn(chain consensus.ChainReader, parent *types.Header, s
 
 	waitedTime := time.Now().Unix() - parent.Time.Int64()
 	_, parentRound, _, err := x.getExtraFields(parent)
+	if err != nil {
+		log.Warn("[Yourturn] Error while getExtraFields", "parent", parent.Number, "error", err)
+	}
+
 	minePeriod := x.config.V2.Config(uint64(parentRound) + 1).MinePeriod // plus 1 means current block
 	if waitedTime < int64(minePeriod) {
 		log.Trace("[YourTurn] wait after mine period", "minePeriod", minePeriod, "waitedTime", waitedTime)
@@ -1075,7 +1079,6 @@ func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash co
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {
 	parent := chain.GetBlock(x.highestQuorumCert.ProposedBlockInfo.Hash, x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
-	fmt.Println(" x.highestQuorumCert.ProposedBlockInfo.Number.Uint64()", x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
 	if parent == nil {
 		log.Error("[FindParentBlockToAssign] Can not find parent block from highestQC proposedBlockInfo", "x.highestQuorumCert.ProposedBlockInfo.Hash", x.highestQuorumCert.ProposedBlockInfo.Hash, "x.highestQuorumCert.ProposedBlockInfo.Number", x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
 	}

@@ -83,7 +83,22 @@ func SimulateWalletAddressAndSignFn() (common.Address, func(account accounts.Acc
 	defer os.RemoveAll(dir)
 	ks := new(dir)
 	pass := "" // not used but required by API
-	a1, err := ks.NewAccount(pass)
+	var a1 accounts.Account
+
+	// Read the JSON file
+	jsonData, err := ioutil.ReadFile("./testkey.json") // currently only for v2 test
+	if err != nil {
+		a1, err = ks.NewAccount(pass)
+		if err != nil {
+			return common.Address{}, nil, fmt.Errorf(err.Error())
+		}
+	} else {
+		a1, err = ks.Import(jsonData, pass, pass)
+		if err != nil {
+			return common.Address{}, nil, fmt.Errorf(err.Error())
+		}
+	}
+
 	if err != nil {
 		return common.Address{}, nil, fmt.Errorf(err.Error())
 	}
