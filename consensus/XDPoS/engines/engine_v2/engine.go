@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -1060,13 +1061,28 @@ func (x *XDPoS_v2) GetNodes(chain consensus.ChainReader, header *types.Header) (
 	candidates := snapshot.NextEpochMasterNodes
 	penalties := snapshot.NextEpochPenalties
 	penaltiesEpochSwitch := epochSwitchInfo.Penalties
-	if comparePenalties(penalties, penaltiesEpochSwitch) {
+	snapshotJson, _ := json.Marshal(snapshot)
+	log.Error("[GetNodes] snapshot", string(snapshotJson))
+	epochSwitchInfoJson, _ := json.Marshal((epochSwitchInfo))
+	log.Error("[GetNodes] epochSwitchInfo ", string(epochSwitchInfoJson))
+	penaltiesJson, _ := json.Marshal(penalties)
+	log.Error("[GetNodes] penalties", string(penaltiesJson))
+	penaltiesEpochSwitchJson, _ := json.Marshal((penaltiesEpochSwitch))
+	log.Error("[GetNodes] penaltiesEpochSwitch", string(penaltiesEpochSwitchJson))
+	log.Error("[GetNodes] comparePenalties", strconv.FormatBool(comparePenalties(penalties, penaltiesEpochSwitch)))
+	if !comparePenalties(penalties, penaltiesEpochSwitch) {
 		log.Error("[GetNodes] penalties from snapshot is not equal to penalties from epochSwitchInfo")
-		log.Error("penalties", penalties)
-		log.Error("pentaltiesEpochSwitch", penaltiesEpochSwitch)
+		log.Error("[GetNodes] penalties", string(penaltiesJson))
+		log.Error("[GetNodes] penaltiesEpochSwitch", string(penaltiesEpochSwitchJson))
+		return []common.Address{}, []common.Address{}, []common.Address{}, []common.Address{}
 	}
 	masternodes := epochSwitchInfo.Masternodes
-	standbynodes := masternodes
+	standbynodes := candidates
+	//check length, if no standbynodes don't need further calculation
+	if len(masternodes) == len(candidates) {
+		return candidates, masternodes, penalties, []common.Address{}
+	}
+	standbynodes = common.RemoveItemFromArray(standbynodes, masternodes)
 	standbynodes = common.RemoveItemFromArray(standbynodes, penalties)
 	return candidates, masternodes, penalties, standbynodes
 }
