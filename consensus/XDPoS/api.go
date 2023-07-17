@@ -62,10 +62,10 @@ type SignerTypes struct {
 }
 
 type MasternodesStatus struct {
-	Number          uint64
-	Round           types.Round
-	CandidatesLen   int
-	Candidates      []common.Address
+	Number uint64
+	Round  types.Round
+	// CandidatesLen   int
+	// Candidates      []common.Address
 	MasternodesLen  int
 	Masternodes     []common.Address
 	PenaltyLen      int
