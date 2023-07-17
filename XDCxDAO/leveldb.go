@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -37,7 +36,6 @@ func NewBatchDatabase(datadir string, cacheLimit int) *BatchDatabase {
 func NewBatchDatabaseWithEncode(datadir string, cacheLimit int) *BatchDatabase {
 	db, err := rawdb.NewLevelDBDatabase(datadir, 128, 1024, "")
 	if err != nil {
-		fmt.Println("Can't create new DB", "error", err, "datadir", datadir)
 		log.Error("Can't create new DB", "error", err)
 		return nil
 	}

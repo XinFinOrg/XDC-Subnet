@@ -389,7 +389,6 @@ func (x *XDPoS_v2) Finalize(chain consensus.ChainReader, header *types.Header, s
 
 	isEpochSwitch, _, err := x.IsEpochSwitch(header)
 	if err != nil {
-		fmt.Println("Finalize", err)
 		log.Error("[Finalize] IsEpochSwitch bug!", "err", err)
 		return nil, err
 	}

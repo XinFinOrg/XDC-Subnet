@@ -133,7 +133,6 @@ func (x *XDPoS_v2) IsEpochSwitch(header *types.Header) (bool, uint64, error) {
 
 	quorumCert, round, _, err := x.getExtraFields(header)
 	if err != nil {
-		fmt.Println("IsEpochSwitch", err, "header", header.Extra)
 		log.Error("[IsEpochSwitch] decode header error", "err", err, "header", header, "extra", common.Bytes2Hex(header.Extra))
 		return false, 0, err
 	}
