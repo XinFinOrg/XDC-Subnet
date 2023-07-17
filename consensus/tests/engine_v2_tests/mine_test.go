@@ -229,23 +229,22 @@ func TestPrepareHappyPath(t *testing.T) {
 		Coinbase:   signer,
 	}
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(19), false)
-	err = adaptor.Prepare(blockchain, header900)
-	assert.Nil(t, err)
-
-	snap, err := adaptor.EngineV2.GetSnapshot(blockchain, currentBlock.Header())
-	fmt.Println("snap", snap)
+	snap, err := adaptor.EngineV2.GetSnapshot(blockchain, header900)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(903), false) // round 903 is this signer's turn to mine
+	err = adaptor.Prepare(blockchain, header900)
+	assert.Nil(t, err)
 
 	assert.Equal(t, snap.NextEpochMasterNodes, header900.Validators)
 
 	var decodedExtraField types.ExtraFields_v2
 	err = utils.DecodeBytesExtraFields(header900.Extra, &decodedExtraField)
 	assert.Nil(t, err)
-	assert.Equal(t, types.Round(4), decodedExtraField.Round)
-	assert.Equal(t, types.Round(0), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(903), decodedExtraField.Round)
+	assert.Equal(t, types.Round(899), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
 }
 
 // test if we have 128 candidates, then snapshot will store all of them, and when preparing (and verifying) candidates is truncated to MaxMasternodes

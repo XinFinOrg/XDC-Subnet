@@ -14,8 +14,7 @@ import (
 )
 
 func TestShouldSendVoteMsgAndCommitGrandGrandParentBlock(t *testing.T) {
-	// Block 901 is the first v2 block with round of 1
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 901, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	var extraField types.ExtraFields_v2
@@ -43,12 +42,12 @@ func TestShouldSendVoteMsgAndCommitGrandGrandParentBlock(t *testing.T) {
 	assert.Equal(t, types.Round(0), highestQC.ProposedBlockInfo.Round)
 
 	// Insert another Block, but it won't trigger commit
-	blockNum := 902
+	blockNum := 2
 	blockCoinBase := fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
-	block902 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 2, blockCoinBase, signer, signFn, nil, nil, "")
-	err = blockchain.InsertBlock(block902)
+	block2 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 2, blockCoinBase, signer, signFn, nil, nil, "")
+	err = blockchain.InsertBlock(block2)
 	assert.Nil(t, err)
-	err = engineV2.ProposedBlockHandler(blockchain, block902.Header())
+	err = engineV2.ProposedBlockHandler(blockchain, block2.Header())
 	if err != nil {
 		t.Fatal("Fail propose proposedBlock handler", err)
 	}
@@ -61,12 +60,12 @@ func TestShouldSendVoteMsgAndCommitGrandGrandParentBlock(t *testing.T) {
 	assert.Equal(t, types.Round(1), highestQC.ProposedBlockInfo.Round)
 
 	// Insert one more Block, but still won't trigger commit
-	blockNum = 903
+	blockNum = 3
 	blockCoinBase = fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
-	block903 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block902, blockNum, 3, blockCoinBase, signer, signFn, nil, nil, "")
-	err = blockchain.InsertBlock(block903)
+	block3 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block2, blockNum, 3, blockCoinBase, signer, signFn, nil, nil, "")
+	err = blockchain.InsertBlock(block3)
 	assert.Nil(t, err)
-	err = engineV2.ProposedBlockHandler(blockchain, block903.Header())
+	err = engineV2.ProposedBlockHandler(blockchain, block3.Header())
 	if err != nil {
 		t.Fatal("Fail propose proposedBlock handler", err)
 	}
@@ -80,12 +79,12 @@ func TestShouldSendVoteMsgAndCommitGrandGrandParentBlock(t *testing.T) {
 	assert.Nil(t, highestCommitBlock)
 
 	// Insert one more Block, this time will trigger commit
-	blockNum = 904
+	blockNum = 4
 	blockCoinBase = fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
-	block904 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block903, blockNum, 4, blockCoinBase, signer, signFn, nil, nil, "")
-	err = blockchain.InsertBlock(block904)
+	block4 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block3, blockNum, 4, blockCoinBase, signer, signFn, nil, nil, "")
+	err = blockchain.InsertBlock(block4)
 	assert.Nil(t, err)
-	err = engineV2.ProposedBlockHandler(blockchain, block904.Header())
+	err = engineV2.ProposedBlockHandler(blockchain, block4.Header())
 	if err != nil {
 		t.Fatal("Fail propose proposedBlock handler", err)
 	}
@@ -123,7 +122,7 @@ func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
 
 	round, _, highestQC, _, _, highestCommitBlock := engineV2.GetPropertiesFaker()
 
-	grandGrandParentBlock := blockchain.GetBlockByNumber(902)
+	grandGrandParentBlock := blockchain.GetBlockByNumber(2)
 	// Shoud trigger setNewRound
 	assert.Equal(t, types.Round(5), round)
 	assert.Equal(t, types.Round(4), highestQC.ProposedBlockInfo.Round)
