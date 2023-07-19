@@ -19,16 +19,19 @@ async function main() {
     method: "POST",
     body: JSON.stringify(block0),
     headers: { "Content-Type": "application/json" },
-    params: ["committed"],
   });
   const block1res = await fetch(deploy["xdcsubnet"], {
     method: "POST",
     body: JSON.stringify(block1),
     headers: { "Content-Type": "application/json" },
-    params: ["committed"],
   });
   const data0 = await block0res.json();
   const data1 = await block1res.json();
+
+  if (!data0["committed"] || !data0["committed"]) {
+    console.error("remote subnet node data is not committed");
+    return;
+  }
 
   const data0Encoded = "0x" + data0["result"]["HexRLP"];
   const data1Encoded = "0x" + data1["result"]["HexRLP"];
