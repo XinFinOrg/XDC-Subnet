@@ -26,8 +26,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XinFinOrg/XDC-Subnet/XDCx"
-	"github.com/XinFinOrg/XDC-Subnet/XDCxlending"
 	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 
 	XDPoSChain "github.com/XinFinOrg/XDC-Subnet"
@@ -37,7 +35,6 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/math"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
-	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 
 	"github.com/XinFinOrg/XDC-Subnet/consensus/ethash"
 	"github.com/XinFinOrg/XDC-Subnet/core"
@@ -85,7 +82,22 @@ func SimulateWalletAddressAndSignFn() (common.Address, func(account accounts.Acc
 	defer os.RemoveAll(dir)
 	ks := new(dir)
 	pass := "" // not used but required by API
-	a1, err := ks.NewAccount(pass)
+	var a1 accounts.Account
+
+	// Read the JSON file
+	jsonData, err := ioutil.ReadFile("./testkey.json") // currently only for v2 test
+	if err != nil {
+		a1, err = ks.NewAccount(pass)
+		if err != nil {
+			return common.Address{}, nil, fmt.Errorf(err.Error())
+		}
+	} else {
+		a1, err = ks.Import(jsonData, pass, pass)
+		if err != nil {
+			return common.Address{}, nil, fmt.Errorf(err.Error())
+		}
+	}
+
 	if err != nil {
 		return common.Address{}, nil, fmt.Errorf(err.Error())
 	}
@@ -109,20 +121,6 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 	genesis.MustCommit(database)
 	consensus := XDPoS.NewFaker(database, chainConfig)
 
-	// Attach mock trading and lending service
-	var DefaultConfig = XDCx.Config{
-		DataDir: "",
-	}
-	XDCXServ := XDCx.New(&DefaultConfig)
-	lendingServ := XDCxlending.New(XDCXServ)
-
-	consensus.GetXDCXService = func() utils.TradingService {
-		return XDCXServ
-	}
-	consensus.GetLendingService = func() utils.LendingService {
-		return lendingServ
-	}
-
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
 
 	backend := &SimulatedBackend{
@@ -131,6 +129,13 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 		config:     genesis.Config,
 		events:     filters.NewEventSystem(new(event.TypeMux), &filterBackend{database, blockchain}, false),
 	}
+
+	go func() {
+		for range core.CheckpointCh {
+			<-core.CheckpointCh
+		}
+	}()
+
 	blockchain.Client = backend
 	backend.rollback()
 	return backend

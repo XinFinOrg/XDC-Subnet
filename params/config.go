@@ -98,7 +98,7 @@ var (
 			SwitchRound:          0,
 			CertThreshold:        3,
 			TimeoutSyncThreshold: 2,
-			TimeoutPeriod:        4,
+			TimeoutPeriod:        10,
 			MinePeriod:           2,
 		},
 		10: {
@@ -199,7 +199,7 @@ var (
 	AllXDPoSProtocolChanges  = &ChainConfig{big.NewInt(89), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, &XDPoSConfig{Period: 0, Epoch: 30000}}
 	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}, nil}
 
-	// XDPoS config with v2 engine after block 901
+	// XDPoS config with v2 engine after block 0
 	TestXDPoSMockChainConfig = &ChainConfig{
 		big.NewInt(1337),
 		big.NewInt(0),
@@ -220,9 +220,10 @@ var (
 			FoudationWalletAddr: common.HexToAddress("0x0000000000000000000000000000000000000068"),
 			Reward:              250,
 			V2: &V2{
-				SwitchBlock:   big.NewInt(900),
-				CurrentConfig: UnitTestV2Configs[0],
-				AllConfigs:    UnitTestV2Configs,
+				SwitchBlock:      big.NewInt(0),
+				CurrentConfig:    UnitTestV2Configs[0],
+				AllConfigs:       UnitTestV2Configs,
+				SkipV2Validation: true,
 			},
 		},
 	}
@@ -312,17 +313,6 @@ type V2Config struct {
 
 func (c *XDPoSConfig) String() string {
 	return "XDPoS"
-}
-
-func (c *XDPoSConfig) BlockConsensusVersion(num *big.Int, extraByte []byte, extraCheck bool) string {
-	if extraCheck && (len(extraByte) == 0 || extraByte[0] != 2) {
-		return ConsensusEngineVersion1
-	}
-
-	if c.V2 != nil && c.V2.SwitchBlock != nil && num.Cmp(c.V2.SwitchBlock) > 0 {
-		return ConsensusEngineVersion2
-	}
-	return ConsensusEngineVersion1
 }
 
 func (v *V2) UpdateConfig(round uint64) {

@@ -288,7 +288,6 @@ func New(ctx *node.ServiceContext, config *Config, XDCXServ *XDCx.XDCX, lendingS
 		/*
 			XDPoS1.0 Specific hooks
 		*/
-		hooks.AttachConsensusV1Hooks(c, eth.blockchain, chainConfig)
 		hooks.AttachConsensusV2Hooks(c, eth.blockchain, chainConfig)
 
 		eth.txPool.IsSigner = func(address common.Address) bool {

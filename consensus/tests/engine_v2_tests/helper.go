@@ -118,7 +118,7 @@ func voteTX(gasLimit uint64, nonce uint64, addr string) (*types.Transaction, err
 	return signedTX, nil
 }
 
-func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig) *backends.SimulatedBackend {
+func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer common.Address) *backends.SimulatedBackend {
 
 	// initial helper backend
 	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
@@ -132,21 +132,22 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig) *backends.S
 	defalutCap := new(big.Int)
 	defalutCap.SetString("1000000000", 10)
 
-	for i := 1; i <= 16; i++ {
+	for i := 1; i <= 15; i++ {
 		addr := fmt.Sprintf("%02d", i)
 		candidates = append(candidates, common.StringToAddress(addr)) // StringToAddress does not exist
 		caps = append(caps, defalutCap)
 	}
 
-	acc1Cap, acc2Cap, acc3Cap, voterCap := new(big.Int), new(big.Int), new(big.Int), new(big.Int)
+	acc1Cap, acc2Cap, acc3Cap, voterCap, signerCap := new(big.Int), new(big.Int), new(big.Int), new(big.Int), new(big.Int)
 
 	acc1Cap.SetString("10000001", 10)
 	acc2Cap.SetString("10000002", 10)
 	acc3Cap.SetString("10000003", 10)
 	voterCap.SetString("1000000000", 10)
+	signerCap.SetString("1000000000", 10)
 
-	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap)
-	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr)
+	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
+	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
 	// create validator smart contract
 	validatorSCAddr, _, _, err := contractValidator.DeployXDCValidator(
 		transactOpts,
@@ -196,6 +197,7 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig) *backends.S
 		acc2Addr:  {Balance: new(big.Int).SetUint64(10000000000)},
 		acc3Addr:  {Balance: new(big.Int).SetUint64(10000000000)},
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
+		signer:    {Balance: new(big.Int).SetUint64(10000000000)},
 		common.HexToAddress(common.MasternodeVotingSMC): {Balance: new(big.Int).SetUint64(1), Code: code, Storage: storage}, // Binding the MasternodeVotingSMC with newly created 'code' for SC execution
 	}, 10000000, chainConfig)
 
@@ -376,7 +378,7 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 	if err != nil {
 		panic(fmt.Errorf("Error while creating simulated wallet for generating singer address and signer fn: %v", err))
 	}
-	backend := getCommonBackend(t, chainConfig)
+	backend := getCommonBackend(t, chainConfig, signer)
 	blockchain := backend.GetBlockChain()
 	blockchain.Client = backend
 
@@ -387,12 +389,12 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 
 	currentBlock := blockchain.Genesis()
 
+	var roundNumber int64
 	var currentForkBlock *types.Block
 
 	go func() {
 		for range core.CheckpointCh {
-			checkpointChanMsg := <-core.CheckpointCh
-			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+			<-core.CheckpointCh
 		}
 	}()
 
@@ -403,13 +405,18 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 		if int64(i) > chainConfig.XDPoS.V2.SwitchBlock.Int64() {
 			blockCoinBase = signer.Hex()
 		}
-		roundNumber := int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
+		roundNumber = int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
 		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "")
 
 		err = blockchain.InsertBlock(block)
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		if i%int(chainConfig.XDPoS.Gap) == 0 {
+			blockchain.UpdateM1()
+		}
+
 		// Produce forked block for the last numOfForkedBlocks'th blocks
 		if forkedBlockOptions != nil && forkedBlockOptions.numOfForkedBlocks != nil && i > numOfBlocks-*forkedBlockOptions.numOfForkedBlocks {
 			if currentForkBlock == nil {
@@ -449,6 +456,15 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 		currentBlock = block
 	}
 
+	quorumCert := &types.QuorumCert{
+		ProposedBlockInfo: &types.BlockInfo{
+			Hash:   currentBlock.Hash(),
+			Round:  types.Round(roundNumber),
+			Number: currentBlock.Number(),
+		},
+	}
+	engine.EngineV2.ProcessQCFaker(blockchain, quorumCert)
+
 	// Update Signer as there is no previous signer assigned
 	err = UpdateSigner(blockchain)
 	if err != nil {
@@ -466,7 +482,7 @@ func PrepareXDCTestBlockChainWithPenaltyForV2Engine(t *testing.T, numOfBlocks in
 	if err != nil {
 		t.Fatal("Error while creating simulated wallet for generating singer address and signer fn: ", err)
 	}
-	backend := getCommonBackend(t, chainConfig)
+	backend := getCommonBackend(t, chainConfig, signer)
 	blockchain := backend.GetBlockChain()
 	blockchain.Client = backend
 
@@ -477,8 +493,7 @@ func PrepareXDCTestBlockChainWithPenaltyForV2Engine(t *testing.T, numOfBlocks in
 
 	go func() {
 		for range core.CheckpointCh {
-			checkpointChanMsg := <-core.CheckpointCh
-			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+			<-core.CheckpointCh
 		}
 	}()
 
@@ -530,8 +545,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 
 	go func() {
 		for range core.CheckpointCh {
-			checkpointChanMsg := <-core.CheckpointCh
-			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+			<-core.CheckpointCh
 		}
 	}()
 
@@ -563,7 +577,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
+		merkleRoot = "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()
@@ -596,40 +610,8 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 				header.Penalties = penalties
 			}
 		}
-	} else {
-		// V1 block
-		header = &types.Header{
-			Root:       common.HexToHash(merkleRoot),
-			Number:     big.NewInt(int64(blockNumber)),
-			ParentHash: currentBlock.Hash(),
-			Coinbase:   common.HexToAddress(blockCoinBase),
-		}
-
-		// Inject the hardcoded master node list for the last v1 epoch block and all v1 epoch switch blocks (excluding genesis)
-		if big.NewInt(int64(blockNumber)).Cmp(chainConfig.XDPoS.V2.SwitchBlock) == 0 || blockNumber%int(chainConfig.XDPoS.Epoch) == 0 {
-			// reset extra
-			header.Extra = []byte{}
-			if len(header.Extra) < utils.ExtraVanity {
-				header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, utils.ExtraVanity-len(header.Extra))...)
-			}
-			header.Extra = header.Extra[:utils.ExtraVanity]
-			var masternodes []common.Address
-			// Place the test's signer address to the last
-			masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, voterAddr, signer)
-			// masternodesFromV1LastEpoch = masternodes
-			for _, masternode := range masternodes {
-				header.Extra = append(header.Extra, masternode[:]...)
-			}
-			header.Extra = append(header.Extra, make([]byte, utils.ExtraSeal)...)
-
-			// Sign all the things for v1 block use v1 sigHash function
-			sighash, err := signFn(accounts.Account{Address: signer}, blockchain.Engine().(*XDPoS.XDPoS).SigHash(header).Bytes())
-			if err != nil {
-				panic(fmt.Errorf("Error when sign last v1 block hash during test block creation"))
-			}
-			copy(header.Extra[len(header.Extra)-utils.ExtraSeal:], sighash)
-		}
 	}
+
 	block, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, chainConfig)
 	if err != nil {
 		panic(fmt.Errorf("Fail to create block in test helper, %v", err))
@@ -729,7 +711,7 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		var decodedExtraField types.ExtraFields_v2
 		err := utils.DecodeBytesExtraFields(header.Extra, &decodedExtraField)
 		if err != nil {
-			panic(fmt.Errorf("fail to seal header for v2 block"))
+			panic(fmt.Errorf("fail to seal header for v2 block, err %s", err))
 		}
 		round := decodedExtraField.Round
 		masterNodes := getMasternodesList(signer)

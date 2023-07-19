@@ -267,6 +267,10 @@ func (x *XDPoS_v2) YourTurn(chain consensus.ChainReader, parent *types.Header, s
 
 	waitedTime := time.Now().Unix() - parent.Time.Int64()
 	_, parentRound, _, err := x.getExtraFields(parent)
+	if err != nil {
+		log.Warn("[Yourturn] Error while getExtraFields", "parent", parent.Number, "error", err)
+	}
+
 	minePeriod := x.config.V2.Config(uint64(parentRound) + 1).MinePeriod // plus 1 means current block
 	if waitedTime < int64(minePeriod) {
 		log.Trace("[YourTurn] wait after mine period", "minePeriod", minePeriod, "waitedTime", waitedTime)
@@ -1022,7 +1026,7 @@ func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Heade
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
 func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, error) {
 	// using new max masterndoes
-	maxMasternodes := common.MaxMasternodesV2
+	maxMasternodes := common.MaxMasternodes
 
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {

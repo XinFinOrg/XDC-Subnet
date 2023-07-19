@@ -22,7 +22,7 @@ func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 	// Assuming we are getting block 906 which have QC pointing at block 905
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
-		Round:  types.Round(5),
+		Round:  types.Round(905),
 		Number: big.NewInt(905),
 	}
 	voteForSign := &types.VoteForSign{
@@ -31,8 +31,8 @@ func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
-	// Set round to 5
-	engineV2.SetNewRoundFaker(blockchain, types.Round(5), false)
+	// Set round to 905
+	engineV2.SetNewRoundFaker(blockchain, types.Round(905), false)
 	// Create two vote messages which will not reach vote pool threshold
 	signedHash, err := signFn(accounts.Account{Address: signer}, voteSigningHash.Bytes())
 	assert.Nil(t, err)
@@ -171,11 +171,11 @@ func TestForensicsMonitoringNotOnSameChainButHaveSameRoundQC(t *testing.T) {
 			content := &types.ForensicsContent{}
 			json.Unmarshal([]byte(forensics.ForensicsProof.Content), &content)
 			assert.False(t, content.AcrossEpoch)
-			assert.Equal(t, types.Round(13), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(913), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
 			assert.Equal(t, uint64(913), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Number.Uint64())
 			assert.Equal(t, 9, len(content.SmallerRoundInfo.HashPath))
 			assert.Equal(t, 5, len(content.SmallerRoundInfo.SignerAddresses))
-			assert.Equal(t, types.Round(13), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(913), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
 			assert.Equal(t, uint64(912), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Number.Uint64())
 			assert.Equal(t, 8, len(content.LargerRoundInfo.HashPath))
 			assert.Equal(t, 5, len(content.LargerRoundInfo.SignerAddresses))
@@ -231,11 +231,11 @@ func TestForensicsMonitoringNotOnSameChainDoNotHaveSameRoundQC(t *testing.T) {
 			json.Unmarshal([]byte(forensics.ForensicsProof.Content), &content)
 
 			assert.False(t, content.AcrossEpoch)
-			assert.Equal(t, types.Round(14), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(914), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
 			assert.Equal(t, uint64(914), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Number.Uint64())
 			assert.Equal(t, 10, len(content.SmallerRoundInfo.HashPath))
 			assert.Equal(t, 5, len(content.SmallerRoundInfo.SignerAddresses))
-			assert.Equal(t, types.Round(16), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(916), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
 			assert.Equal(t, uint64(906), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Number.Uint64())
 			assert.Equal(t, 2, len(content.LargerRoundInfo.HashPath))
 			assert.Equal(t, 2, len(content.LargerRoundInfo.SignerAddresses))
@@ -294,11 +294,11 @@ func TestForensicsAcrossEpoch(t *testing.T) {
 			idToCompare := content.DivergingBlockHash + ":" + content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Hash.Hex() + ":" + content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Hash.Hex()
 			assert.Equal(t, idToCompare, forensics.ForensicsProof.Id)
 			assert.True(t, content.AcrossEpoch)
-			assert.Equal(t, types.Round(900), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(1800), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
 			assert.Equal(t, uint64(1800), content.SmallerRoundInfo.QuorumCert.ProposedBlockInfo.Number.Uint64())
 			assert.Equal(t, 10, len(content.SmallerRoundInfo.HashPath))
 			assert.Equal(t, 5, len(content.SmallerRoundInfo.SignerAddresses))
-			assert.Equal(t, types.Round(902), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(1802), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Round)
 			assert.Equal(t, uint64(1792), content.LargerRoundInfo.QuorumCert.ProposedBlockInfo.Number.Uint64())
 			assert.Equal(t, 2, len(content.LargerRoundInfo.HashPath))
 			assert.Equal(t, 2, len(content.LargerRoundInfo.SignerAddresses))
@@ -318,12 +318,12 @@ func TestVoteEquivocationSameRound(t *testing.T) {
 	forensics := blockchain.Engine().(*XDPoS.XDPoS).EngineV2.GetForensicsFaker()
 	forensicsEventCh := make(chan types.ForensicsEvent)
 	forensics.SubscribeForensicsEvent(forensicsEventCh)
-	// Set round to 5
-	engineV2.SetNewRoundFaker(blockchain, types.Round(5), false)
+	// Set round to 905
+	engineV2.SetNewRoundFaker(blockchain, types.Round(905), false)
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
-		Round:  types.Round(5),
+		Round:  types.Round(905),
 		Number: big.NewInt(901),
 	}
 	voteForSign := &types.VoteForSign{
@@ -342,7 +342,7 @@ func TestVoteEquivocationSameRound(t *testing.T) {
 	assert.Nil(t, err)
 	blockInfo = &types.BlockInfo{
 		Hash:   currentForkBlock.Hash(),
-		Round:  types.Round(5),
+		Round:  types.Round(905),
 		Number: big.NewInt(901),
 	}
 	voteForSign = &types.VoteForSign{
@@ -366,8 +366,8 @@ func TestVoteEquivocationSameRound(t *testing.T) {
 			assert.Equal(t, "Vote", msg.ForensicsProof.ForensicsType)
 			content := &types.VoteEquivocationContent{}
 			json.Unmarshal([]byte(msg.ForensicsProof.Content), &content)
-			assert.Equal(t, types.Round(5), content.SmallerRoundVote.ProposedBlockInfo.Round)
-			assert.Equal(t, types.Round(5), content.LargerRoundVote.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(905), content.SmallerRoundVote.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(905), content.LargerRoundVote.ProposedBlockInfo.Round)
 			return
 		case <-time.After(5 * time.Second):
 			t.FailNow()
@@ -403,7 +403,7 @@ func TestVoteEquivocationDifferentRound(t *testing.T) {
 	incomingQC := decodedExtraField.QuorumCert
 	// choose just one vote from it
 	voteForSign := &types.VoteForSign{ProposedBlockInfo: incomingQC.ProposedBlockInfo, GapNumber: incomingQC.GapNumber}
-	voteForSign.ProposedBlockInfo.Round = types.Round(16)
+	voteForSign.ProposedBlockInfo.Round = types.Round(916)
 	signature := SignHashByPK(acc1Key, types.VoteSigHash(voteForSign).Bytes())
 	incomingVote := &types.Vote{ProposedBlockInfo: voteForSign.ProposedBlockInfo, Signature: signature, GapNumber: voteForSign.GapNumber}
 	// Set up forensics events trigger
@@ -420,8 +420,8 @@ func TestVoteEquivocationDifferentRound(t *testing.T) {
 			assert.Equal(t, "Vote", msg.ForensicsProof.ForensicsType)
 			content := &types.VoteEquivocationContent{}
 			json.Unmarshal([]byte(msg.ForensicsProof.Content), &content)
-			assert.Equal(t, types.Round(14), content.SmallerRoundVote.ProposedBlockInfo.Round)
-			assert.Equal(t, types.Round(16), content.LargerRoundVote.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(914), content.SmallerRoundVote.ProposedBlockInfo.Round)
+			assert.Equal(t, types.Round(916), content.LargerRoundVote.ProposedBlockInfo.Round)
 			assert.Equal(t, acc1Addr, content.Signer)
 			return
 		case <-time.After(5 * time.Second):

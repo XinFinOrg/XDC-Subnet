@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"sync"
+
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
-	"sync"
 
 	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 	"github.com/XinFinOrg/XDC-Subnet/log"

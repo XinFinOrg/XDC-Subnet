@@ -26,13 +26,13 @@ func TestYourTurnInitialV2(t *testing.T) {
 	t.Logf("Inserting block with propose at 900...")
 	blockCoinbaseA := "0xaaa0000000000000000000000000000000000900"
 	//Get from block validator error message
-	merkleRoot := "9c3a52a83fc19e3e1dfea86c4a9ac3735e23bdb4d9e5d949a54257c26bf2c5c1"
+	merkleRoot := "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(900)),
 		ParentHash: parentBlock.Hash(),
 		Coinbase:   common.HexToAddress(blockCoinbaseA),
-		Extra:      common.Hex2Bytes("d7830100018358444388676f312e31352e38856c696e757800000000000000000278c350152e15fa6ffc712a5a73d704ce73e2e103d9e17ae3ff2c6712e44e25b09ac5ee91f6c9ff065551f0dcac6f00cae11192d462db709be3758ccef312ee5eea8d7bad5374c6a652150515d744508b61c1a4deb4e4e7bf057e4e3824c11fd2569bcb77a52905cda63b5a58507910bed335e4c9d87ae0ecdfafd400"),
+		Extra:      parentBlock.Extra(),
 	}
 	block900, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, config)
 	if err != nil {
@@ -43,27 +43,23 @@ func TestYourTurnInitialV2(t *testing.T) {
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 
 	// YourTurn is called before mine first v2 block
-	b, err := adaptor.YourTurn(blockchain, block900.Header(), common.HexToAddress("xdc0278C350152e15fa6FFC712a5A73D704Ce73E2E1"))
+	b, err := adaptor.YourTurn(blockchain, block900.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003031"))
 	assert.Nil(t, err)
 	assert.False(t, b)
-	b, err = adaptor.YourTurn(blockchain, block900.Header(), common.HexToAddress("xdc03d9e17Ae3fF2c6712E44e25B09Ac5ee91f6c9ff"))
+	b, err = adaptor.YourTurn(blockchain, block900.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003132"))
 	assert.Nil(t, err)
 	// round=1, so masternode[1] has YourTurn = True
 	assert.True(t, b)
-	assert.Equal(t, adaptor.EngineV2.GetCurrentRoundFaker(), types.Round(1))
+	assert.Equal(t, adaptor.EngineV2.GetCurrentRoundFaker(), types.Round(900))
 
 	snap, err := adaptor.EngineV2.GetSnapshot(blockchain, block900.Header())
 	assert.Nil(t, err)
 	assert.NotNil(t, snap)
-	masterNodes := adaptor.EngineV1.GetMasternodesFromCheckpointHeader(block900.Header())
-	for i := 0; i < len(masterNodes); i++ {
-		assert.Equal(t, masterNodes[i].Hex(), snap.NextEpochMasterNodes[i].Hex())
-	}
 }
 
 func TestShouldMineOncePerRound(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
-	blockchain, _, block910, signer, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 910, config, nil)
+	blockchain, _, block910, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 910, config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	minePeriod := config.XDPoS.V2.CurrentConfig.MinePeriod
 
@@ -71,6 +67,23 @@ func TestShouldMineOncePerRound(t *testing.T) {
 	_, err := adaptor.Seal(blockchain, block910, nil)
 	assert.Nil(t, err)
 	time.Sleep(time.Duration(minePeriod) * time.Second)
+	merkleRoot := "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
+
+	header := &types.Header{
+		Root:       common.HexToHash(merkleRoot),
+		Number:     big.NewInt(int64(911)),
+		ParentHash: block910.Hash(),
+	}
+
+	header.Extra = generateV2Extra(911, block910, signer, signFn, nil)
+
+	block911, err := createBlockFromHeader(blockchain, header, nil, signer, signFn, blockchain.Config())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = adaptor.Seal(blockchain, block911, nil)
+	assert.Nil(t, err)
 	b, err := adaptor.YourTurn(blockchain, block910.Header(), signer)
 	assert.False(t, b)
 	assert.Equal(t, utils.ErrAlreadyMined, err)
@@ -103,7 +116,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	stateRoot := "48974afaffb7b132394fc4d55f1fea1e370f24d85d56df8907f275e17e519f1b"
+	stateRoot := "14aa8934c9fcd31dfa8eb6272448c82bba62e1fd6fd3e049e9ef9be3748c7ba4"
 	header := &types.Header{
 		Root:       common.HexToHash(stateRoot),
 		Number:     big.NewInt(int64(1350)),
@@ -157,7 +170,7 @@ func TestPrepareFail(t *testing.T) {
 	tstamp := time.Now().Unix()
 
 	notReadyToProposeHeader := &types.Header{
-		ParentHash: currentBlock.Hash(),
+		ParentHash: currentBlock.ParentHash(),
 		Number:     big.NewInt(int64(901)),
 		GasLimit:   params.TargetGasLimit,
 		Time:       big.NewInt(tstamp),
@@ -166,6 +179,8 @@ func TestPrepareFail(t *testing.T) {
 
 	err := adaptor.Prepare(blockchain, notReadyToProposeHeader)
 	assert.Equal(t, consensus.ErrNotReadyToPropose, err)
+
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(18), false)
 
 	notReadyToMine := &types.Header{
 		ParentHash: currentBlock.Hash(),
@@ -180,7 +195,7 @@ func TestPrepareFail(t *testing.T) {
 	err = adaptor.Prepare(blockchain, notReadyToMine)
 	assert.Equal(t, consensus.ErrNotReadyToMine, err)
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(4), false)
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(19), false)
 	header901WithoutCoinbase := &types.Header{
 		ParentHash: currentBlock.Hash(),
 		Number:     big.NewInt(int64(901)),
@@ -194,7 +209,7 @@ func TestPrepareFail(t *testing.T) {
 
 func TestPrepareHappyPath(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
-	blockchain, _, currentBlock, signer, _, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch), config, nil)
+	blockchain, _, currentBlock, signer, _, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch)-1, config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	// trigger initial
 	_, err := adaptor.YourTurn(blockchain, currentBlock.Header(), signer)
@@ -202,30 +217,30 @@ func TestPrepareHappyPath(t *testing.T) {
 
 	tstamp := time.Now().Unix()
 
-	header901 := &types.Header{
+	header900 := &types.Header{
 		ParentHash: currentBlock.Hash(),
-		Number:     big.NewInt(int64(901)),
+		Number:     big.NewInt(int64(900)),
 		GasLimit:   params.TargetGasLimit,
 		Time:       big.NewInt(tstamp),
 		Coinbase:   signer,
 	}
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(4), false)
-	err = adaptor.Prepare(blockchain, header901)
-	assert.Nil(t, err)
-
-	snap, err := adaptor.EngineV2.GetSnapshot(blockchain, currentBlock.Header())
+	snap, err := adaptor.EngineV2.GetSnapshot(blockchain, header900)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, snap.NextEpochMasterNodes, header901.Validators)
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(903), false) // round 903 is this signer's turn to mine
+	err = adaptor.Prepare(blockchain, header900)
+	assert.Nil(t, err)
+
+	assert.Equal(t, snap.NextEpochMasterNodes, header900.Validators)
 
 	var decodedExtraField types.ExtraFields_v2
-	err = utils.DecodeBytesExtraFields(header901.Extra, &decodedExtraField)
+	err = utils.DecodeBytesExtraFields(header900.Extra, &decodedExtraField)
 	assert.Nil(t, err)
-	assert.Equal(t, types.Round(4), decodedExtraField.Round)
-	assert.Equal(t, types.Round(0), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(903), decodedExtraField.Round)
+	assert.Equal(t, types.Round(899), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
 }
 
 // test if we have 128 candidates, then snapshot will store all of them, and when preparing (and verifying) candidates is truncated to MaxMasternodes
@@ -284,6 +299,6 @@ func TestUpdateMultipleMasterNodes(t *testing.T) {
 	adaptor.EngineV2.AuthorizeFaker(voterAddr)
 	err = adaptor.Prepare(blockchain, header1800)
 	assert.Nil(t, err)
-	assert.Equal(t, common.MaxMasternodesV2, len(header1800.Validators)) // although 128 masternode candidates, we can only pick MaxMasternodes
+	assert.Equal(t, common.MaxMasternodes, len(header1800.Validators)) // although 128 masternode candidates, we can only pick MaxMasternodes
 	assert.Equal(t, 0, len(header1800.Penalties))
 }
