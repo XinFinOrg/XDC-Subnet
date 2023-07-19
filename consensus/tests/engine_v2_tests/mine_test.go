@@ -55,10 +55,6 @@ func TestYourTurnInitialV2(t *testing.T) {
 	snap, err := adaptor.EngineV2.GetSnapshot(blockchain, block900.Header())
 	assert.Nil(t, err)
 	assert.NotNil(t, snap)
-	masterNodes := adaptor.EngineV1.GetMasternodesFromCheckpointHeader(block900.Header())
-	for i := 0; i < len(masterNodes); i++ {
-		assert.Equal(t, masterNodes[i].Hex(), snap.NextEpochMasterNodes[i].Hex())
-	}
 }
 
 func TestShouldMineOncePerRound(t *testing.T) {

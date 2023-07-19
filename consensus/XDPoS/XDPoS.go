@@ -21,7 +21,6 @@ import (
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
-	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/engines/engine_v1"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/engines/engine_v2"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 	"github.com/XinFinOrg/XDC-Subnet/event"
@@ -62,7 +61,6 @@ type XDPoS struct {
 	GetLendingService func() utils.LendingService
 
 	// The exact consensus engine with different versions
-	EngineV1 *engine_v1.XDPoS_v1
 	EngineV2 *engine_v2.XDPoS_v2
 }
 
@@ -104,7 +102,6 @@ func New(chainConfig *params.ChainConfig, db ethdb.Database) *XDPoS {
 		MinePeriodCh: minePeriodCh,
 
 		signingTxsCache: signingTxsCache,
-		EngineV1:        engine_v1.New(chainConfig, db),
 		EngineV2:        engine_v2.New(chainConfig, db, minePeriodCh),
 	}
 }
@@ -134,7 +131,6 @@ func NewFaker(db ethdb.Database, chainConfig *params.ChainConfig) *XDPoS {
 		GetLendingService: func() utils.LendingService { return nil },
 
 		signingTxsCache: signingTxsCache,
-		EngineV1:        engine_v1.NewFaker(db, chainConfig),
 		EngineV2:        engine_v2.New(chainConfig, db, minePeriodCh),
 	}
 	return fakeEngine
@@ -181,7 +177,6 @@ func (x *XDPoS) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 	abort := make(chan struct{})
 	results := make(chan error, len(headers))
 
-	// Split the headers list into v1 and v2 buckets
 	var v2headers []*types.Header
 
 	for _, header := range headers {
@@ -273,8 +268,8 @@ func (x *XDPoS) YourTurn(chain consensus.ChainReader, parent *types.Header, sign
 }
 
 func (x *XDPoS) GetValidator(creator common.Address, chain consensus.ChainReader, header *types.Header) (common.Address, error) {
-	// Default "v1", v2 does not need this function
-	return x.EngineV1.GetValidator(creator, chain, header)
+	// Legacy V1 function
+	return common.Address{}, nil
 }
 
 func (x *XDPoS) UpdateMasternodes(chain consensus.ChainReader, header *types.Header, ms []utils.Masternode) error {
@@ -282,13 +277,13 @@ func (x *XDPoS) UpdateMasternodes(chain consensus.ChainReader, header *types.Hea
 }
 
 func (x *XDPoS) RecoverSigner(header *types.Header) (common.Address, error) {
-	// Default "v1", v2 does not need this function
-	return x.EngineV1.RecoverSigner(header)
+	// Legacy V1 function
+	return common.Address{}, nil
 }
 
 func (x *XDPoS) RecoverValidator(header *types.Header) (common.Address, error) {
-	// Default "v1", v2 does not need this function
-	return x.EngineV1.RecoverValidator(header)
+	// Legacy V1 function
+	return common.Address{}, nil
 }
 
 // Get master nodes over extra data of previous checkpoint block.
@@ -320,8 +315,8 @@ func (x *XDPoS) GetSnapshot(chain consensus.ChainReader, header *types.Header) (
 }
 
 func (x *XDPoS) GetAuthorisedSignersFromSnapshot(chain consensus.ChainReader, header *types.Header) ([]common.Address, error) {
-	// Default "v1", v2 does not need this function
-	return x.EngineV1.GetAuthorisedSignersFromSnapshot(chain, header)
+	// Legacy V1 function
+	return []common.Address{}, nil
 }
 
 func (x *XDPoS) FindParentBlockToAssign(chain consensus.ChainReader, currentBlock *types.Block) *types.Block {

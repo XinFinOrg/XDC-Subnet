@@ -394,8 +394,7 @@ func PrepareXDCTestBlockChainForV2Engine(t *testing.T, numOfBlocks int, chainCon
 
 	go func() {
 		for range core.CheckpointCh {
-			checkpointChanMsg := <-core.CheckpointCh
-			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+			<-core.CheckpointCh
 		}
 	}()
 
@@ -494,8 +493,7 @@ func PrepareXDCTestBlockChainWithPenaltyForV2Engine(t *testing.T, numOfBlocks in
 
 	go func() {
 		for range core.CheckpointCh {
-			checkpointChanMsg := <-core.CheckpointCh
-			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+			<-core.CheckpointCh
 		}
 	}()
 
@@ -547,8 +545,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 
 	go func() {
 		for range core.CheckpointCh {
-			checkpointChanMsg := <-core.CheckpointCh
-			log.Info("[V2] Got a message from core CheckpointChan!", "msg", checkpointChanMsg)
+			<-core.CheckpointCh
 		}
 	}()
 
