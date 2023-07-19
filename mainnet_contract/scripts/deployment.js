@@ -28,8 +28,10 @@ async function main() {
   const data0 = await block0res.json();
   const data1 = await block1res.json();
 
-  if (!data0["committed"] || !data0["committed"]) {
-    console.error("remote subnet node block data 0 or block 1 is not committed");
+  if (!data0["result"]["committed"] || !data0["result"]["committed"]) {
+    console.error(
+      "remote subnet node block data 0 or block 1 is not committed"
+    );
     return;
   }
 
