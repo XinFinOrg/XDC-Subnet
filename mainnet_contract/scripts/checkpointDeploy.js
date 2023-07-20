@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const deploy = require("../../deployment.json");
+const deploy = require("../deployment.json");
 const fetch = require("node-fetch").default;
 
 async function main() {
@@ -47,13 +47,13 @@ async function main() {
 
   console.log("headerReader deployed to:", headerReader.address);
   // We get the contract to deploy
-  const subnetFactory = await hre.ethers.getContractFactory("Subnet", {
+  const checkpointFactory = await hre.ethers.getContractFactory("Checkpoint", {
     libraries: {
       HeaderReader: headerReader.address,
     },
   });
 
-  const subnet = await subnetFactory.deploy(
+  const checkpoint = await checkpointFactory.deploy(
     deploy["validators"],
     data0Encoded,
     data1Encoded,
@@ -61,9 +61,9 @@ async function main() {
     deploy["epoch"]
   );
 
-  await subnet.deployed();
+  await checkpoint.deployed();
 
-  console.log("subnet deployed to:", subnet.address);
+  console.log("checkpoint deployed to:", checkpoint.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

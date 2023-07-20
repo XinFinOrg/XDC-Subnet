@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.19;
 
-import {HeaderReader} from "../libraries/HeaderReader.sol";
+import {HeaderReader} from "./libraries/HeaderReader.sol";
 
 contract Subnet {
     struct HeaderInfo {

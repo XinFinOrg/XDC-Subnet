@@ -43,11 +43,11 @@ And get the deployed contract address
 Checkpoint
 
 ```
-npx hardhat run scripts/v1/deployment.js --network xdcdevnet
+npx hardhat run scripts/checkpoint.js --network xdcdevnet
 ```
 
 Periodic checkpoint
 
 ```
-npx hardhat run scripts/v2/deployment.js --network xdcdevnet
+npx hardhat run scripts/periodicCheckpoint.js --network xdcdevnet
 ```
