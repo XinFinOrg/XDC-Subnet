@@ -1003,29 +1003,6 @@ func (x *XDPoS_v2) GetMasternodesFromEpochSwitchHeader(epochSwitchHeader *types.
 	return masternodes
 }
 
-// func (x *XDPoS_v2) GetNodesFromEpochSwitchHeader(epochSwitchHeader *types.Header) ([]common.Address, []common.Address, []common.Address) {
-// 	if epochSwitchHeader == nil {
-// 		log.Error("[GetNodesFromSnapshot] nil epochSwitchHeader")
-// 		return []common.Address{}, []common.Address{}, []common.Address{}
-// 	}
-// 	// snapshot, err := x.getSnapshot(chain, epochSwitchHeader.Number.Uint64(), false)
-
-// 	// candidates := snapsnot.masternodes
-// 	candidates = snapshot.NextEpochMasterNodes
-// 	penalties := epochSwitchHeader.Penalties
-// 	masternodes := epochSwitchHeader.Validators
-// 	masternodes = common.RemoveItemFromArray(masternodes, penalties)
-// 	// maxMasternodes := common.MaxMasternodesV2
-// 	standbynodes := []common.Address{}
-
-// 	// if len(masternodes) > maxMasternodes {
-// 	//  standbynodes = masternodes[maxMasternodes:]
-// 	//  masternodes = masternodes[:maxMasternodes]
-// 	// }
-
-// 	return masternodes, penalties, standbynodes
-// }
-
 // Given header, get master node from the epoch switch block of that epoch
 func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
