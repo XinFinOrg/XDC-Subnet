@@ -40,13 +40,13 @@ This step is recommended to complete in python virtual environment because it is
 
 And get the deployed contract address
 
-Checkpoint contract v1
+Checkpoint
 
 ```
 npx hardhat run scripts/v1/deployment.js --network xdcdevnet
 ```
 
-Checkpoint contract v2
+Periodic checkpoint
 
 ```
 npx hardhat run scripts/v2/deployment.js --network xdcdevnet
