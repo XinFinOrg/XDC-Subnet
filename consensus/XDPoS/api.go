@@ -161,41 +161,6 @@ func (api *API) GetMasternodesByNumber(number *rpc.BlockNumber) MasternodesStatu
 	return info
 }
 
-func (api *API) GetMasternodesByNumberTest(number *rpc.BlockNumber) MasternodesStatus {
-	var header *types.Header
-	if number == nil || *number == rpc.LatestBlockNumber {
-		header = api.chain.CurrentHeader()
-	} else if *number == rpc.CommittedBlockNumber {
-		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
-		header = api.chain.GetHeaderByHash(hash)
-	} else {
-		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
-	}
-
-	round, err := api.XDPoS.EngineV2.GetRoundNumber(header)
-	if err != nil {
-		return MasternodesStatus{
-			Error: err,
-		}
-	}
-
-	// masterNodes := api.XDPoS.EngineV2.GetMasternodes(api.chain, header)
-	// penalties := api.XDPoS.EngineV2.GetPenalties(api.chain, header)
-	_, masternodes, penalties, standbynodes := api.XDPoS.EngineV2.GetNodes(api.chain, header)
-
-	info := MasternodesStatus{
-		Number:          header.Number.Uint64(),
-		Round:           round,
-		MasternodesLen:  len(masternodes),
-		Masternodes:     masternodes,
-		PenaltyLen:      len(penalties),
-		Penalty:         penalties,
-		StandbynodesLen: len(standbynodes),
-		Standbynodes:    standbynodes,
-	}
-	return info
-}
-
 // Get current vote pool and timeout pool content and missing messages
 func (api *API) GetLatestPoolStatus() MessageStatus {
 	header := api.chain.CurrentHeader()

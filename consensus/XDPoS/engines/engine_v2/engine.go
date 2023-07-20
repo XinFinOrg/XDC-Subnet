@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"math/big"
 	"path/filepath"
-	"strconv"
 	"sync"
 	"time"
 
@@ -1054,58 +1053,6 @@ func (x *XDPoS_v2) GetStandbynodes(chain consensus.ChainReader, header *types.He
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Standbynodes
-}
-
-func (x *XDPoS_v2) GetNodes(chain consensus.ChainReader, header *types.Header) ([]common.Address, []common.Address, []common.Address, []common.Address) {
-	snapshot, err := x.getSnapshot(chain, header.Number.Uint64(), false)
-	if err != nil {
-		log.Error("[GetNodes] snapshot error ", "err", err)
-		return []common.Address{}, []common.Address{}, []common.Address{}, []common.Address{}
-	}
-	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
-	if err != nil {
-		log.Error("[GetNodes] ", "get epoch switch err", err)
-		return []common.Address{}, []common.Address{}, []common.Address{}, []common.Address{}
-	}
-	candidates := snapshot.NextEpochMasterNodes
-	penalties := snapshot.NextEpochPenalties
-	penaltiesEpochSwitch := epochSwitchInfo.Penalties
-	snapshotJson, _ := json.Marshal(snapshot)
-	log.Error("[GetNodes] snapshot", string(snapshotJson))
-	epochSwitchInfoJson, _ := json.Marshal((epochSwitchInfo))
-	log.Error("[GetNodes] epochSwitchInfo ", string(epochSwitchInfoJson))
-	penaltiesJson, _ := json.Marshal(penalties)
-	log.Error("[GetNodes] penalties", string(penaltiesJson))
-	penaltiesEpochSwitchJson, _ := json.Marshal((penaltiesEpochSwitch))
-	log.Error("[GetNodes] penaltiesEpochSwitch", string(penaltiesEpochSwitchJson))
-	log.Error("[GetNodes] comparePenalties", strconv.FormatBool(comparePenalties(penalties, penaltiesEpochSwitch)))
-	if !comparePenalties(penalties, penaltiesEpochSwitch) {
-		log.Error("[GetNodes] penalties from snapshot is not equal to penalties from epochSwitchInfo")
-		log.Error("[GetNodes] penalties", string(penaltiesJson))
-		log.Error("[GetNodes] penaltiesEpochSwitch", string(penaltiesEpochSwitchJson))
-		return []common.Address{}, []common.Address{}, []common.Address{}, []common.Address{}
-	}
-	masternodes := epochSwitchInfo.Masternodes
-	standbynodes := candidates
-	//check length, if no standbynodes don't need further calculation
-	if len(masternodes) == len(candidates) {
-		return candidates, masternodes, penalties, []common.Address{}
-	}
-	standbynodes = common.RemoveItemFromArray(standbynodes, masternodes)
-	standbynodes = common.RemoveItemFromArray(standbynodes, penalties)
-	return candidates, masternodes, penalties, standbynodes
-}
-
-func comparePenalties(p1 []common.Address, p2 []common.Address) bool {
-	if len(p1) != len(p2) {
-		return false
-	}
-	for i, v := range p1 {
-		if v != p2[i] {
-			return false
-		}
-	}
-	return true
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
