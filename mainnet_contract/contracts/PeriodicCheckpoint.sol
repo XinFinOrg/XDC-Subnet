@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import {HeaderReader} from "./libraries/HeaderReader.sol";
 
-contract Subnet {
+contract PeriodicCheckpoint {
     struct HeaderInfo {
         int number;
         uint64 round_num;
