@@ -40,6 +40,14 @@ This step is recommended to complete in python virtual environment because it is
 
 And get the deployed contract address
 
+v1
+
 ```
-npx hardhat run scripts/deployment.js --network xdcdevnet
+npx hardhat run scripts/v1/deployment.js --network xdcdevnet
+```
+
+v2
+
+```
+npx hardhat run scripts/v2/deployment.js --network xdcdevnet
 ```
