@@ -62,10 +62,8 @@ type SignerTypes struct {
 }
 
 type MasternodesStatus struct {
-	Number uint64
-	Round  types.Round
-	// CandidatesLen   int
-	// Candidates      []common.Address
+	Number          uint64
+	Round           types.Round
 	MasternodesLen  int
 	Masternodes     []common.Address
 	PenaltyLen      int
@@ -148,14 +146,17 @@ func (api *API) GetMasternodesByNumber(number *rpc.BlockNumber) MasternodesStatu
 
 	masterNodes := api.XDPoS.EngineV2.GetMasternodes(api.chain, header)
 	penalties := api.XDPoS.EngineV2.GetPenalties(api.chain, header)
+	standbynodes := api.XDPoS.EngineV2.GetStandbynodes(api.chain, header)
 
 	info := MasternodesStatus{
-		Number:         header.Number.Uint64(),
-		Round:          round,
-		MasternodesLen: len(masterNodes),
-		Masternodes:    masterNodes,
-		PenaltyLen:     len(penalties),
-		Penalty:        penalties,
+		Number:          header.Number.Uint64(),
+		Round:           round,
+		MasternodesLen:  len(masterNodes),
+		Masternodes:     masterNodes,
+		PenaltyLen:      len(penalties),
+		Penalty:         penalties,
+		StandbynodesLen: len(standbynodes),
+		Standbynodes:    standbynodes,
 	}
 	return info
 }
@@ -180,13 +181,11 @@ func (api *API) GetMasternodesByNumberTest(number *rpc.BlockNumber) MasternodesS
 
 	// masterNodes := api.XDPoS.EngineV2.GetMasternodes(api.chain, header)
 	// penalties := api.XDPoS.EngineV2.GetPenalties(api.chain, header)
-	candidates, masternodes, penalties, standbynodes := api.XDPoS.EngineV2.GetNodes(api.chain, header)
+	_, masternodes, penalties, standbynodes := api.XDPoS.EngineV2.GetNodes(api.chain, header)
 
 	info := MasternodesStatus{
 		Number:          header.Number.Uint64(),
 		Round:           round,
-		CandidatesLen:   len(candidates),
-		Candidates:      candidates,
 		MasternodesLen:  len(masternodes),
 		Masternodes:     masternodes,
 		PenaltyLen:      len(penalties),

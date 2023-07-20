@@ -1041,10 +1041,19 @@ func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Hea
 func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
 	if err != nil {
-		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		log.Error("[GetPenalties] Adaptor v2 getEpochSwitchInfo has error", "err", err)
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Penalties
+}
+
+func (x *XDPoS_v2) GetStandbynodes(chain consensus.ChainReader, header *types.Header) []common.Address {
+	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		log.Error("[GetStandbynodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		return []common.Address{}
+	}
+	return epochSwitchInfo.Standbynodes
 }
 
 func (x *XDPoS_v2) GetNodes(chain consensus.ChainReader, header *types.Header) ([]common.Address, []common.Address, []common.Address, []common.Address) {
@@ -1147,7 +1156,7 @@ func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash co
 		return []common.Address{}
 	}
 	header := chain.GetHeaderByHash(epochSwitchInfo.EpochSwitchBlockInfo.Hash)
-	return header.Penalties
+	return header.Penalties //should we use epochSwitchInfo.penalties ?
 }
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {
