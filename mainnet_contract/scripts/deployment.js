@@ -28,8 +28,15 @@ async function main() {
   const data0 = await block0res.json();
   const data1 = await block1res.json();
 
-  const data0Encoded = "0x" + data0["result"]["HexRLP"]
-  const data1Encoded = "0x" + data1["result"]["HexRLP"]
+  if (!data0["result"]["Committed"] || !data1["result"]["Committed"]) {
+    console.error(
+      "remote subnet node block data 0 or block 1 is not committed"
+    );
+    return;
+  }
+
+  const data0Encoded = "0x" + data0["result"]["HexRLP"];
+  const data1Encoded = "0x" + data1["result"]["HexRLP"];
 
   const headerReaderFactory = await hre.ethers.getContractFactory(
     "HeaderReader"
