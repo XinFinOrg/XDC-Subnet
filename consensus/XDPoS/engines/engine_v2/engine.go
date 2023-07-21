@@ -1079,8 +1079,7 @@ func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash co
 		log.Error("[GetPreviousPenaltyByHash] Adaptor v2 getPreviousEpochSwitchInfoByHash has error, potentially bug", "err", err)
 		return []common.Address{}
 	}
-	header := chain.GetHeaderByHash(epochSwitchInfo.EpochSwitchBlockInfo.Hash)
-	return header.Penalties
+	return epochSwitchInfo.Penalties
 }
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {
