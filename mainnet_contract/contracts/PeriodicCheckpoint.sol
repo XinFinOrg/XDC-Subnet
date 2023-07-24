@@ -26,7 +26,6 @@ contract PeriodicCheckpoint {
     bytes32[] next_tree;
     mapping(address => bool) lookup;
     mapping(address => bool) unique_addr;
-    mapping(address => bool) masters;
     mapping(int => Validators) validators;
     Validators current_validators;
     bytes32 latest_current_epoch_block;
@@ -57,7 +56,6 @@ contract PeriodicCheckpoint {
         });
         current_validators = validators[1];
         setLookup(initial_validator_set);
-        masters[msg.sender] = true;
         latest_current_epoch_block = block1_header_hash;
         GAP = gap;
         EPOCH = epoch;
@@ -143,13 +141,13 @@ contract PeriodicCheckpoint {
                     validationParams.signHash,
                     validationParams.sigs[i]
                 );
-                if (lookup[signer] != true) revert("Verification Fail");
+                if (lookup[signer] != true) revert("Verification Fail : lookup[signer] != true");
                 signer_list[i] = signer;
             }
             (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
-            if (!is_unique) revert("Verification Fail");
+            if (!is_unique) revert("Verification Fail : !is_unique");
             if (unique_counter < current_validators.threshold)
-                revert("Verification Fail");
+                revert("Verification Fail : unique_counter < current_validators.threshold");
 
             if (x > 0) {
                 if (validationParams.parentHash != prev_hash)
