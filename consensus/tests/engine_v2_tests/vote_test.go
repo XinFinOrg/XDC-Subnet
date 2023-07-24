@@ -19,17 +19,17 @@ import (
 
 // VoteHandler
 func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 901, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(1),
-		Number: big.NewInt(901),
+		Number: big.NewInt(1),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
@@ -41,7 +41,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -57,7 +57,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -73,7 +73,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -88,17 +88,17 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 }
 
 func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(5),
-		Number: big.NewInt(905),
+		Number: big.NewInt(5),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
@@ -110,49 +110,48 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
-	// initialised with nil and 0 round
-	assert.Nil(t, lockQuorumCert)
-	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 	assert.Equal(t, types.Round(5), currentRound)
 	signedHash = SignHashByPK(acc1Key, voteSigningHash.Bytes())
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ = engineV2.GetPropertiesFaker()
 	// Still using the initlised value because we did not yet go to the next round
-	assert.Nil(t, lockQuorumCert)
-	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 
 	assert.Equal(t, types.Round(5), currentRound)
 
 	// Create another vote which is signed by someone not from the master node list
 
-	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn()
+	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn("")
 	assert.Nil(t, err)
 	randomlySignedHash, err := randomSignFn(accounts.Account{Address: randomSigner}, voteSigningHash.Bytes())
 	assert.Nil(t, err)
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         randomlySignedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ = engineV2.GetPropertiesFaker()
 	// Still using the initlised value because we did not yet go to the next round
-	assert.Nil(t, lockQuorumCert)
-	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 	assert.Equal(t, types.Round(5), currentRound)
 
 	// Create a vote message that should trigger vote pool hook and increment the round to 6
@@ -160,7 +159,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -172,19 +171,19 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	assert.Equal(t, highestQuorumCert.ProposedBlockInfo, voteMsg.ProposedBlockInfo)
 	// Check round has now changed from 5 to 6
 	assert.Equal(t, types.Round(6), currentRound)
-	// Should trigger ProcessQC and trying to commit from blockNum of 16's grandgrandparent which is blockNum 903 with round 3
+	// Should trigger ProcessQC and trying to commit from blockNum of 16's grandgrandparent which is blockNum 3 with round 3
 	assert.Equal(t, types.Round(3), highestCommitBlock.Round)
-	assert.Equal(t, big.NewInt(903), highestCommitBlock.Number)
+	assert.Equal(t, big.NewInt(3), highestCommitBlock.Number)
 }
 
 func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testing.T) {
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	blockInfo := &types.BlockInfo{
 		Hash:   common.HexToHash("0x1"),
 		Round:  types.Round(6),
-		Number: big.NewInt(999),
+		Number: big.NewInt(99),
 	}
 
 	// Set round to 7
@@ -192,7 +191,7 @@ func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testi
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         []byte{1},
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	// voteRound > currentRound
@@ -213,7 +212,7 @@ func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testi
 }
 
 func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 5
@@ -223,11 +222,11 @@ func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(5),
-		Number: big.NewInt(905),
+		Number: big.NewInt(5),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 	// Create two vote message which will not reach vote pool threshold
@@ -235,21 +234,21 @@ func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err := engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
 	// initialised with nil and 0 round
-	assert.Nil(t, lockQuorumCert)
-	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 
 	assert.Equal(t, types.Round(5), currentRound)
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc2Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -260,7 +259,7 @@ func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc3Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -333,22 +332,22 @@ func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
 }
 
 func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Create a new block but don't inject it into the chain yet
-	blockNum := 906
+	blockNum := 6
 	blockCoinBase := fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
 	block := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 6, blockCoinBase, signer, signFn, nil, nil, "")
 
 	blockInfo := &types.BlockInfo{
 		Hash:   block.Header().Hash(),
 		Round:  types.Round(6),
-		Number: big.NewInt(906),
+		Number: big.NewInt(6),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
@@ -358,7 +357,7 @@ func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc1Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err := engineV2.VoteHandler(blockchain, voteMsg)
@@ -367,7 +366,7 @@ func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc2Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -376,15 +375,14 @@ func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc3Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
-	// Still using the initlised value because we did not yet go to the next round
-	assert.Nil(t, lockQuorumCert)
-	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 
 	assert.Equal(t, types.Round(6), currentRound)
 
@@ -395,7 +393,7 @@ func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(voterKey, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -409,11 +407,11 @@ func TestVoteMessageShallNotThrowErrorIfBlockNotYetExist(t *testing.T) {
 	assert.Equal(t, types.Round(7), currentRound)
 	// Should trigger ProcessQC and trying to commit from blockNum of 16's grandgrandparent which is blockNum 904 with round 4
 	assert.Equal(t, types.Round(4), highestCommitBlock.Round)
-	assert.Equal(t, big.NewInt(904), highestCommitBlock.Number)
+	assert.Equal(t, big.NewInt(4), highestCommitBlock.Number)
 }
 
 func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 5
@@ -423,11 +421,11 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.ParentHash(),
 		Round:  types.Round(5),
-		Number: big.NewInt(905),
+		Number: big.NewInt(5),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 	// Create two vote message which will not reach vote pool threshold
@@ -435,21 +433,20 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err := engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
-	// initialised with nil and 0 round
-	assert.Nil(t, lockQuorumCert)
-	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
+	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 
 	assert.Equal(t, types.Round(5), currentRound)
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc2Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -460,7 +457,7 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc3Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -474,7 +471,7 @@ func TestVerifyVoteMsg(t *testing.T) {
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
-		Round:  types.Round(14),
+		Round:  types.Round(914),
 		Number: big.NewInt(915),
 	}
 	voteForSign := &types.VoteForSign{
@@ -488,13 +485,13 @@ func TestVerifyVoteMsg(t *testing.T) {
 		Signature:         []byte{1},
 		GapNumber:         450,
 	}
-	engineV2.SetNewRoundFaker(blockchain, types.Round(15), false)
+	engineV2.SetNewRoundFaker(blockchain, types.Round(915), false)
 	verified, err := engineV2.VerifyVoteMessage(blockchain, voteMsg)
 	assert.False(t, verified)
 	assert.Nil(t, err)
 
 	// Invalid vote message with wrong signature
-	engineV2.SetNewRoundFaker(blockchain, types.Round(14), false)
+	engineV2.SetNewRoundFaker(blockchain, types.Round(914), false)
 	verified, err = engineV2.VerifyVoteMessage(blockchain, voteMsg)
 	assert.False(t, verified)
 	assert.Equal(t, "Error while verifying message: invalid signature length", err.Error())
@@ -514,17 +511,17 @@ func TestVerifyVoteMsg(t *testing.T) {
 }
 
 func TestVoteMsgMissingSnapshot(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 915, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 15, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(14),
-		Number: big.NewInt(915),
+		Number: big.NewInt(15),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	signHash, _ := signFn(accounts.Account{Address: signer}, types.VoteSigHash(voteForSign).Bytes())
@@ -540,17 +537,17 @@ func TestVoteMsgMissingSnapshot(t *testing.T) {
 }
 
 func TestVoteMessageHandlerWrongGapNumber(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(5),
-		Number: big.NewInt(905),
+		Number: big.NewInt(5),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
@@ -561,14 +558,14 @@ func TestVoteMessageHandlerWrongGapNumber(t *testing.T) {
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	engineV2.VoteHandler(blockchain, voteMsg)
 	signedHash = SignHashByPK(acc1Key, voteSigningHash.Bytes())
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	engineV2.VoteHandler(blockchain, voteMsg)
 
@@ -591,17 +588,17 @@ func TestVoteMessageHandlerWrongGapNumber(t *testing.T) {
 }
 
 func TestVotePoolKeepGoodHygiene(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	blockInfo := &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(5),
-		Number: big.NewInt(905),
+		Number: big.NewInt(5),
 	}
 	voteForSign := &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
@@ -612,7 +609,7 @@ func TestVotePoolKeepGoodHygiene(t *testing.T) {
 	voteMsg := &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	engineV2.VoteHandler(blockchain, voteMsg)
 
@@ -620,11 +617,11 @@ func TestVotePoolKeepGoodHygiene(t *testing.T) {
 	blockInfo = &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(16),
-		Number: big.NewInt(906),
+		Number: big.NewInt(6),
 	}
 	voteForSign = &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash = types.VoteSigHash(voteForSign)
 
@@ -635,7 +632,7 @@ func TestVotePoolKeepGoodHygiene(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	engineV2.VoteHandler(blockchain, voteMsg)
 
@@ -643,11 +640,11 @@ func TestVotePoolKeepGoodHygiene(t *testing.T) {
 	blockInfo = &types.BlockInfo{
 		Hash:   currentBlock.Hash(),
 		Round:  types.Round(25),
-		Number: big.NewInt(907),
+		Number: big.NewInt(7),
 	}
 	voteForSign = &types.VoteForSign{
 		ProposedBlockInfo: blockInfo,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	voteSigningHash = types.VoteSigHash(voteForSign)
 
@@ -658,7 +655,7 @@ func TestVotePoolKeepGoodHygiene(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	engineV2.VoteHandler(blockchain, voteMsg)
 

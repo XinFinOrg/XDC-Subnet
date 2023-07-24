@@ -70,7 +70,7 @@ type SimulatedBackend struct {
 	config *params.ChainConfig
 }
 
-func SimulateWalletAddressAndSignFn() (common.Address, func(account accounts.Account, hash []byte) ([]byte, error), error) {
+func SimulateWalletAddressAndSignFn(path string) (common.Address, func(account accounts.Account, hash []byte) ([]byte, error), error) {
 	veryLightScryptN := 2
 	veryLightScryptP := 1
 	dir, _ := ioutil.TempDir("", "eth-SimulateWalletAddressAndSignFn-test")
@@ -85,7 +85,7 @@ func SimulateWalletAddressAndSignFn() (common.Address, func(account accounts.Acc
 	var a1 accounts.Account
 
 	// Read the JSON file
-	jsonData, err := ioutil.ReadFile("./testkey.json") // currently only for v2 test
+	jsonData, err := ioutil.ReadFile(path) // currently only for v2 test
 	if err != nil {
 		a1, err = ks.NewAccount(pass)
 		if err != nil {
@@ -121,7 +121,10 @@ func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfi
 	genesis.MustCommit(database)
 	consensus := XDPoS.NewFaker(database, chainConfig)
 
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
+	blockchain, err := core.NewBlockChain(database, nil, genesis.Config, consensus, vm.Config{})
+	if err != nil {
+		panic(err) // This cannot happen unless the simulator is wrong, fail in that case
+	}
 
 	backend := &SimulatedBackend{
 		database:   database,

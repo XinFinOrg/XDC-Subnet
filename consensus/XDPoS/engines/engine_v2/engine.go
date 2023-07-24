@@ -143,6 +143,13 @@ func (x *XDPoS_v2) UpdateParams(header *types.Header) {
 	}()
 }
 
+func (x *XDPoS_v2) UpdateSkipV2Validation(skip bool) {
+	// This is for testing and generating genesis purpose,
+	// the current generating smart contract is creating fake block
+	// but that doesn't pass verify header function
+	x.config.V2.SkipV2Validation = skip
+}
+
 /*
 	V2 Block
 
@@ -871,7 +878,7 @@ func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *
 	}
 	if gapNumber != quorumCert.GapNumber {
 		log.Error("[verifyQC] QC gap number mismatch", "epochSwitchNumber", epochSwitchNumber, "BlockNum", quorumCert.ProposedBlockInfo.Number, "BlockInfoHash", quorumCert.ProposedBlockInfo.Hash, "Gap", quorumCert.GapNumber, "GapShouldBe", gapNumber)
-		return fmt.Errorf("gap number mismatch QC Gap %d, shouldBe %d", quorumCert.GapNumber, gapNumber)
+		return fmt.Errorf("gap number mismatch QC Gap %d, should be %d", quorumCert.GapNumber, gapNumber)
 	}
 
 	return x.VerifyBlockInfo(blockChainReader, quorumCert.ProposedBlockInfo, parentHeader)
@@ -895,6 +902,7 @@ func (x *XDPoS_v2) processQC(blockChainReader consensus.ChainReader, incomingQuo
 		// Extra field contain parent information
 		proposedBlockQuorumCert, round, _, err := x.getExtraFields(proposedBlockHeader)
 		if err != nil {
+			log.Error("[processQC] get extra fields", "number", proposedBlockHeader.Number, "lengthExtra", len(proposedBlockHeader.Extra), "error", err)
 			return err
 		}
 		if x.lockQuorumCert == nil || proposedBlockQuorumCert.ProposedBlockInfo.Round > x.lockQuorumCert.ProposedBlockInfo.Round {

@@ -230,7 +230,6 @@ func (x *XDPoS_v2) OnCountdownTimeout(time time.Time, chain interface{}) error {
 	if !allow {
 		return nil
 	}
-
 	err := x.sendTimeout(chain.(consensus.ChainReader))
 	if err != nil {
 		log.Error("Error while sending out timeout message at time: ", "time", time, "err", err)

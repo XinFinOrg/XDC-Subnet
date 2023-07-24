@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
+	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
@@ -102,7 +103,7 @@ func TestShouldSendVoteMsgAndCommitGrandGrandParentBlock(t *testing.T) {
 
 func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
 	// Block 901 is the first v2 block with round of 1
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	var extraField types.ExtraFields_v2
@@ -131,7 +132,7 @@ func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
 	assert.Equal(t, types.Round(2), highestCommitBlock.Round)
 
 	// Injecting new block which have gaps in the round number (Round 7 instead of 6)
-	blockNum := 906
+	blockNum := 6
 	blockCoinBase := fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
 	block906 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 7, blockCoinBase, signer, signFn, nil, nil, "")
 	err = blockchain.InsertBlock(block906)
@@ -144,7 +145,7 @@ func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
 	voteMsg = <-engineV2.BroadcastCh
 	assert.NotNil(t, voteMsg)
 	round, _, highestQC, _, _, highestCommitBlock = engineV2.GetPropertiesFaker()
-	grandGrandParentBlock = blockchain.GetBlockByNumber(903)
+	grandGrandParentBlock = blockchain.GetBlockByNumber(3)
 
 	assert.Equal(t, types.Round(6), round)
 	assert.Equal(t, types.Round(5), highestQC.ProposedBlockInfo.Round)
@@ -153,12 +154,12 @@ func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
 	assert.Equal(t, grandGrandParentBlock.Number(), highestCommitBlock.Number)
 	assert.Equal(t, types.Round(3), highestCommitBlock.Round)
 
-	blockNum = 907
+	blockNum = 7
 	blockCoinBase = fmt.Sprintf("0x111000000000000000000000000000000%03d", blockNum)
-	block907 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block906, blockNum, 8, blockCoinBase, signer, signFn, nil, nil, "")
-	err = blockchain.InsertBlock(block907)
+	block7 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block906, blockNum, 8, blockCoinBase, signer, signFn, nil, nil, "")
+	err = blockchain.InsertBlock(block7)
 	assert.Nil(t, err)
-	err = engineV2.ProposedBlockHandler(blockchain, block907.Header())
+	err = engineV2.ProposedBlockHandler(blockchain, block7.Header())
 	if err != nil {
 		t.Fatal("Fail propose proposedBlock handler", err)
 	}
@@ -177,7 +178,7 @@ func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
 }
 
 func TestProposedBlockMessageHandlerSuccessfullyGenerateVote(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 906, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 6, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set current round to 5
@@ -207,7 +208,7 @@ func TestProposedBlockMessageHandlerSuccessfullyGenerateVote(t *testing.T) {
 // Should not set new round if proposedBlockInfo round is less than currentRound.
 // NOTE: This shall not even happen because we have `verifyQC` before being passed into ProposedBlockHandler
 func TestShouldNotSetNewRound(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 906, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 6, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set current round to 6
@@ -231,7 +232,7 @@ func TestShouldNotSetNewRound(t *testing.T) {
 }
 
 func TestShouldNotSendVoteMessageIfAlreadyVoteForThisRound(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 906, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 6, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set current round to 5
@@ -269,7 +270,7 @@ func TestShouldNotSendVoteMessageIfAlreadyVoteForThisRound(t *testing.T) {
 }
 
 func TestShouldNotSendVoteMsgIfBlockInfoRoundNotEqualCurrentRound(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 906, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 6, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set current round to 8
@@ -305,7 +306,7 @@ func TestShouldNotSendVoteMsgIfBlockNotExtendedFromAncestor(t *testing.T) {
 	// Block number 905, 906 have forks and forkedBlock is the 906th
 	var numOfForks = new(int)
 	*numOfForks = 3
-	blockchain, _, currentBlock, _, _, forkedBlock := PrepareXDCTestBlockChainForV2Engine(t, 906, params.TestXDPoSMockChainConfig, &ForkedBlockOptions{numOfForkedBlocks: numOfForks})
+	blockchain, _, currentBlock, _, _, forkedBlock := PrepareXDCTestBlockChainForV2Engine(t, 6, params.TestXDPoSMockChainConfig, &ForkedBlockOptions{numOfForkedBlocks: numOfForks})
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	var extraField types.ExtraFields_v2
@@ -340,32 +341,29 @@ func TestShouldNotSendVoteMsgIfBlockNotExtendedFromAncestor(t *testing.T) {
 	}
 }
 
-func TestShouldSendVoteMsg(t *testing.T) {
-	// Block number 15, 16 have forks and forkedBlock is the 16th
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 903, params.TestXDPoSMockChainConfig, nil)
+func TestShouldNotSendVoteMsg(t *testing.T) {
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 3, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
-	// Block 901 is first v2 block
-	for i := 901; i < 904; i++ {
-		blockHeader := blockchain.GetBlockByNumber(uint64(i)).Header()
-		err := engineV2.ProposedBlockHandler(blockchain, blockHeader)
-		if err != nil {
-			t.Fatal(err)
-		}
-		round, _, _, _, _, _ := engineV2.GetPropertiesFaker()
-		assert.Equal(t, types.Round(i-900), round)
-		vote := <-engineV2.BroadcastCh
-		assert.Equal(t, round, vote.(*types.Vote).ProposedBlockInfo.Round)
+	// Block 1 is first v2 block
+	blockHeader := blockchain.GetBlockByNumber(uint64(1)).Header()
+	err := engineV2.ProposedBlockHandler(blockchain, blockHeader)
+	if err != nil {
+		t.Fatal(err)
 	}
+	round, _, _, _, _, _ := engineV2.GetPropertiesFaker()
+	assert.Equal(t, types.Round(3), round) // return current round
+	timeout := <-engineV2.BroadcastCh      // no new vote to proceed since it's old round
+	assert.Equal(t, round, timeout.(*types.Timeout).Round)
 }
 
 func TestProposedBlockMessageHandlerNotGenerateVoteIfSignerNotInMNlist(t *testing.T) {
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 906, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 6, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
-	differentSigner, differentSignFn, err := backends.SimulateWalletAddressAndSignFn()
+	_, differentSignFn, err := backends.SimulateWalletAddressAndSignFn("")
 	assert.Nil(t, err)
 	// Let's change the address
-	engineV2.Authorize(differentSigner, differentSignFn)
+	engineV2.Authorize(common.StringToAddress("123"), differentSignFn)
 
 	// Set current round to 5
 	engineV2.SetNewRoundFaker(blockchain, types.Round(5), false)

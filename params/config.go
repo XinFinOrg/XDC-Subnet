@@ -32,9 +32,9 @@ const (
 )
 
 var (
-	XDCMainnetGenesisHash = common.HexToHash("5bf418d6b42369177de194b88779f4b132d514e5c3b2e1ef7ae55f0790d898d0") // XDC Mainnet genesis hash to enforce below configs on
-	MainnetGenesisHash    = common.HexToHash("8d13370621558f4ed0da587934473c0404729f28b0ff1d50e5fdd840457a2f17") // Mainnet genesis hash to enforce below configs on
-	TestnetGenesisHash    = common.HexToHash("f07facd6ffa6c6c7813d422eb8ff09f8840c6639b7db9d9221a4c0390d6ec161") // Testnet genesis hash to enforce below configs on
+	XDCMainnetGenesisHash = common.HexToHash("866aade66493d5d09dbb9d40beeaa9ac8dce2dd7cc2019511ac727da139a92ef") // XDC Mainnet genesis hash to enforce below configs on
+	MainnetGenesisHash    = common.HexToHash("5fa43fd0cc2caa45b362c8c43c1f14df235f27a62135ca22f75fe17b47b3c5c3") // Mainnet genesis hash to enforce below configs on
+	TestnetGenesisHash    = common.HexToHash("5fa43fd0cc2caa45b362c8c43c1f14df235f27a62135ca22f75fe17b47b3c5c3") // Testnet genesis hash to enforce below configs on
 	DevnetGenesisHash     = common.HexToHash("ab6fd3cb7d1a489e03250c7d14c2d6d819a6a528d6380b31e8410951964ef423") // Devnet genesis hash to enforce below configs on
 )
 
@@ -110,6 +110,13 @@ var (
 		},
 		899: {
 			SwitchRound:          899,
+			CertThreshold:        3,
+			TimeoutSyncThreshold: 4,
+			TimeoutPeriod:        5,
+			MinePeriod:           2,
+		},
+		910: {
+			SwitchRound:          915,
 			CertThreshold:        5,
 			TimeoutSyncThreshold: 4,
 			TimeoutPeriod:        5,

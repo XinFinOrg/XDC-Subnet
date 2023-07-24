@@ -1,7 +1,6 @@
 package engine_v2_tests
 
 import (
-	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -15,21 +14,23 @@ import (
 )
 
 func TestHookRewardV2(t *testing.T) {
-	b, err := json.Marshal(params.TestXDPoSMockChainConfig)
-	assert.Nil(t, err)
-	configString := string(b)
-
-	var config params.ChainConfig
-	err = json.Unmarshal([]byte(configString), &config)
-	assert.Nil(t, err)
-	// set switch to 1800, so that it covers 901-1799, 1800-2700 two epochs
-	config.XDPoS.V2.SwitchBlock.SetUint64(1800)
-
-	blockchain, _, _, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch)*5, &config, nil)
+	config := params.TestXDPoSMockChainConfig
+	blockchain, _, _, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch)*5, params.TestXDPoSMockChainConfig, nil)
 
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
-	hooks.AttachConsensusV2Hooks(adaptor, blockchain, &config)
+	hooks.AttachConsensusV2Hooks(adaptor, blockchain, config)
 	assert.NotNil(t, adaptor.EngineV2.HookReward)
+
+	header0 := blockchain.GetHeaderByNumber(0)
+	header1 := blockchain.GetHeaderByNumber(1)
+
+	statedb, err := blockchain.StateAt(header0.Root)
+	assert.Nil(t, err)
+	parentState := statedb.Copy()
+	reward, err := adaptor.EngineV2.HookReward(blockchain, statedb, parentState, header1)
+	assert.Nil(t, err)
+	assert.Zero(t, len(reward))
+
 	// forcely insert signing tx into cache, to give rewards.
 	header915 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch + 15)
 	header916 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch + 16)
@@ -38,12 +39,12 @@ func TestHookRewardV2(t *testing.T) {
 	tx, err := signingTxWithSignerFn(header915, 0, signer, signFn)
 	assert.Nil(t, err)
 	adaptor.CacheSigningTxs(header916.Hash(), []*types.Transaction{tx})
-	statedb, err := blockchain.StateAt(header1799.Root)
+	statedb, err = blockchain.StateAt(header1799.Root)
 	assert.Nil(t, err)
-	parentState := statedb.Copy()
-	reward, err := adaptor.EngineV2.HookReward(blockchain, statedb, parentState, header1801)
+	parentState = statedb.Copy()
+	reward, err = adaptor.EngineV2.HookReward(blockchain, statedb, parentState, header1801)
 	assert.Nil(t, err)
-	assert.Zero(t, len(reward))
+	assert.Equal(t, 2, len(reward))
 	header2699 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch*3 - 1)
 	header2700 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch * 3)
 	statedb, err = blockchain.StateAt(header2699.Root)
@@ -96,20 +97,11 @@ func TestHookRewardV2(t *testing.T) {
 }
 
 func TestHookRewardV2SplitReward(t *testing.T) {
-	b, err := json.Marshal(params.TestXDPoSMockChainConfig)
-	assert.Nil(t, err)
-	configString := string(b)
-
-	var config params.ChainConfig
-	err = json.Unmarshal([]byte(configString), &config)
-	assert.Nil(t, err)
-	// set switch to 1800, so that it covers 901-1799, 1800-2700 two epochs
-	config.XDPoS.V2.SwitchBlock.SetUint64(1800)
-
-	blockchain, _, _, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch)*3, &config, nil)
+	config := params.TestXDPoSMockChainConfig
+	blockchain, _, _, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch)*3, config, nil)
 
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
-	hooks.AttachConsensusV2Hooks(adaptor, blockchain, &config)
+	hooks.AttachConsensusV2Hooks(adaptor, blockchain, config)
 	assert.NotNil(t, adaptor.EngineV2.HookReward)
 	// forcely insert signing tx into cache, to give rewards.
 	header915 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch + 15)
@@ -132,7 +124,7 @@ func TestHookRewardV2SplitReward(t *testing.T) {
 	parentState := statedb.Copy()
 	reward, err := adaptor.EngineV2.HookReward(blockchain, statedb, parentState, header1801)
 	assert.Nil(t, err)
-	assert.Zero(t, len(reward))
+	assert.Equal(t, 2, len(reward))
 	header2699 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch*3 - 1)
 	header2700 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch * 3)
 	statedb, err = blockchain.StateAt(header2699.Root)

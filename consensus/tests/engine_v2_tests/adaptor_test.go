@@ -241,16 +241,13 @@ func TestGetCurrentEpochSwitchBlock(t *testing.T) {
 func TestGetParentBlock(t *testing.T) {
 	blockchain, _, block900, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 900, params.TestXDPoSMockChainConfig, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
-
-	// Initialise
-	err := adaptor.EngineV2.Initial(blockchain, block900.Header())
-	assert.Nil(t, err)
+	block899 := blockchain.GetBlockByNumber(899) //highest QC
 
 	// V2
 	blockNum := 901
 	blockCoinBase := "0x111000000000000000000000000000000123"
 	block901 := CreateBlock(blockchain, params.TestXDPoSMockChainConfig, block900, blockNum, 1, blockCoinBase, signer, signFn, nil, nil, "")
-	err = blockchain.InsertBlock(block901)
+	err := blockchain.InsertBlock(block901)
 	assert.Nil(t, err)
 
 	// let's inject another one, but the highestedQC has not been updated, so it shall still point to 900
@@ -260,5 +257,5 @@ func TestGetParentBlock(t *testing.T) {
 	assert.Nil(t, err)
 	block := adaptor.FindParentBlockToAssign(blockchain, block902)
 
-	assert.Equal(t, block900.Hash(), block.Hash())
+	assert.Equal(t, block899.Hash(), block.Hash())
 }
