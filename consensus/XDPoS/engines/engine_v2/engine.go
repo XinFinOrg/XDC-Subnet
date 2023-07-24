@@ -1017,10 +1017,19 @@ func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Hea
 func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
 	if err != nil {
-		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		log.Error("[GetPenalties] Adaptor v2 getEpochSwitchInfo has error", "err", err)
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Penalties
+}
+
+func (x *XDPoS_v2) GetStandbynodes(chain consensus.ChainReader, header *types.Header) []common.Address {
+	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		log.Error("[GetStandbynodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		return []common.Address{}
+	}
+	return epochSwitchInfo.Standbynodes
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
@@ -1070,8 +1079,7 @@ func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash co
 		log.Error("[GetPreviousPenaltyByHash] Adaptor v2 getPreviousEpochSwitchInfoByHash has error, potentially bug", "err", err)
 		return []common.Address{}
 	}
-	header := chain.GetHeaderByHash(epochSwitchInfo.EpochSwitchBlockInfo.Hash)
-	return header.Penalties
+	return epochSwitchInfo.Penalties
 }
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {

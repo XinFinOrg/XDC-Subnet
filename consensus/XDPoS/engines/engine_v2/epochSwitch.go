@@ -63,9 +63,18 @@ func (x *XDPoS_v2) getEpochSwitchInfo(chain consensus.ChainReader, header *types
 			return nil, err
 		}
 
+		candidates := snap.NextEpochMasterNodes
+		penalties := snap.NextEpochPenalties
+		standbynodes := []common.Address{}
+		if len(masternodes) != len(candidates) {
+			standbynodes = candidates
+			standbynodes = common.RemoveItemFromArray(standbynodes, masternodes)
+			standbynodes = common.RemoveItemFromArray(standbynodes, penalties)
+		}
 		epochSwitchInfo := &types.EpochSwitchInfo{
-			Penalties:   snap.NextEpochPenalties,
-			Masternodes: masternodes,
+			Penalties:    penalties,
+			Standbynodes: standbynodes,
+			Masternodes:  masternodes,
 			EpochSwitchBlockInfo: &types.BlockInfo{
 				Hash:   hash,
 				Number: h.Number,
