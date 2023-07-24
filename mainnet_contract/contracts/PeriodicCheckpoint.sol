@@ -259,12 +259,12 @@ contract PeriodicCheckpoint {
      * @return BlockLite struct defined above.
      */
     function getHeaderByNumber(
-        int256 number
+        uint256 number
     ) public view returns (HeaderInfo memory, bytes32) {
-        if (height_tree[uint64(uint256(number))] == 0) {
+        if (height_tree[uint64(number)] == 0) {
             return (HeaderInfo({number: 0, round_num: 0, mainnet_num: 0}), 0);
         } else {
-            bytes32 block_hash = height_tree[uint64(uint256(number))];
+            bytes32 block_hash = height_tree[uint64(number)];
             return (
                 HeaderInfo({
                     number: uint64(header_tree[block_hash] >> 128),
@@ -277,18 +277,14 @@ contract PeriodicCheckpoint {
     }
 
     function getCurrentEpochBlockByIndex(
-        int256 idx
+        uint256 idx
     ) public view returns (HeaderInfo memory) {
         if (uint256(idx) < current_tree.length) {
             return (
                 HeaderInfo({
-                    number: uint64(
-                        header_tree[current_tree[uint256(idx)]] >> 128
-                    ),
-                    round_num: uint64(
-                        header_tree[current_tree[uint256(idx)]] >> 64
-                    ),
-                    mainnet_num: uint64(header_tree[current_tree[uint256(idx)]])
+                    number: uint64(header_tree[current_tree[idx]] >> 128),
+                    round_num: uint64(header_tree[current_tree[idx]] >> 64),
+                    mainnet_num: uint64(header_tree[current_tree[idx]])
                 })
             );
         } else {
@@ -297,16 +293,14 @@ contract PeriodicCheckpoint {
     }
 
     function getNextEpochBlockByIndex(
-        int256 idx
+        uint256 idx
     ) public view returns (HeaderInfo memory) {
         if (uint256(idx) < next_tree.length) {
             return (
                 HeaderInfo({
-                    number: uint64(header_tree[next_tree[uint256(idx)]] >> 128),
-                    round_num: uint64(
-                        header_tree[next_tree[uint256(idx)]] >> 64
-                    ),
-                    mainnet_num: uint64(header_tree[next_tree[uint256(idx)]])
+                    number: uint64(header_tree[next_tree[idx]] >> 128),
+                    round_num: uint64(header_tree[next_tree[idx]] >> 64),
+                    mainnet_num: uint64(header_tree[next_tree[idx]])
                 })
             );
         } else {
