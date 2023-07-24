@@ -78,10 +78,12 @@ contract PeriodicCheckpoint {
                 .getEpoch(headers[x]);
             bytes32 block_hash = keccak256(headers[x]);
             if (x == 0) {
-                if (header_tree[block_hash] != 0) revert("Repeated Block");
-                if (current.length > 0 && next.length > 0)
+                if (header_tree[block_hash] != 0) {
+                    revert("Repeated Block");
+                }
+                if (current.length > 0 && next.length > 0) {
                     revert("Malformed Block");
-                else if (current.length > 0) {
+                } else if (current.length > 0) {
                     if (
                         validationParams.prevRoundNumber <
                         validationParams.roundNumber -
@@ -99,13 +101,19 @@ contract PeriodicCheckpoint {
                             if (
                                 validators[gap_number].set.length !=
                                 current.length
-                            ) revert("Mismatched Validators");
+                            ) {
+                                revert("Mismatched Validators");
+                            }
                             setLookup(validators[gap_number].set);
                             current_validators = validators[gap_number];
                             latest_current_epoch_block = block_hash;
                             current_tree.push(block_hash);
-                        } else revert("Missing Current Validators");
-                    } else revert("Invalid Current Block");
+                        } else {
+                            revert("Missing Current Validators");
+                        }
+                    } else {
+                        revert("Invalid Current Block");
+                    }
                 } else if (next.length > 0) {
                     if (
                         uint64(
@@ -123,7 +131,9 @@ contract PeriodicCheckpoint {
                         });
                         latest_next_epoch_block = block_hash;
                         next_tree.push(block_hash);
-                    } else revert("Invalid Next Block");
+                    } else {
+                        revert("Invalid Next Block");
+                    }
                 }
                 epoch_info =
                     (uint256(validationParams.number) << 128) |
@@ -141,22 +151,32 @@ contract PeriodicCheckpoint {
                     validationParams.signHash,
                     validationParams.sigs[i]
                 );
-                if (lookup[signer] != true) revert("Verification Fail : lookup[signer] != true");
+                if (lookup[signer] != true) {
+                    revert("Verification Fail : lookup[signer] != true");
+                }
+
                 signer_list[i] = signer;
             }
             (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
-            if (!is_unique) revert("Verification Fail : !is_unique");
-            if (unique_counter < current_validators.threshold)
-                revert("Verification Fail : unique_counter < current_validators.threshold");
+            if (!is_unique) {
+                revert("Verification Fail : !is_unique");
+            }
+            if (unique_counter < current_validators.threshold) {
+                revert(
+                    "Verification Fail : unique_counter < current_validators.threshold"
+                );
+            }
 
             if (x > 0) {
-                if (validationParams.parentHash != prev_hash)
+                if (validationParams.parentHash != prev_hash) {
                     revert("Invalid Block Sequence");
+                }
             }
             if (x < headers.length - 1) prev_hash = block_hash;
             if (x > headers.length - 3) {
-                if (validationParams.roundNumber != prev_rn + 1)
+                if (validationParams.roundNumber != prev_rn + 1) {
                     revert("Uncommitted Epoch Block");
+                }
             }
             if (x >= headers.length - 3) prev_rn = validationParams.roundNumber;
         }
