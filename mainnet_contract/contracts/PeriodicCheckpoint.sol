@@ -5,19 +5,19 @@ import {HeaderReader} from "./libraries/HeaderReader.sol";
 
 contract PeriodicCheckpoint {
     struct HeaderInfo {
-        int number;
+        uint64 number;
         uint64 round_num;
-        int mainnet_num;
+        uint64 mainnet_num;
     }
 
     struct BlockLite {
         bytes32 block_hash;
-        int number;
+        uint64 number;
     }
 
     struct Validators {
         address[] set;
-        int threshold;
+        int256 threshold;
     }
 
     mapping(bytes32 => uint256) header_tree; // padding 64 | uint64 number | uint64 round_num | uint64 mainnet_num
@@ -26,7 +26,7 @@ contract PeriodicCheckpoint {
     bytes32[] next_tree;
     mapping(address => bool) lookup;
     mapping(address => bool) unique_addr;
-    mapping(int => Validators) validators;
+    mapping(int256 => Validators) validators;
     Validators current_validators;
     bytes32 latest_current_epoch_block;
     bytes32 latest_next_epoch_block;
@@ -70,7 +70,7 @@ contract PeriodicCheckpoint {
      */
     function receiveHeader(bytes[] memory headers) public {
         require(headers.length > 3, "Invalid Sequence");
-        for (uint x = 0; x < headers.length; x++) {
+        for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
 
@@ -146,7 +146,7 @@ contract PeriodicCheckpoint {
             address[] memory signer_list = new address[](
                 validationParams.sigs.length
             );
-            for (uint i = 0; i < validationParams.sigs.length; i++) {
+            for (uint256 i = 0; i < validationParams.sigs.length; i++) {
                 address signer = recoverSigner(
                     validationParams.signHash,
                     validationParams.sigs[i]
@@ -157,7 +157,9 @@ contract PeriodicCheckpoint {
 
                 signer_list[i] = signer;
             }
-            (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
+            (bool is_unique, int256 unique_counter) = checkUniqueness(
+                signer_list
+            );
             if (!is_unique) {
                 revert("Verification Fail : !is_unique");
             }
@@ -186,20 +188,20 @@ contract PeriodicCheckpoint {
     }
 
     function setLookup(address[] memory validator_set) internal {
-        for (uint i = 0; i < current_validators.set.length; i++) {
+        for (uint256 i = 0; i < current_validators.set.length; i++) {
             lookup[current_validators.set[i]] = false;
         }
-        for (uint i = 0; i < validator_set.length; i++) {
+        for (uint256 i = 0; i < validator_set.length; i++) {
             lookup[validator_set[i]] = true;
         }
     }
 
     function checkUniqueness(
         address[] memory list
-    ) internal returns (bool is_verified, int unique_counter) {
+    ) internal returns (bool is_verified, int256 unique_counter) {
         unique_counter = 0;
         is_verified = true;
-        for (uint i = 0; i < list.length; i++) {
+        for (uint256 i = 0; i < list.length; i++) {
             if (!unique_addr[list[i]]) {
                 unique_counter++;
                 unique_addr[list[i]] = true;
@@ -207,7 +209,7 @@ contract PeriodicCheckpoint {
                 is_verified = false;
             }
         }
-        for (uint i = 0; i < list.length; i++) {
+        for (uint256 i = 0; i < list.length; i++) {
             unique_addr[list[i]] = false;
         }
     }
@@ -246,9 +248,9 @@ contract PeriodicCheckpoint {
     ) public view returns (HeaderInfo memory) {
         return
             HeaderInfo({
-                number: int256(uint256(uint64(header_tree[block_hash] >> 128))),
+                number: uint64(header_tree[block_hash] >> 128),
                 round_num: uint64(header_tree[block_hash] >> 64),
-                mainnet_num: int256(uint256(uint64(header_tree[block_hash])))
+                mainnet_num: uint64(header_tree[block_hash])
             });
     }
 
@@ -257,17 +259,17 @@ contract PeriodicCheckpoint {
      * @return BlockLite struct defined above.
      */
     function getHeaderByNumber(
-        int number
+        int256 number
     ) public view returns (HeaderInfo memory, bytes32) {
-        if (height_tree[uint64(uint(number))] == 0) {
+        if (height_tree[uint64(uint256(number))] == 0) {
             return (HeaderInfo({number: 0, round_num: 0, mainnet_num: 0}), 0);
         } else {
-            bytes32 block_hash = height_tree[uint64(uint(number))];
+            bytes32 block_hash = height_tree[uint64(uint256(number))];
             return (
                 HeaderInfo({
-                    number: int(header_tree[block_hash] >> 128),
+                    number: uint64(header_tree[block_hash] >> 128),
                     round_num: uint64(header_tree[block_hash] >> 64),
-                    mainnet_num: int(uint(uint64(header_tree[block_hash])))
+                    mainnet_num: uint64(header_tree[block_hash])
                 }),
                 block_hash
             );
@@ -275,18 +277,18 @@ contract PeriodicCheckpoint {
     }
 
     function getCurrentEpochBlockByIndex(
-        int idx
+        int256 idx
     ) public view returns (HeaderInfo memory) {
         if (uint256(idx) < current_tree.length) {
             return (
                 HeaderInfo({
-                    number: int(header_tree[current_tree[uint256(idx)]] >> 128),
+                    number: uint64(
+                        header_tree[current_tree[uint256(idx)]] >> 128
+                    ),
                     round_num: uint64(
                         header_tree[current_tree[uint256(idx)]] >> 64
                     ),
-                    mainnet_num: int(
-                        uint(uint64(header_tree[current_tree[uint256(idx)]]))
-                    )
+                    mainnet_num: uint64(header_tree[current_tree[uint256(idx)]])
                 })
             );
         } else {
@@ -295,18 +297,16 @@ contract PeriodicCheckpoint {
     }
 
     function getNextEpochBlockByIndex(
-        int idx
+        int256 idx
     ) public view returns (HeaderInfo memory) {
         if (uint256(idx) < next_tree.length) {
             return (
                 HeaderInfo({
-                    number: int(header_tree[next_tree[uint256(idx)]] >> 128),
+                    number: uint64(header_tree[next_tree[uint256(idx)]] >> 128),
                     round_num: uint64(
                         header_tree[next_tree[uint256(idx)]] >> 64
                     ),
-                    mainnet_num: int(
-                        uint(uint64(header_tree[next_tree[uint256(idx)]]))
-                    )
+                    mainnet_num: uint64(header_tree[next_tree[uint256(idx)]])
                 })
             );
         } else {
@@ -325,11 +325,11 @@ contract PeriodicCheckpoint {
         return (
             BlockLite({
                 block_hash: latest_current_epoch_block,
-                number: int(header_tree[latest_current_epoch_block] >> 128)
+                number: uint64(header_tree[latest_current_epoch_block] >> 128)
             }),
             BlockLite({
                 block_hash: latest_next_epoch_block,
-                number: int(header_tree[latest_next_epoch_block] >> 128)
+                number: uint64(header_tree[latest_next_epoch_block] >> 128)
             })
         );
     }
