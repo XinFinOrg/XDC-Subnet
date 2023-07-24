@@ -279,7 +279,7 @@ contract PeriodicCheckpoint {
     function getCurrentEpochBlockByIndex(
         uint256 idx
     ) public view returns (HeaderInfo memory) {
-        if (uint256(idx) < current_tree.length) {
+        if (idx < current_tree.length) {
             return (
                 HeaderInfo({
                     number: uint64(header_tree[current_tree[idx]] >> 128),
@@ -295,7 +295,7 @@ contract PeriodicCheckpoint {
     function getNextEpochBlockByIndex(
         uint256 idx
     ) public view returns (HeaderInfo memory) {
-        if (uint256(idx) < next_tree.length) {
+        if (idx < next_tree.length) {
             return (
                 HeaderInfo({
                     number: uint64(header_tree[next_tree[idx]] >> 128),
