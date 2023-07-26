@@ -2,6 +2,7 @@
 pragma solidity =0.8.19;
 
 import {HeaderReader} from "./libraries/HeaderReader.sol";
+import "hardhat/console.sol";
 
 contract PeriodicCheckpoint {
     struct HeaderInfo {
@@ -10,7 +11,7 @@ contract PeriodicCheckpoint {
         int64 mainnetNum;
     }
 
-    struct unCommittedHeaderInfo {
+    struct UnCommittedHeaderInfo {
         uint64 sequence;
         uint64 preRoundNum;
         uint64 lastNum;
@@ -211,9 +212,7 @@ contract PeriodicCheckpoint {
 
                 signerList[i] = signer;
             }
-            (bool isUnique, int256 uniqueCounter) = checkUniqueness(
-                signerList
-            );
+            (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
             if (!isUnique) {
                 revert("Verification Fail : !isUnique");
             }
@@ -225,12 +224,15 @@ contract PeriodicCheckpoint {
 
             if (x > 0) {
                 if (validationParams.parentHash != prevHash) {
-                    revert("Invalid Block Sequence");
+                    revert("Invalid Block Num Sequence");
                 }
             }
 
             prevHash = blockHash;
-            if (prevRoundNum != 0 && validationParams.roundNumber == prevRoundNum + 1) {
+            if (
+                prevRoundNum != 0 &&
+                validationParams.roundNumber == prevRoundNum + 1
+            ) {
                 sequence++;
             } else {
                 sequence = 0;
@@ -240,6 +242,7 @@ contract PeriodicCheckpoint {
             lastNum = uint256(validationParams.number);
         }
         if (sequence >= 3) {
+            epochInfo = clearLowest(epochInfo, 64);
             epochInfo |= block.number;
         } else {
             unCommittedTree[epochHash] =
@@ -251,6 +254,55 @@ contract PeriodicCheckpoint {
         headerTree[epochHash] = epochInfo;
         heightTree[uint64(epochInfo >> 128)] = epochHash;
         emit SubnetEpochBlockAccepted(epochHash, uint64(epochInfo >> 128));
+    }
+
+    function replenishHeader(
+        bytes32 unCommittedEpochHash,
+        bytes[] memory headers
+    ) external {
+        UnCommittedHeaderInfo memory uc = getUnCommittedHeader(
+            unCommittedEpochHash
+        );
+        uint256 sequence = uc.sequence;
+        uint256 prevRoundNum = uc.preRoundNum;
+        uint256 lastNum = uc.lastNum;
+        for (uint256 x = 0; x < headers.length; x++) {
+            HeaderReader.ValidationParams memory validationParams = HeaderReader
+                .getValidationParams(headers[x]);
+            if (uint256(validationParams.number) != lastNum + 1) {
+                revert("Invalid Block Num Sequence");
+            }
+            if (validationParams.roundNumber == prevRoundNum + 1) {
+                sequence++;
+            } else {
+                sequence = 0;
+            }
+
+            prevRoundNum = validationParams.roundNumber;
+            lastNum = uint256(validationParams.number);
+        }
+
+        if (sequence >= 3) {
+            headerTree[unCommittedEpochHash] = clearLowest(
+                headerTree[unCommittedEpochHash],
+                64
+            );
+            headerTree[unCommittedEpochHash] |= block.number;
+            unCommittedTree[unCommittedEpochHash] = 0;
+        } else {
+            unCommittedTree[unCommittedEpochHash] =
+                (sequence << 128) |
+                (uint256(prevRoundNum) << 64) |
+                lastNum;
+        }
+    }
+
+    function clearLowest(
+        uint256 epochInfo,
+        uint256 offset
+    ) public pure returns (uint256) {
+        uint256 mask = ~uint256((1 << offset) - 1);
+        return epochInfo & mask;
     }
 
     function setLookup(address[] memory validatorSet) internal {
@@ -307,9 +359,9 @@ contract PeriodicCheckpoint {
 
     function getUnCommittedHeader(
         bytes32 blockHash
-    ) public view returns (unCommittedHeaderInfo memory) {
+    ) public view returns (UnCommittedHeaderInfo memory) {
         return
-            unCommittedHeaderInfo({
+            UnCommittedHeaderInfo({
                 sequence: uint64(unCommittedTree[blockHash] >> 128),
                 preRoundNum: uint64(unCommittedTree[blockHash] >> 64),
                 lastNum: uint64(unCommittedTree[blockHash])
