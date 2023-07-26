@@ -69,7 +69,6 @@ contract PeriodicCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] memory headers) public {
-        require(headers.length > 3, "Invalid Sequence");
         for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
@@ -175,12 +174,13 @@ contract PeriodicCheckpoint {
                 }
             }
             if (x < headers.length - 1) prev_hash = block_hash;
-            if (x > headers.length - 3) {
+            if (headers.length > 3 && x > headers.length - 3) {
                 if (validationParams.roundNumber != prev_rn + 1) {
                     revert("Uncommitted Epoch Block");
                 }
             }
-            if (x >= headers.length - 3) prev_rn = validationParams.roundNumber;
+            if (headers.length > 3 && x >= headers.length - 3)
+                prev_rn = validationParams.roundNumber;
         }
         header_tree[epoch_hash] = epoch_info;
         height_tree[uint64(epoch_info >> 128)] = epoch_hash;
