@@ -61,6 +61,51 @@ contract PeriodicCheckpoint {
         EPOCH = epoch;
     }
 
+    function checkCanBeSavedHeaders(
+        bytes[] calldata headers
+    ) external view returns (bool[] memory) {
+        bool[] memory result = new bool[](headers.length);
+        for (uint256 i = 0; i < headers.length; i++) {
+            result[i] = checkCanBeSavedHeader(headers[i]);
+        }
+        return result;
+    }
+
+    function checkCanBeSavedHeader(
+        bytes calldata header
+    ) public view returns (bool) {
+        HeaderReader.ValidationParams memory validationParams = HeaderReader
+            .getValidationParams(header);
+
+        (address[] memory current, address[] memory next) = HeaderReader
+            .getEpoch(header);
+        bytes32 block_hash = keccak256(header);
+        if (header_tree[block_hash] != 0) {
+            return false;
+        }
+        if (current.length > 0 && next.length > 0) {
+            return false;
+        }
+
+        if (
+            current.length > 0 &&
+            validationParams.prevRoundNumber <
+            validationParams.roundNumber -
+                (validationParams.roundNumber % EPOCH)
+        ) {
+            return true;
+        }
+
+        if (
+            next.length > 0 &&
+            uint64(uint256(validationParams.number % int256(uint256(EPOCH)))) ==
+            EPOCH - GAP + 1
+        ) {
+            return true;
+        }
+        return false;
+    }
+
     /*
      * @description core function in the contract, it can be summarized into three steps:
      * 1. Verify subnet header meta information
