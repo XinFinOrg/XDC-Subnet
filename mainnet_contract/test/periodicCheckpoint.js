@@ -47,6 +47,10 @@ describe("periodic checkpoint", () => {
       const block2Hash = blockToHash(block451Encoded);
       const block2Resp = await periodicCheckpoint.getHeader(block2Hash);
       console.log(block2Resp);
+      const unBlock2Resp = await periodicCheckpoint.getUnCommittedHeader(
+        block2Hash
+      );
+      console.log(unBlock2Resp);
     });
   });
 });

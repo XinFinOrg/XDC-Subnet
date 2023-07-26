@@ -6,12 +6,18 @@ import {HeaderReader} from "./libraries/HeaderReader.sol";
 contract PeriodicCheckpoint {
     struct HeaderInfo {
         uint64 number;
-        uint64 round_num;
-        int64 mainnet_num;
+        uint64 roundNum;
+        int64 mainnetNum;
+    }
+
+    struct unCommittedHeaderInfo {
+        uint64 sequence;
+        uint64 preRoundNum;
+        uint64 lastNum;
     }
 
     struct BlockLite {
-        bytes32 block_hash;
+        bytes32 blockHash;
         uint64 number;
     }
 
@@ -19,44 +25,38 @@ contract PeriodicCheckpoint {
         address[] set;
         int256 threshold;
     }
-
-    mapping(bytes32 => uint256) header_tree; // padding 64 | uint64 number | uint64 round_num | int64 mainnet_num
-    mapping(uint64 => bytes32) height_tree;
-    bytes32[] current_tree;
-    bytes32[] next_tree;
+    mapping(bytes32 => uint256) unCommittedTree;
+    mapping(bytes32 => uint256) headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
+    mapping(uint64 => bytes32) heightTree;
+    bytes32[] currentTree;
+    bytes32[] nextTree;
     mapping(address => bool) lookup;
-    mapping(address => bool) unique_addr;
+    mapping(address => bool) uniqueAddr;
     mapping(int256 => Validators) validators;
-    Validators current_validators;
-    bytes32 latest_current_epoch_block;
-    bytes32 latest_next_epoch_block;
+    Validators currentValidators;
+    bytes32 latestCurrentEpochBlock;
+    bytes32 latestNextEpochBlock;
     uint64 GAP;
     uint64 EPOCH;
 
-    // Function temp space
-    bytes32 prev_hash;
-    uint64 prev_rn;
-    uint256 epoch_info = 0;
-    bytes32 epoch_hash = 0;
-
     // Event types
-    event SubnetEpochBlockAccepted(bytes32 block_hash, uint64 number);
+    event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
 
     constructor(
-        address[] memory initial_validator_set,
+        address[] memory initialValidatorSet,
         bytes memory block1,
         uint64 gap,
         uint64 epoch
     ) {
-        require(initial_validator_set.length > 0, "Validator Empty");
-        bytes32 block1_header_hash = keccak256(block1);
+        require(initialValidatorSet.length > 0, "Validator Empty");
+        bytes32 block1HeaderHash = keccak256(block1);
         validators[1] = Validators({
-            set: initial_validator_set,
-            threshold: int256((initial_validator_set.length * 2) / 3)
+            set: initialValidatorSet,
+            threshold: int256((initialValidatorSet.length * 2) / 3)
         });
-        current_validators = validators[1];
-        setLookup(initial_validator_set);
-        latest_current_epoch_block = block1_header_hash;
+        currentValidators = validators[1];
+        setLookup(initialValidatorSet);
+        latestCurrentEpochBlock = block1HeaderHash;
         GAP = gap;
         EPOCH = epoch;
     }
@@ -81,8 +81,8 @@ contract PeriodicCheckpoint {
 
         (address[] memory current, address[] memory next) = HeaderReader
             .getEpoch(header);
-        bytes32 block_hash = keccak256(header);
-        if (header_tree[block_hash] != 0) {
+        bytes32 blockHash = keccak256(header);
+        if (headerTree[blockHash] != 0) {
             return false;
         }
         if (current.length > 0 && next.length > 0) {
@@ -116,16 +116,23 @@ contract PeriodicCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] memory headers) public {
-        uint256 sequence = 0;
+        // Function temp space
+        bytes32 prevHash;
+        uint64 prevRoundNum;
+        uint256 lastNum;
+        uint256 epochInfo;
+        bytes32 epochHash;
+        uint256 sequence;
+
         for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
 
             (address[] memory current, address[] memory next) = HeaderReader
                 .getEpoch(headers[x]);
-            bytes32 block_hash = keccak256(headers[x]);
+            bytes32 blockHash = keccak256(headers[x]);
             if (x == 0) {
-                if (header_tree[block_hash] != 0) {
+                if (headerTree[blockHash] != 0) {
                     revert("Repeated Block");
                 }
                 if (current.length > 0 && next.length > 0) {
@@ -136,25 +143,25 @@ contract PeriodicCheckpoint {
                         validationParams.roundNumber -
                             (validationParams.roundNumber % EPOCH)
                     ) {
-                        int256 gap_number = validationParams.number -
+                        int256 gapNumber = validationParams.number -
                             (validationParams.number % int256(uint256(EPOCH))) -
                             int256(uint256(GAP));
                         // Edge case at the beginning
-                        if (gap_number < 0) {
-                            gap_number = 0;
+                        if (gapNumber < 0) {
+                            gapNumber = 0;
                         }
-                        gap_number = gap_number + 1;
-                        if (validators[gap_number].threshold > 0) {
+                        gapNumber = gapNumber + 1;
+                        if (validators[gapNumber].threshold > 0) {
                             if (
-                                validators[gap_number].set.length !=
+                                validators[gapNumber].set.length !=
                                 current.length
                             ) {
                                 revert("Mismatched Validators");
                             }
-                            setLookup(validators[gap_number].set);
-                            current_validators = validators[gap_number];
-                            latest_current_epoch_block = block_hash;
-                            current_tree.push(block_hash);
+                            setLookup(validators[gapNumber].set);
+                            currentValidators = validators[gapNumber];
+                            latestCurrentEpochBlock = blockHash;
+                            currentTree.push(blockHash);
                         } else {
                             revert("Missing Current Validators");
                         }
@@ -169,28 +176,28 @@ contract PeriodicCheckpoint {
                             )
                         ) == EPOCH - GAP + 1
                     ) {
-                        (bool is_validator_unique, ) = checkUniqueness(next);
-                        if (!is_validator_unique) revert("Repeated Validator");
+                        (bool isValidatorUnique, ) = checkUniqueness(next);
+                        if (!isValidatorUnique) revert("Repeated Validator");
 
                         validators[validationParams.number] = Validators({
                             set: next,
                             threshold: int256((next.length * 2) / 3)
                         });
-                        latest_next_epoch_block = block_hash;
-                        next_tree.push(block_hash);
+                        latestNextEpochBlock = blockHash;
+                        nextTree.push(blockHash);
                     } else {
                         revert("Invalid Next Block");
                     }
                 }
-                epoch_info =
+                epochInfo =
                     (uint256(validationParams.number) << 128) |
                     (uint256(validationParams.roundNumber) << 64) |
                     uint256(uint64(int64(-1)));
-                epoch_hash = block_hash;
+                epochHash = blockHash;
             }
 
             // Verify subnet header certificates
-            address[] memory signer_list = new address[](
+            address[] memory signerList = new address[](
                 validationParams.sigs.length
             );
             for (uint256 i = 0; i < validationParams.sigs.length; i++) {
@@ -202,67 +209,74 @@ contract PeriodicCheckpoint {
                     revert("Verification Fail : lookup[signer] != true");
                 }
 
-                signer_list[i] = signer;
+                signerList[i] = signer;
             }
-            (bool is_unique, int256 unique_counter) = checkUniqueness(
-                signer_list
+            (bool isUnique, int256 uniqueCounter) = checkUniqueness(
+                signerList
             );
-            if (!is_unique) {
-                revert("Verification Fail : !is_unique");
+            if (!isUnique) {
+                revert("Verification Fail : !isUnique");
             }
-            if (unique_counter < current_validators.threshold) {
+            if (uniqueCounter < currentValidators.threshold) {
                 revert(
-                    "Verification Fail : unique_counter < current_validators.threshold"
+                    "Verification Fail : uniqueCounter < currentValidators.threshold"
                 );
             }
 
             if (x > 0) {
-                if (validationParams.parentHash != prev_hash) {
+                if (validationParams.parentHash != prevHash) {
                     revert("Invalid Block Sequence");
                 }
             }
 
-            prev_hash = block_hash;
-            if (prev_rn != 0 && validationParams.roundNumber == prev_rn + 1) {
+            prevHash = blockHash;
+            if (prevRoundNum != 0 && validationParams.roundNumber == prevRoundNum + 1) {
                 sequence++;
             } else {
                 sequence = 0;
             }
 
-            prev_rn = validationParams.roundNumber;
+            prevRoundNum = validationParams.roundNumber;
+            lastNum = uint256(validationParams.number);
         }
         if (sequence >= 3) {
-            epoch_info |= block.number;
+            epochInfo |= block.number;
+        } else {
+            unCommittedTree[epochHash] =
+                (sequence << 128) |
+                (uint256(prevRoundNum) << 64) |
+                lastNum;
         }
-        header_tree[epoch_hash] = epoch_info;
-        height_tree[uint64(epoch_info >> 128)] = epoch_hash;
-        emit SubnetEpochBlockAccepted(epoch_hash, uint64(epoch_info >> 128));
+
+        headerTree[epochHash] = epochInfo;
+        heightTree[uint64(epochInfo >> 128)] = epochHash;
+        emit SubnetEpochBlockAccepted(epochHash, uint64(epochInfo >> 128));
     }
 
-    function setLookup(address[] memory validator_set) internal {
-        for (uint256 i = 0; i < current_validators.set.length; i++) {
-            lookup[current_validators.set[i]] = false;
+    function setLookup(address[] memory validatorSet) internal {
+        for (uint256 i = 0; i < currentValidators.set.length; i++) {
+            lookup[currentValidators.set[i]] = false;
         }
-        for (uint256 i = 0; i < validator_set.length; i++) {
-            lookup[validator_set[i]] = true;
+        for (uint256 i = 0; i < validatorSet.length; i++) {
+            lookup[validatorSet[i]] = true;
         }
     }
 
     function checkUniqueness(
         address[] memory list
-    ) internal returns (bool is_verified, int256 unique_counter) {
-        unique_counter = 0;
-        is_verified = true;
+    ) internal returns (bool isVerified, int256 uniqueCounter) {
+        uniqueCounter = 0;
+        isVerified = true;
         for (uint256 i = 0; i < list.length; i++) {
-            if (!unique_addr[list[i]]) {
-                unique_counter++;
-                unique_addr[list[i]] = true;
+            if (!uniqueAddr[list[i]]) {
+                uniqueCounter++;
+                uniqueAddr[list[i]] = true;
             } else {
-                is_verified = false;
+                isVerified = false;
             }
         }
         for (uint256 i = 0; i < list.length; i++) {
-            unique_addr[list[i]] = false;
+            uniqueAddr[list[i]] = false;
         }
     }
 
@@ -291,18 +305,29 @@ contract PeriodicCheckpoint {
         return ecrecover(message, v, r, s);
     }
 
+    function getUnCommittedHeader(
+        bytes32 blockHash
+    ) public view returns (unCommittedHeaderInfo memory) {
+        return
+            unCommittedHeaderInfo({
+                sequence: uint64(unCommittedTree[blockHash] >> 128),
+                preRoundNum: uint64(unCommittedTree[blockHash] >> 64),
+                lastNum: uint64(unCommittedTree[blockHash])
+            });
+    }
+
     /*
      * @param subnet block hash.
      * @return HeaderInfo struct defined above.
      */
     function getHeader(
-        bytes32 block_hash
+        bytes32 blockHash
     ) public view returns (HeaderInfo memory) {
         return
             HeaderInfo({
-                number: uint64(header_tree[block_hash] >> 128),
-                round_num: uint64(header_tree[block_hash] >> 64),
-                mainnet_num: int64(uint64(header_tree[block_hash]))
+                number: uint64(headerTree[blockHash] >> 128),
+                roundNum: uint64(headerTree[blockHash] >> 64),
+                mainnetNum: int64(uint64(headerTree[blockHash]))
             });
     }
 
@@ -313,50 +338,50 @@ contract PeriodicCheckpoint {
     function getHeaderByNumber(
         uint256 number
     ) public view returns (HeaderInfo memory, bytes32) {
-        if (height_tree[uint64(number)] == 0) {
-            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: 0}), 0);
-        } else {
-            bytes32 block_hash = height_tree[uint64(number)];
+        if (heightTree[uint64(number)] != 0) {
+            bytes32 blockHash = heightTree[uint64(number)];
             return (
                 HeaderInfo({
-                    number: uint64(header_tree[block_hash] >> 128),
-                    round_num: uint64(header_tree[block_hash] >> 64),
-                    mainnet_num: int64(uint64(header_tree[block_hash]))
+                    number: uint64(headerTree[blockHash] >> 128),
+                    roundNum: uint64(headerTree[blockHash] >> 64),
+                    mainnetNum: int64(uint64(headerTree[blockHash]))
                 }),
-                block_hash
+                blockHash
             );
+        } else {
+            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}), 0);
         }
     }
 
     function getCurrentEpochBlockByIndex(
         uint256 idx
     ) public view returns (HeaderInfo memory) {
-        if (idx < current_tree.length) {
+        if (idx < currentTree.length) {
             return (
                 HeaderInfo({
-                    number: uint64(header_tree[current_tree[idx]] >> 128),
-                    round_num: uint64(header_tree[current_tree[idx]] >> 64),
-                    mainnet_num: int64(uint64(header_tree[current_tree[idx]]))
+                    number: uint64(headerTree[currentTree[idx]] >> 128),
+                    roundNum: uint64(headerTree[currentTree[idx]] >> 64),
+                    mainnetNum: int64(uint64(headerTree[currentTree[idx]]))
                 })
             );
         } else {
-            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: -1}));
+            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}));
         }
     }
 
     function getNextEpochBlockByIndex(
         uint256 idx
     ) public view returns (HeaderInfo memory) {
-        if (idx < next_tree.length) {
+        if (idx < nextTree.length) {
             return (
                 HeaderInfo({
-                    number: uint64(header_tree[next_tree[idx]] >> 128),
-                    round_num: uint64(header_tree[next_tree[idx]] >> 64),
-                    mainnet_num: int64(uint64(header_tree[next_tree[idx]]))
+                    number: uint64(headerTree[nextTree[idx]] >> 128),
+                    roundNum: uint64(headerTree[nextTree[idx]] >> 64),
+                    mainnetNum: int64(uint64(headerTree[nextTree[idx]]))
                 })
             );
         } else {
-            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: -1}));
+            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}));
         }
     }
 
@@ -370,12 +395,12 @@ contract PeriodicCheckpoint {
     {
         return (
             BlockLite({
-                block_hash: latest_current_epoch_block,
-                number: uint64(header_tree[latest_current_epoch_block] >> 128)
+                blockHash: latestCurrentEpochBlock,
+                number: uint64(headerTree[latestCurrentEpochBlock] >> 128)
             }),
             BlockLite({
-                block_hash: latest_next_epoch_block,
-                number: uint64(header_tree[latest_next_epoch_block] >> 128)
+                blockHash: latestNextEpochBlock,
+                number: uint64(headerTree[latestNextEpochBlock] >> 128)
             })
         );
     }
@@ -384,6 +409,6 @@ contract PeriodicCheckpoint {
      * @return Validators struct defined above.
      */
     function getCurrentValidators() public view returns (Validators memory) {
-        return current_validators;
+        return currentValidators;
     }
 }
