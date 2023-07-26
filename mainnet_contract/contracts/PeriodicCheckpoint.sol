@@ -7,7 +7,7 @@ contract PeriodicCheckpoint {
     struct HeaderInfo {
         uint64 number;
         uint64 round_num;
-        uint64 mainnet_num;
+        int64 mainnet_num;
     }
 
     struct BlockLite {
@@ -20,7 +20,7 @@ contract PeriodicCheckpoint {
         int256 threshold;
     }
 
-    mapping(bytes32 => uint256) header_tree; // padding 64 | uint64 number | uint64 round_num | uint64 mainnet_num
+    mapping(bytes32 => uint256) header_tree; // padding 64 | uint64 number | uint64 round_num | int64 mainnet_num
     mapping(uint64 => bytes32) height_tree;
     bytes32[] current_tree;
     bytes32[] next_tree;
@@ -61,19 +61,21 @@ contract PeriodicCheckpoint {
         EPOCH = epoch;
     }
 
-    function checkCanBeSavedHeaders(
+    //Check if the blocks can be stored
+    //params HexRLP array
+    function checkHeaders(
         bytes[] calldata headers
     ) external view returns (bool[] memory) {
         bool[] memory result = new bool[](headers.length);
         for (uint256 i = 0; i < headers.length; i++) {
-            result[i] = checkCanBeSavedHeader(headers[i]);
+            result[i] = checkHeader(headers[i]);
         }
         return result;
     }
 
-    function checkCanBeSavedHeader(
-        bytes calldata header
-    ) public view returns (bool) {
+    //Check if the block can be stored
+    //params HexRLP
+    function checkHeader(bytes calldata header) public view returns (bool) {
         HeaderReader.ValidationParams memory validationParams = HeaderReader
             .getValidationParams(header);
 
@@ -114,6 +116,7 @@ contract PeriodicCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] memory headers) public {
+        uint256 sequence = 0;
         for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
@@ -182,7 +185,7 @@ contract PeriodicCheckpoint {
                 epoch_info =
                     (uint256(validationParams.number) << 128) |
                     (uint256(validationParams.roundNumber) << 64) |
-                    uint256(block.number);
+                    uint256(uint64(int64(-1)));
                 epoch_hash = block_hash;
             }
 
@@ -218,14 +221,18 @@ contract PeriodicCheckpoint {
                     revert("Invalid Block Sequence");
                 }
             }
-            if (x < headers.length - 1) prev_hash = block_hash;
-            if (headers.length > 3 && x > headers.length - 3) {
-                if (validationParams.roundNumber != prev_rn + 1) {
-                    revert("Uncommitted Epoch Block");
-                }
+
+            prev_hash = block_hash;
+            if (prev_rn != 0 && validationParams.roundNumber == prev_rn + 1) {
+                sequence++;
+            } else {
+                sequence = 0;
             }
-            if (headers.length > 3 && x >= headers.length - 3)
-                prev_rn = validationParams.roundNumber;
+
+            prev_rn = validationParams.roundNumber;
+        }
+        if (sequence >= 3) {
+            epoch_info |= block.number;
         }
         header_tree[epoch_hash] = epoch_info;
         height_tree[uint64(epoch_info >> 128)] = epoch_hash;
@@ -295,7 +302,7 @@ contract PeriodicCheckpoint {
             HeaderInfo({
                 number: uint64(header_tree[block_hash] >> 128),
                 round_num: uint64(header_tree[block_hash] >> 64),
-                mainnet_num: uint64(header_tree[block_hash])
+                mainnet_num: int64(uint64(header_tree[block_hash]))
             });
     }
 
@@ -314,7 +321,7 @@ contract PeriodicCheckpoint {
                 HeaderInfo({
                     number: uint64(header_tree[block_hash] >> 128),
                     round_num: uint64(header_tree[block_hash] >> 64),
-                    mainnet_num: uint64(header_tree[block_hash])
+                    mainnet_num: int64(uint64(header_tree[block_hash]))
                 }),
                 block_hash
             );
@@ -329,11 +336,11 @@ contract PeriodicCheckpoint {
                 HeaderInfo({
                     number: uint64(header_tree[current_tree[idx]] >> 128),
                     round_num: uint64(header_tree[current_tree[idx]] >> 64),
-                    mainnet_num: uint64(header_tree[current_tree[idx]])
+                    mainnet_num: int64(uint64(header_tree[current_tree[idx]]))
                 })
             );
         } else {
-            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: 0}));
+            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: -1}));
         }
     }
 
@@ -345,11 +352,11 @@ contract PeriodicCheckpoint {
                 HeaderInfo({
                     number: uint64(header_tree[next_tree[idx]] >> 128),
                     round_num: uint64(header_tree[next_tree[idx]] >> 64),
-                    mainnet_num: uint64(header_tree[next_tree[idx]])
+                    mainnet_num: int64(uint64(header_tree[next_tree[idx]]))
                 })
             );
         } else {
-            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: 0}));
+            return (HeaderInfo({number: 0, round_num: 0, mainnet_num: -1}));
         }
     }
 
