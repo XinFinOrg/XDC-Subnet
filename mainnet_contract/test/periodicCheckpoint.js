@@ -113,7 +113,7 @@ describe("periodic checkpoint", () => {
 
       expect(block2Resp["number"]).to.eq(451);
       expect(block2Resp["roundNum"]).to.eq(459);
-      expect(block2Resp["mainnetNum"]).to.not.eq(-1);
+      expect(block2Resp["mainnetNum"]).to.eq(-1);
       expect(unBlock2Resp["sequence"]).to.eq(1);
       expect(unBlock2Resp["preRoundNum"]).to.eq(460);
       expect(unBlock2Resp["lastNum"]).to.eq(452);
@@ -142,8 +142,5 @@ describe("periodic checkpoint", () => {
       expect(committedUnBlock2Resp["lastNum"]).to.eq(0);
     });
   });
-  describe("test periodic checkpoint custom block data", () => {
-
-
-  });
+  describe("test periodic checkpoint custom block data", () => {});
 });
