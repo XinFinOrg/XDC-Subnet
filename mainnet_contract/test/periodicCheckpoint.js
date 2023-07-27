@@ -106,6 +106,9 @@ describe("periodic checkpoint", () => {
       expect(unBlock2Resp["preRoundNum"]).to.eq(459);
       expect(unBlock2Resp["lastNum"]).to.eq(451);
     });
+    it("receive a new header which has only the curren and uncommitted", async () => {
+      
+    });
 
     it("receive new header which has only the next and committed", async () => {
       const block451Encoded =
@@ -211,6 +214,8 @@ describe("periodic checkpoint", () => {
 
       const canBeSaved = await custom.checkHeader(block6Encoded);
       expect(canBeSaved).to.equal(true);
+
+
     });
     it("receive new header which has only the current and no committed", async () => {});
     it("receive new header which has only the next and committed", async () => {});
