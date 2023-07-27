@@ -190,5 +190,13 @@ describe("periodic checkpoint", () => {
       expect(committedUnBlock2Resp["lastNum"]).to.eq(0);
     });
   });
-  describe("test periodic checkpoint custom block data", () => {});
+  describe("test periodic checkpoint custom block data", () => {
+    //TODO
+    it("receive new header with no committed", async () => {});
+    it("receive new header with committed", async () => {});
+    it("replenish header", async () => {});
+    it("switch a validator set", async () => {})
+    it("switch a validator set in special case", async () => {})
+    it("penalty validitor verify", async () => {})
+  });
 });
