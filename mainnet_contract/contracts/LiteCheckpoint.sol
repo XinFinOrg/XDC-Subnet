@@ -4,7 +4,7 @@ pragma solidity =0.8.19;
 import {HeaderReader} from "./libraries/HeaderReader.sol";
 import "hardhat/console.sol";
 
-contract PeriodicCheckpoint {
+contract LiteCheckpoint {
     struct HeaderInfo {
         uint64 number;
         uint64 roundNum;

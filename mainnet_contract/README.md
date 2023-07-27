@@ -46,8 +46,8 @@ Checkpoint
 npx hardhat run scripts/checkpoint.js --network xdcdevnet
 ```
 
-Periodic checkpoint
+Lite checkpoint
 
 ```
-npx hardhat run scripts/periodicCheckpoint.js --network xdcdevnet
+npx hardhat run scripts/liteCheckpoint.js --network xdcdevnet
 ```

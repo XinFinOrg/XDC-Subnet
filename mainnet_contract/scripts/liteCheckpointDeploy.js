@@ -37,7 +37,7 @@ async function main() {
   console.log("headerReader deployed to:", headerReader.address);
   // We get the contract to deploy
   const checkpointFactory = await hre.ethers.getContractFactory(
-    "PeriodicCheckpoint",
+    "LiteCheckpoint",
     {
       libraries: {
         HeaderReader: headerReader.address,
@@ -54,7 +54,7 @@ async function main() {
 
   await checkpoint.deployed();
 
-  console.log("periodic checkpoint deployed to:", checkpoint.address);
+  console.log("lite checkpoint deployed to:", checkpoint.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
