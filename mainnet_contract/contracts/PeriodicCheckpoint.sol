@@ -116,7 +116,7 @@ contract PeriodicCheckpoint {
      * 3. (Conditional) Update Committed Status for ancestor blocks
      * @param list of rlp-encoded block headers.
      */
-    function receiveHeader(bytes[] memory headers) public {
+    function receiveHeader(bytes[] calldata headers) external {
         // Function temp space
         bytes32 prevHash;
         uint64 prevRoundNum;
@@ -256,9 +256,14 @@ contract PeriodicCheckpoint {
         emit SubnetEpochBlockAccepted(epochHash, uint64(epochInfo >> 128));
     }
 
+    /*
+     * @description replenish header
+     * 1. (Conditional) Update Committed Status for ancestor blocks
+     * @param list of rlp-encoded block headers.
+     */
     function replenishHeader(
         bytes32 unCommittedEpochHash,
-        bytes[] memory headers
+        bytes[] calldata headers
     ) external {
         UnCommittedHeaderInfo memory uc = getUnCommittedHeader(
             unCommittedEpochHash
@@ -300,7 +305,7 @@ contract PeriodicCheckpoint {
     function clearLowest(
         uint256 epochInfo,
         uint256 offset
-    ) public pure returns (uint256) {
+    ) private pure returns (uint256) {
         uint256 mask = ~uint256((1 << offset) - 1);
         return epochInfo & mask;
     }
