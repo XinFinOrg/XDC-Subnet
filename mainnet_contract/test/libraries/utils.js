@@ -2,23 +2,6 @@ const { ethers } = require("hardhat");
 const secp256k1 = require("secp256k1");
 const RLP = require("rlp");
 const util = require("@ethereumjs/util");
-
-function blockToHash(blockEncoded) {
-  const blockBuffer = Buffer.from(blockEncoded.slice(2), "hex");
-  return ethers.utils.keccak256(blockBuffer);
-}
-function createValidators(num) {
-  const validators = [];
-  for (let i = 0; i < num; i++) {
-    validators.push(ethers.Wallet.createRandom());
-  }
-  return validators;
-}
-
-const hash = (block) => {
-  return ethers.utils.keccak256(block);
-};
-
 const hex2Arr = (hexString) => {
   if (hexString.length % 2 !== 0) {
     throw "Must have an even number of hex digits to convert to bytes";
@@ -30,11 +13,18 @@ const hex2Arr = (hexString) => {
   }
   return byteArray;
 };
+function blockToHash(blockEncoded) {
+  return ethers.utils
+    .keccak256(Buffer.from(hex2Arr(blockEncoded.slice(2))))
+    .toString("hex");
+}
+const hash = (block) => {
+  return ethers.utils.keccak256(block);
+};
 
 const encoded = (block) => {
   return "0x" + block.toString("hex");
 };
-
 const getGenesis = (validators) => {
   const voteForSignHash = ethers.utils.keccak256(
     Buffer.from(
@@ -185,10 +175,19 @@ const composeAndSignBlock = (
     ])
   );
 
-  return [block, encoded(blockBuffer), blockToHash(blockBuffer)];
+  return [block, encoded(blockBuffer), hash(blockBuffer)];
 };
+function createValidators(num) {
+  const validators = [];
+  for (let i = 0; i < num; i++) {
+    validators.push(ethers.Wallet.createRandom());
+  }
+  return validators;
+}
 
 module.exports = {
+  getSigs,
+  hex2Arr,
   createValidators,
   getGenesis,
   hash,

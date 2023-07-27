@@ -3,10 +3,17 @@ const { ethers } = require("hardhat");
 const {
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-function blockToHash(blockEncoded) {
-  const blockBuffer = Buffer.from(blockEncoded.slice(2), "hex");
-  return ethers.utils.keccak256(blockBuffer);
-}
+const {
+  getGenesis,
+  hex2Arr,
+  blockToHash,
+  hash,
+  encoded,
+  getSigs,
+  composeAndSignBlock,
+  createValidators,
+} = require("./libraries/utils");
+
 describe("periodic checkpoint", () => {
   let periodicCheckpoint;
   const fixture = async () => {
