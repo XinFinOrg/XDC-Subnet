@@ -16,6 +16,11 @@ const {
 
 describe("periodic checkpoint", () => {
   let periodicCheckpoint;
+  let custom;
+  let customValidators;
+  let customBlock0;
+  let customeBlock1;
+
   const fixture = async () => {
     const headerReaderFactory = await ethers.getContractFactory("HeaderReader");
 
@@ -38,11 +43,47 @@ describe("periodic checkpoint", () => {
       450,
       900
     );
+    const customValidators = createValidators(3);
+    const block0 = getGenesis(customValidators);
+    const block0Hash = hash(block0);
+    const block0Encoded = encoded(block0);
+    const [block1, block1Encoded, block1Hash] = composeAndSignBlock(
+      1,
+      1,
+      0,
+      block0Hash,
+      customValidators,
+      2,
+      [],
+      []
+    );
+    const custom = await factory.deploy(
+      customValidators.map((item) => {
+        return item.address;
+      }),
+      block1Encoded,
+      5,
+      10
+    );
+    const customBlock0 = { hash: block0Hash, encoded: block0Encoded };
+    const customeBlock1 = { hash: block1Hash, encoded: block1Encoded };
 
-    return { periodicCheckpoint };
+    return {
+      periodicCheckpoint,
+      custom,
+      customValidators,
+      customBlock0,
+      customeBlock1,
+    };
   };
   beforeEach("deploy fixture", async () => {
-    ({ periodicCheckpoint } = await loadFixture(fixture));
+    ({
+      periodicCheckpoint,
+      custom,
+      customValidators,
+      customBlock0,
+      customeBlock1,
+    } = await loadFixture(fixture));
   });
   describe("test periodic checkpoint real block data", () => {
     it("receive new header with no committed", async () => {
