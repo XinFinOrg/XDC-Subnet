@@ -13,7 +13,7 @@ contract LiteCheckpoint {
 
     struct UnCommittedHeaderInfo {
         uint64 sequence;
-        uint64 preRoundNum;
+        uint64 lastRoundNum;
         uint64 lastNum;
     }
 
@@ -26,7 +26,7 @@ contract LiteCheckpoint {
         address[] set;
         int256 threshold;
     }
-    mapping(bytes32 => uint256) unCommittedTree;
+    mapping(bytes32 => uint256) unCommittedTree; // padding uint64 | uint64 sequence | uint64 prevRoundNum | int64 lastNum
     mapping(bytes32 => uint256) headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
     mapping(uint64 => bytes32) heightTree;
     bytes32[] currentTree;
@@ -119,7 +119,7 @@ contract LiteCheckpoint {
     function receiveHeader(bytes[] calldata headers) external {
         // Function temp space
         bytes32 prevHash;
-        uint64 prevRoundNum;
+        uint64 lastRoundNum;
         uint256 lastNum;
         uint256 epochInfo;
         bytes32 epochHash;
@@ -230,15 +230,15 @@ contract LiteCheckpoint {
 
             prevHash = blockHash;
             if (
-                prevRoundNum != 0 &&
-                validationParams.roundNumber == prevRoundNum + 1
+                lastRoundNum != 0 &&
+                validationParams.roundNumber == lastRoundNum + 1
             ) {
                 sequence++;
             } else {
                 sequence = 0;
             }
 
-            prevRoundNum = validationParams.roundNumber;
+            lastRoundNum = validationParams.roundNumber;
             lastNum = uint256(validationParams.number);
         }
         if (sequence >= 3) {
@@ -247,7 +247,7 @@ contract LiteCheckpoint {
         } else {
             unCommittedTree[epochHash] =
                 (sequence << 128) |
-                (uint256(prevRoundNum) << 64) |
+                (uint256(lastRoundNum) << 64) |
                 lastNum;
         }
 
@@ -269,7 +269,7 @@ contract LiteCheckpoint {
             unCommittedEpochHash
         );
         uint256 sequence = uc.sequence;
-        uint256 prevRoundNum = uc.preRoundNum;
+        uint256 lastRoundNum = uc.lastRoundNum;
         uint256 lastNum = uc.lastNum;
         for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
@@ -277,13 +277,13 @@ contract LiteCheckpoint {
             if (uint256(validationParams.number) != lastNum + 1) {
                 revert("Invalid Block Num Sequence");
             }
-            if (validationParams.roundNumber == prevRoundNum + 1) {
+            if (validationParams.roundNumber == lastRoundNum + 1) {
                 sequence++;
             } else {
                 sequence = 0;
             }
 
-            prevRoundNum = validationParams.roundNumber;
+            lastRoundNum = validationParams.roundNumber;
             lastNum = uint256(validationParams.number);
         }
 
@@ -297,7 +297,7 @@ contract LiteCheckpoint {
         } else {
             unCommittedTree[unCommittedEpochHash] =
                 (sequence << 128) |
-                (uint256(prevRoundNum) << 64) |
+                (uint256(lastRoundNum) << 64) |
                 lastNum;
         }
     }
@@ -368,7 +368,7 @@ contract LiteCheckpoint {
         return
             UnCommittedHeaderInfo({
                 sequence: uint64(unCommittedTree[blockHash] >> 128),
-                preRoundNum: uint64(unCommittedTree[blockHash] >> 64),
+                lastRoundNum: uint64(unCommittedTree[blockHash] >> 64),
                 lastNum: uint64(unCommittedTree[blockHash])
             });
     }

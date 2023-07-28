@@ -103,7 +103,7 @@ describe("lite checkpoint", () => {
       expect(block2Resp["roundNum"]).to.eq(459);
       expect(block2Resp["mainnetNum"]).to.eq(-1);
       expect(unBlock2Resp["sequence"]).to.eq(0);
-      expect(unBlock2Resp["preRoundNum"]).to.eq(459);
+      expect(unBlock2Resp["lastRoundNum"]).to.eq(459);
       expect(unBlock2Resp["lastNum"]).to.eq(451);
     });
     it("receive new header which has only the next and committed", async () => {
@@ -135,7 +135,7 @@ describe("lite checkpoint", () => {
       expect(block2Resp["roundNum"]).to.eq(459);
       expect(block2Resp["mainnetNum"]).to.not.eq(-1);
       expect(unBlock2Resp["sequence"]).to.eq(0);
-      expect(unBlock2Resp["preRoundNum"]).to.eq(0);
+      expect(unBlock2Resp["lastRoundNum"]).to.eq(0);
       expect(unBlock2Resp["lastNum"]).to.eq(0);
     });
 
@@ -163,7 +163,7 @@ describe("lite checkpoint", () => {
       expect(block2Resp["roundNum"]).to.eq(459);
       expect(block2Resp["mainnetNum"]).to.eq(-1);
       expect(unBlock2Resp["sequence"]).to.eq(1);
-      expect(unBlock2Resp["preRoundNum"]).to.eq(460);
+      expect(unBlock2Resp["lastRoundNum"]).to.eq(460);
       expect(unBlock2Resp["lastNum"]).to.eq(452);
 
       const block453Encoded =
@@ -186,7 +186,7 @@ describe("lite checkpoint", () => {
       expect(committedBlock2Resp["roundNum"]).to.eq(459);
       expect(committedBlock2Resp["mainnetNum"]).to.not.eq(-1);
       expect(committedUnBlock2Resp["sequence"]).to.eq(0);
-      expect(committedUnBlock2Resp["preRoundNum"]).to.eq(0);
+      expect(committedUnBlock2Resp["lastRoundNum"]).to.eq(0);
       expect(committedUnBlock2Resp["lastNum"]).to.eq(0);
     });
   });
@@ -220,7 +220,7 @@ describe("lite checkpoint", () => {
       expect(block6Resp["roundNum"]).to.eq(7);
       expect(block6Resp["mainnetNum"]).to.eq(-1);
       expect(unBlock6Resp["sequence"]).to.eq(0);
-      expect(unBlock6Resp["preRoundNum"]).to.eq(7);
+      expect(unBlock6Resp["lastRoundNum"]).to.eq(7);
       expect(unBlock6Resp["lastNum"]).to.eq(6);
     });
     it("receive new header which has only the current and no committed", async () => {
@@ -289,7 +289,7 @@ describe("lite checkpoint", () => {
       expect(block6Resp["roundNum"]).to.eq(7);
       expect(block6Resp["mainnetNum"]).to.not.eq(-1);
       expect(unBlock6Resp["sequence"]).to.eq(0);
-      expect(unBlock6Resp["preRoundNum"]).to.eq(0);
+      expect(unBlock6Resp["lastRoundNum"]).to.eq(0);
       expect(unBlock6Resp["lastNum"]).to.eq(0);
     });
     it("replenish header", async () => {
