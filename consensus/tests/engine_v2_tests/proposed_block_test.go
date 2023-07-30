@@ -102,7 +102,7 @@ func TestShouldSendVoteMsgAndCommitGrandGrandParentBlock(t *testing.T) {
 }
 
 func TestShouldNotCommitIfRoundsNotContinousFor3Rounds(t *testing.T) {
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
@@ -345,7 +345,7 @@ func TestShouldNotSendVoteMsg(t *testing.T) {
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 3, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
-	// Block 1 is first v2 block
+	// Block 0 is first v2 block
 	blockHeader := blockchain.GetBlockByNumber(uint64(1)).Header()
 	err := engineV2.ProposedBlockHandler(blockchain, blockHeader)
 	if err != nil {

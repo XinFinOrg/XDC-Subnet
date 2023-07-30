@@ -140,11 +140,11 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	acc1Cap, acc2Cap, acc3Cap, voterCap, signerCap := new(big.Int), new(big.Int), new(big.Int), new(big.Int), new(big.Int)
 
-	acc1Cap.SetString("10000001", 10)
-	acc2Cap.SetString("10000002", 10)
-	acc3Cap.SetString("10000003", 10)
-	voterCap.SetString("1000000000", 10)
-	signerCap.SetString("1000000000", 10)
+	acc1Cap.SetString("10000003", 10)
+	acc2Cap.SetString("10000004", 10)
+	acc3Cap.SetString("10000005", 10)
+	voterCap.SetString("10000002", 10)
+	signerCap.SetString("10000001", 10)
 
 	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
 	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
@@ -197,11 +197,11 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	// create test backend with smart contract in it
 	contractBackend2 := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
-		acc1Addr:  {Balance: new(big.Int).SetUint64(10000000000)},
-		acc2Addr:  {Balance: new(big.Int).SetUint64(10000000000)},
-		acc3Addr:  {Balance: new(big.Int).SetUint64(10000000000)},
-		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
-		signer:    {Balance: new(big.Int).SetUint64(10000000000)},
+		acc1Addr:  {Balance: new(big.Int).SetUint64(10000000001)},
+		acc2Addr:  {Balance: new(big.Int).SetUint64(10000000002)},
+		acc3Addr:  {Balance: new(big.Int).SetUint64(10000000003)},
+		voterAddr: {Balance: new(big.Int).SetUint64(10000000004)},
+		signer:    {Balance: new(big.Int).SetUint64(10000000005)},
 		common.HexToAddress(common.MasternodeVotingSMC): {Balance: new(big.Int).SetUint64(1), Code: code, Storage: storage}, // Binding the MasternodeVotingSMC with newly created 'code' for SC execution
 	}, 10000000, chainConfig)
 
@@ -607,7 +607,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
+		merkleRoot = "3724f6d5255a40342e2d6299fc874e39ae440f6c739584ca0a96b776849c90c5"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()

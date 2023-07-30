@@ -12,7 +12,7 @@ import (
 )
 
 func TestSyncInfoShouldSuccessfullyUpdateByQC(t *testing.T) {
-	// Block 901 is the first v2 block with starting round of 0
+	// Block 0 is the first v2 block with starting round of 0
 	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
@@ -43,7 +43,7 @@ func TestSyncInfoShouldSuccessfullyUpdateByQC(t *testing.T) {
 }
 
 func TestSyncInfoShouldSuccessfullyUpdateByTC(t *testing.T) {
-	// Block 901 is the first v2 block with starting round of 0
+	// Block 0 is the first v2 block with starting round of 0
 	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 

@@ -28,7 +28,7 @@ func TestYourTurnInitialV2(t *testing.T) {
 	t.Logf("Inserting block with propose at 11...")
 	blockCoinbaseA := "0xaaa0000000000000000000000000000000000011"
 	//Get from block validator error message
-	merkleRoot := "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
+	merkleRoot := "3724f6d5255a40342e2d6299fc874e39ae440f6c739584ca0a96b776849c90c5"
 	extraInBytes := generateV2Extra(11, parentBlock, signer, signFn, nil)
 
 	header := &types.Header{
@@ -79,7 +79,7 @@ func TestShouldMineOncePerRound(t *testing.T) {
 	_, err := adaptor.Seal(blockchain, block910, nil)
 	assert.Nil(t, err)
 	time.Sleep(time.Duration(minePeriod) * time.Second)
-	merkleRoot := "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
+	merkleRoot := "3724f6d5255a40342e2d6299fc874e39ae440f6c739584ca0a96b776849c90c5"
 
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
@@ -128,7 +128,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	stateRoot := "14aa8934c9fcd31dfa8eb6272448c82bba62e1fd6fd3e049e9ef9be3748c7ba4"
+	stateRoot := "21b16491093eaad6e642cad8327646958f8593290c877e8ef6c4fc2f73241e45"
 	header := &types.Header{
 		Root:       common.HexToHash(stateRoot),
 		Number:     big.NewInt(int64(1350)),
@@ -163,7 +163,9 @@ func TestUpdateMasterNodes(t *testing.T) {
 			t.Fatal(err)
 		}
 		err = blockchain.InsertBlock(block)
-		assert.Nil(t, err)
+		if err != nil {
+			t.Fatal(err)
+		}
 		parentBlock = block
 	}
 
@@ -245,7 +247,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	}
 	// process QC for passing prepare verification
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(903), false) // round 903 is this signer's turn to mine
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(919), false) // round 919 is this signer's turn to mine
 	err = adaptor.Prepare(blockchain, header900)
 	assert.Nil(t, err)
 
@@ -254,7 +256,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	var decodedExtraField types.ExtraFields_v2
 	err = utils.DecodeBytesExtraFields(header900.Extra, &decodedExtraField)
 	assert.Nil(t, err)
-	assert.Equal(t, types.Round(903), decodedExtraField.Round)
+	assert.Equal(t, types.Round(919), decodedExtraField.Round)
 	assert.Equal(t, types.Round(899), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
 }
 

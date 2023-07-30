@@ -19,7 +19,7 @@ import (
 func TestShouldVerifyBlock(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
 	config.XDPoS.V2.SkipV2Validation = false
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, _, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 920, config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 
@@ -77,7 +77,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	err = adaptor.VerifyHeader(blockchain, invalidPenaltiesExistBlock, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 
-	merkleRoot := "1eaab4c8345e5f3d419c4b69e05216a7745ba659317c81e984b7acf63201aff8"
+	merkleRoot := "3724f6d5255a40342e2d6299fc874e39ae440f6c739584ca0a96b776849c90c5"
 	parentNotExistBlock := blockchain.GetBlockByNumber(901).Header()
 	parentNotExistBlock.ParentHash = common.HexToHash(merkleRoot)
 	err = adaptor.VerifyHeader(blockchain, parentNotExistBlock, true)
@@ -159,7 +159,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 func TestConfigSwitchOnDifferentCertThreshold(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
 	config.XDPoS.V2.SkipV2Validation = false
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 915, config, nil)
 
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
@@ -244,7 +244,7 @@ func TestConfigSwitchOnDifferentMindPeriod(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
 	// Enable verify
 	config.XDPoS.V2.SkipV2Validation = false
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 915, config, nil)
 
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
@@ -291,7 +291,7 @@ func TestShouldFailIfNotEnoughQCSignatures(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
 	// Enable verify
 	config.XDPoS.V2.SkipV2Validation = false
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 902, config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 
@@ -336,7 +336,7 @@ func TestShouldVerifyHeaders(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
 	// Enable verify
 	config.XDPoS.V2.SkipV2Validation = false
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 20, config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 
@@ -369,7 +369,7 @@ func TestShouldVerifyHeadersEvenIfParentsNotYetWrittenIntoDB(t *testing.T) {
 	config := params.TestXDPoSMockChainConfig
 	// Enable verify
 	config.XDPoS.V2.SkipV2Validation = false
-	// Block 901 is the first v2 block with round of 1
+	// Block 0 is the first v2 block with round of 0
 	blockchain, _, block919, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 919, config, nil)
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 
