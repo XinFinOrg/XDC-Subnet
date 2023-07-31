@@ -26,7 +26,7 @@ contract LiteCheckpoint {
         int256 threshold;
     }
     mapping(bytes32 => bytes32) unCommittedLastHash;
-    mapping(bytes32 => uint256) unCommittedTree; // padding uint64 | uint64 sequence | uint64 prevRoundNum | int64 lastNum
+    mapping(bytes32 => uint256) unCommittedTree; // padding uint64 | uint64 sequence | uint64 lastRoundNum | uint64 lastNum
     mapping(bytes32 => uint256) headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
     mapping(uint64 => bytes32) heightTree;
     bytes32[] currentTree;
