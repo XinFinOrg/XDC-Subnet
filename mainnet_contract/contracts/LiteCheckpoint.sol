@@ -2,7 +2,6 @@
 pragma solidity =0.8.19;
 
 import {HeaderReader} from "./libraries/HeaderReader.sol";
-import "hardhat/console.sol";
 
 contract LiteCheckpoint {
     struct HeaderInfo {
@@ -26,6 +25,7 @@ contract LiteCheckpoint {
         address[] set;
         int256 threshold;
     }
+    mapping(bytes32 => bytes32) unCommittedLastHash;
     mapping(bytes32 => uint256) unCommittedTree; // padding uint64 | uint64 sequence | uint64 prevRoundNum | int64 lastNum
     mapping(bytes32 => uint256) headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
     mapping(uint64 => bytes32) heightTree;
@@ -117,188 +117,191 @@ contract LiteCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) external {
-        // Function temp space
-        bytes32 prevHash;
-        uint64 lastRoundNum;
-        uint256 lastNum;
-        uint256 epochInfo;
-        bytes32 epochHash;
-        uint256 sequence;
+        if (headers.length == 0) {
+            revert("headers length must greater than 0");
+        }
+        bytes memory header0 = headers[0];
+        HeaderReader.ValidationParams memory validationParams = HeaderReader
+            .getValidationParams(header0);
 
-        for (uint256 x = 0; x < headers.length; x++) {
-            HeaderReader.ValidationParams memory validationParams = HeaderReader
-                .getValidationParams(headers[x]);
-
-            (address[] memory current, address[] memory next) = HeaderReader
-                .getEpoch(headers[x]);
-            bytes32 blockHash = keccak256(headers[x]);
-            if (x == 0) {
-                if (headerTree[blockHash] != 0) {
-                    revert("Repeated Block");
-                }
-                if (current.length > 0 && next.length > 0) {
-                    revert("Malformed Block");
-                } else if (current.length > 0) {
-                    if (
-                        validationParams.prevRoundNumber <
-                        validationParams.roundNumber -
-                            (validationParams.roundNumber % EPOCH)
-                    ) {
-                        int256 gapNumber = validationParams.number -
-                            (validationParams.number % int256(uint256(EPOCH))) -
-                            int256(uint256(GAP));
-                        // Edge case at the beginning
-                        if (gapNumber < 0) {
-                            gapNumber = 0;
-                        }
-                        gapNumber = gapNumber + 1;
-                        if (validators[gapNumber].threshold > 0) {
-                            if (
-                                validators[gapNumber].set.length !=
-                                current.length
-                            ) {
-                                revert("Mismatched Validators");
-                            }
-                            setLookup(validators[gapNumber].set);
-                            currentValidators = validators[gapNumber];
-                            latestCurrentEpochBlock = blockHash;
-                            currentTree.push(blockHash);
-                        } else {
-                            revert("Missing Current Validators");
-                        }
-                    } else {
-                        revert("Invalid Current Block");
-                    }
-                } else if (next.length > 0) {
-                    if (
-                        uint64(
-                            uint256(
-                                validationParams.number % int256(uint256(EPOCH))
-                            )
-                        ) == EPOCH - GAP + 1
-                    ) {
-                        (bool isValidatorUnique, ) = checkUniqueness(next);
-                        if (!isValidatorUnique) revert("Repeated Validator");
-
-                        validators[validationParams.number] = Validators({
-                            set: next,
-                            threshold: int256((next.length * 2) / 3)
-                        });
-                        latestNextEpochBlock = blockHash;
-                        nextTree.push(blockHash);
-                    } else {
-                        revert("Invalid Next Block");
-                    }
-                }
-                epochInfo =
-                    (uint256(validationParams.number) << 128) |
-                    (uint256(validationParams.roundNumber) << 64) |
-                    uint256(uint64(int64(-1)));
-                epochHash = blockHash;
-            }
-
-            // Verify subnet header certificates
-            address[] memory signerList = new address[](
-                validationParams.sigs.length
-            );
-            for (uint256 i = 0; i < validationParams.sigs.length; i++) {
-                address signer = recoverSigner(
-                    validationParams.signHash,
-                    validationParams.sigs[i]
-                );
-                if (lookup[signer] != true) {
-                    revert("Verification Fail : lookup[signer] != true");
-                }
-
-                signerList[i] = signer;
-            }
-            (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
-            if (!isUnique) {
-                revert("Verification Fail : !isUnique");
-            }
-            if (uniqueCounter < currentValidators.threshold) {
-                revert(
-                    "Verification Fail : uniqueCounter < currentValidators.threshold"
-                );
-            }
-
-            if (x > 0) {
-                if (validationParams.parentHash != prevHash) {
-                    revert("Invalid Block Num Sequence");
-                }
-            }
-
-            prevHash = blockHash;
+        (address[] memory current, address[] memory next) = HeaderReader
+            .getEpoch(header0);
+        bytes32 blockHash = keccak256(header0);
+        checkSig(validationParams);
+        if (headerTree[blockHash] != 0) {
+            revert("Repeated Block");
+        }
+        if (current.length > 0 && next.length > 0) {
+            revert("Malformed Block");
+        } else if (current.length > 0) {
             if (
-                lastRoundNum != 0 &&
-                validationParams.roundNumber == lastRoundNum + 1
+                validationParams.prevRoundNumber <
+                validationParams.roundNumber -
+                    (validationParams.roundNumber % EPOCH)
             ) {
-                sequence++;
+                int256 gapNumber = validationParams.number -
+                    (validationParams.number % int256(uint256(EPOCH))) -
+                    int256(uint256(GAP));
+                // Edge case at the beginning
+                if (gapNumber < 0) {
+                    gapNumber = 0;
+                }
+                gapNumber = gapNumber + 1;
+                if (validators[gapNumber].threshold > 0) {
+                    if (validators[gapNumber].set.length != current.length) {
+                        revert("Mismatched Validators");
+                    }
+                    setLookup(validators[gapNumber].set);
+                    currentValidators = validators[gapNumber];
+                    latestCurrentEpochBlock = blockHash;
+                    currentTree.push(blockHash);
+                } else {
+                    revert("Missing Current Validators");
+                }
             } else {
-                sequence = 0;
+                revert("Invalid Current Block");
             }
+        } else if (next.length > 0) {
+            if (
+                uint64(
+                    uint256(validationParams.number % int256(uint256(EPOCH)))
+                ) == EPOCH - GAP + 1
+            ) {
+                (bool isValidatorUnique, ) = checkUniqueness(next);
+                if (!isValidatorUnique) revert("Repeated Validator");
 
-            lastRoundNum = validationParams.roundNumber;
-            lastNum = uint256(validationParams.number);
+                validators[validationParams.number] = Validators({
+                    set: next,
+                    threshold: int256((next.length * 2) / 3)
+                });
+                latestNextEpochBlock = blockHash;
+                nextTree.push(blockHash);
+            } else {
+                revert("Invalid Next Block");
+            }
         }
-        if (sequence >= 3) {
-            epochInfo = clearLowest(epochInfo, 64);
-            epochInfo |= block.number;
-        } else {
-            unCommittedTree[epochHash] =
-                (sequence << 128) |
-                (uint256(lastRoundNum) << 64) |
-                lastNum;
+        uint256 epochInfo = (uint256(validationParams.number) << 128) |
+            (uint256(validationParams.roundNumber) << 64) |
+            uint256(uint64(int64(-1)));
+        unCommittedLastHash[blockHash] = blockHash;
+        unCommittedTree[blockHash] =
+            (0 << 128) |
+            (uint256(validationParams.roundNumber) << 64) |
+            uint256(validationParams.number);
+
+        headerTree[blockHash] = epochInfo;
+        heightTree[uint64(epochInfo >> 128)] = blockHash;
+        //for commit epoch
+        if (headers.length > 1) {
+            commitHeader(blockHash, sliceBytes(headers, 1));
+        }
+        emit SubnetEpochBlockAccepted(blockHash, uint64(epochInfo >> 128));
+    }
+
+    function sliceBytes(
+        bytes[] calldata data,
+        uint256 startIndex
+    ) public pure returns (bytes[] memory) {
+        require(startIndex < data.length, "Start index is out of range");
+
+        bytes[] memory result = new bytes[](data.length - startIndex);
+
+        for (uint i = startIndex; i < data.length; i++) {
+            result[i - startIndex] = data[i];
         }
 
-        headerTree[epochHash] = epochInfo;
-        heightTree[uint64(epochInfo >> 128)] = epochHash;
-        emit SubnetEpochBlockAccepted(epochHash, uint64(epochInfo >> 128));
+        return result;
+    }
+
+    function commitHeaderByNumber(
+        uint256 number,
+        bytes[] memory headers
+    ) public {
+        bytes32 epochHash = heightTree[uint64(number)];
+        commitHeader(epochHash, headers);
     }
 
     /*
-     * @description replenish header
+     * @description commit header
      * 1. (Conditional) Update Committed Status for ancestor blocks
      * @param list of rlp-encoded block headers.
      */
-    function replenishHeader(
-        bytes32 unCommittedEpochHash,
-        bytes[] calldata headers
-    ) external {
-        UnCommittedHeaderInfo memory uc = getUnCommittedHeader(
-            unCommittedEpochHash
-        );
-        uint256 sequence = uc.sequence;
-        uint256 lastRoundNum = uc.lastRoundNum;
-        uint256 lastNum = uc.lastNum;
+    function commitHeader(bytes32 epochHash, bytes[] memory headers) public {
+        if (headers.length == 0) {
+            revert("headers length must greater than 0");
+        }
+        bytes32 parenHash = unCommittedLastHash[epochHash];
+        if (parenHash == 0) {
+            revert("epochhash not found");
+        }
+        UnCommittedHeaderInfo memory uc = getUnCommittedHeader(epochHash);
+
+        uint64 sequence = uc.sequence;
+        uint64 lastRoundNum = uc.lastRoundNum;
+        uint64 lastNum = uc.lastNum;
+
         for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
-            if (uint256(validationParams.number) != lastNum + 1) {
+            bytes32 blockHash = keccak256(headers[x]);
+            checkSig(validationParams);
+
+            if (validationParams.parentHash != parenHash) {
                 revert("Invalid Block Num Sequence");
             }
+
             if (validationParams.roundNumber == lastRoundNum + 1) {
                 sequence++;
             } else {
                 sequence = 0;
             }
 
-            lastRoundNum = validationParams.roundNumber;
-            lastNum = uint256(validationParams.number);
+            lastNum = uint64(uint256(validationParams.number));
+            lastRoundNum = uint64(validationParams.roundNumber);
+            parenHash = blockHash;
         }
 
         if (sequence >= 3) {
-            headerTree[unCommittedEpochHash] = clearLowest(
-                headerTree[unCommittedEpochHash],
-                64
-            );
-            headerTree[unCommittedEpochHash] |= block.number;
-            unCommittedTree[unCommittedEpochHash] = 0;
+            headerTree[epochHash] = clearLowest(headerTree[epochHash], 64);
+            headerTree[epochHash] |= block.number;
+            unCommittedTree[epochHash] = 0;
+            unCommittedLastHash[epochHash] = 0;
         } else {
-            unCommittedTree[unCommittedEpochHash] =
-                (sequence << 128) |
+            unCommittedTree[epochHash] =
+                (uint256(sequence) << 128) |
                 (uint256(lastRoundNum) << 64) |
-                lastNum;
+                uint256(lastNum);
+            bytes32 blockHash = keccak256(headers[headers.length - 1]);
+            unCommittedLastHash[epochHash] = blockHash;
+        }
+    }
+
+    function checkSig(
+        HeaderReader.ValidationParams memory validationParams
+    ) private {
+        // Verify subnet header certificates
+        address[] memory signerList = new address[](
+            validationParams.sigs.length
+        );
+        for (uint256 i = 0; i < validationParams.sigs.length; i++) {
+            address signer = recoverSigner(
+                validationParams.signHash,
+                validationParams.sigs[i]
+            );
+            if (lookup[signer] != true) {
+                revert("Verification Fail : lookup[signer] != true");
+            }
+
+            signerList[i] = signer;
+        }
+        (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
+        if (!isUnique) {
+            revert("Verification Fail : !isUnique");
+        }
+        if (uniqueCounter < currentValidators.threshold) {
+            revert(
+                "Verification Fail : uniqueCounter < currentValidators.threshold"
+            );
         }
     }
 

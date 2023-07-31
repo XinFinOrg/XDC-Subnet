@@ -77,13 +77,8 @@ describe("lite checkpoint", () => {
     };
   };
   beforeEach("deploy fixture", async () => {
-    ({
-      liteCheckpoint,
-      custom,
-      customValidators,
-      customBlock0,
-      customeBlock1,
-    } = await loadFixture(fixture));
+    ({ liteCheckpoint, custom, customValidators, customBlock0, customeBlock1 } =
+      await loadFixture(fixture));
   });
   describe("test lite checkpoint real block data", () => {
     it("receive a new header which has only the next and uncommitted", async () => {
@@ -139,7 +134,7 @@ describe("lite checkpoint", () => {
       expect(unBlock2Resp["lastNum"]).to.eq(0);
     });
 
-    it("replenish header", async () => {
+    it("commit header", async () => {
       const block451Encoded =
         "0xf903a4a0dd37cb87e01ce11ebafdfe4479b663dfd9f32a3a70d1648f9692f8628b25a669a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347943d9fd0c76bb8b3b4929ca861d167f3e05926cb68a031767fdd93b983bbde8462c60102a7b98992c6d8c047858870995fd600dd5c18a02200f18d3f0c6f92e9a904f4ae266654ae181b214fc138d7d8d506f24f3b2299a04a2650b45992260035532dad6473d2dfd0cfc1e49abd9900ff121506ee44df82b9010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000800000000000000000000000020000000000000004000000000000000000000000000000000000000000000000000000000000000018201c3841908b100808464be8e78b8fc02f8f98201cbf8f4e7a0dd37cb87e01ce11ebafdfe4479b663dfd9f32a3a70d1648f9692f8628b25a6698201ca8201c2f8c9b841bda00c4e0b2f4d7c0e0cb9469783a62a957011cb413e89dc3fc206e0d551524768caa9705a154f3a220953c3a05aafb6b06ea1477fc8334483e513381acee1d400b84180a246e11ff55881b0f11aa70f03bdc89c40d22454905aee01dfbe7c84069d5e6d43bcfc06638f118f541aec24d09b858ee7ccaeb1a7e3f2e71df9695252dbc801b841fd544a4686b09373fa3026a9129ad4df01dc065391313669e9517f2003f2032875b171b2ef981b21340e0589214fe734a3170d5aa0976dba2a0fda0ac31df9f10080a00000000000000000000000000000000000000000000000000000000000000000880000000000000000b841df638329ff644938ee3f6e9c2143293c935919246ac116c12041c9010e62cb846a7f7abe9940853e6801bd6daf16b7185e9a2f62e52b16ee4b813d8c721544cc01c0f869943d9fd0c76bb8b3b4929ca861d167f3e05926cb68943c03a0abac1da8f2f419a59afe1c125f90b506c59430f21e514a66732da5dff95340624fa808048601942af0cacf84899f504a6dc95e6205547bdfe28c2c9425b4cbb9a7ae13feadc3e9f29909833d19d16de5c0";
       const block452Encoded =
@@ -147,10 +142,7 @@ describe("lite checkpoint", () => {
       const canBeSaved = await liteCheckpoint.checkHeader(block451Encoded);
       expect(canBeSaved).to.equal(true);
 
-      await liteCheckpoint.receiveHeader([
-        block451Encoded,
-        block452Encoded,
-      ]);
+      await liteCheckpoint.receiveHeader([block451Encoded, block452Encoded]);
 
       const block2Hash = blockToHash(block451Encoded);
       const block2Resp = await liteCheckpoint.getHeader(block2Hash);
@@ -171,16 +163,15 @@ describe("lite checkpoint", () => {
       const block454Encoded =
         "0xf9033aa07cc6b467bfd6d13def6829785a6e181a6512357d1c2d9d596b950020eafcc237a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d493479430f21e514a66732da5dff95340624fa808048601a031767fdd93b983bbde8462c60102a7b98992c6d8c047858870995fd600dd5c18a0ffa2be59b3b97cc024bb01d3d44a8281cacbd80cfb19c88be0a3f9d4a4b9742fa0bcd2a51669cdca54e5f28517bcd09ca95007951a7d7ec181cb3f361f783cde4ab9010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000018201c6841908b100808464be8e7eb8fc02f8f98201cef8f4e7a07cc6b467bfd6d13def6829785a6e181a6512357d1c2d9d596b950020eafcc2378201cd8201c5f8c9b841fa6b58f6fab088afe0eeb8bd45dbd79777dd54e069860a5b68be3092986a37ed54b04b36b9dc46b40b7a53bc3d878c4711a3f5d08e9b344253554a25a83cb9b300b841adcd09c9ea70dacce1c86e985c3f8f20e4771fa5a8a34b59ffcfe9bd3fbc9c985e736c1f3a4c2e641c9ec89d77aadf6627f47b3cfd9960e6c305d95f8001010b00b8415908e58f173b81d500d7a5b0a65c8c77181e0e590a0915d43d4c490d4d18367908619ba95b478eebcd847f740486e7284f1410cf11d072cca69ed1390b7f160e0080a00000000000000000000000000000000000000000000000000000000000000000880000000000000000b841a6f80167cfabaabf3969dccec161f7e8585b364b52972d4b0c4cecf5078ae0226af1efc6c6be73bb0f9ca6c093b2a10449878596ab50494df341a4894694609901c0c0c0";
 
-      await liteCheckpoint.replenishHeader(block2Hash, [
+      await liteCheckpoint.commitHeader(block2Hash, [
         block453Encoded,
         block454Encoded,
       ]);
 
-      const committedBlock2Resp = await liteCheckpoint.getHeader(
+      const committedBlock2Resp = await liteCheckpoint.getHeader(block2Hash);
+      const committedUnBlock2Resp = await liteCheckpoint.getUnCommittedHeader(
         block2Hash
       );
-      const committedUnBlock2Resp =
-        await liteCheckpoint.getUnCommittedHeader(block2Hash);
 
       expect(committedBlock2Resp["number"]).to.eq(451);
       expect(committedBlock2Resp["roundNum"]).to.eq(459);
@@ -223,9 +214,7 @@ describe("lite checkpoint", () => {
       expect(unBlock6Resp["lastRoundNum"]).to.eq(7);
       expect(unBlock6Resp["lastNum"]).to.eq(6);
     });
-    it("receive new header which has only the current and no committed", async () => {
-      
-    });
+    it("receive new header which has only the current and no committed", async () => {});
     it("receive new header which has only the next and committed", async () => {
       const next = createValidators(3).map((item) => {
         return item["address"];
@@ -292,8 +281,6 @@ describe("lite checkpoint", () => {
       expect(unBlock6Resp["lastRoundNum"]).to.eq(0);
       expect(unBlock6Resp["lastNum"]).to.eq(0);
     });
-    it("replenish header", async () => {
-
-    });
+    it("replenish header", async () => {});
   });
 });
