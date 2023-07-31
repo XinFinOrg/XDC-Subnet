@@ -327,7 +327,9 @@ contract Checkpoint {
         bytes memory sig
     ) internal pure returns (address) {
         (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
-        return ecrecover(message, v, r, s);
+        address signer = ecrecover(message, v, r, s);
+        require(signer != address(0), "ECDSA: invalid signature");
+        return signer;
     }
 
     /*
