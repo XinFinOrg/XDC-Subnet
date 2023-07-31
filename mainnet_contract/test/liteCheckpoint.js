@@ -281,6 +281,6 @@ describe("lite checkpoint", () => {
       expect(unBlock6Resp["lastRoundNum"]).to.eq(0);
       expect(unBlock6Resp["lastNum"]).to.eq(0);
     });
-    it("replenish header", async () => {});
+    it("commit header", async () => {});
   });
 });
