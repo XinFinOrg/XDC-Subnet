@@ -2,6 +2,7 @@ package engine_v2
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -47,10 +48,12 @@ func (x *XDPoS_v2) yourturn(chain consensus.ChainReader, round types.Round, pare
 	}
 
 	for i, s := range masterNodes {
+		fmt.Println("[yourturn] Masternode:", "index", i, "address", s.String(), "parentBlockNum", parent.Number)
 		log.Debug("[yourturn] Masternode:", "index", i, "address", s.String(), "parentBlockNum", parent.Number)
 	}
 
 	leaderIndex := uint64(round) % x.config.Epoch % uint64(len(masterNodes))
+	fmt.Println("yourturn", curIndex, leaderIndex)
 	x.whosTurn = masterNodes[leaderIndex]
 	if x.whosTurn != signer {
 		log.Info("[yourturn] Not my turn", "curIndex", curIndex, "leaderIndex", leaderIndex, "Hash", parent.Hash().Hex(), "whosTurn", x.whosTurn, "myaddr", signer)

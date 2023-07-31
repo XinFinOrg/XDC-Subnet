@@ -11,9 +11,11 @@ import (
 
 func TestInitialFirstV2Block(t *testing.T) {
 	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
+	PrepareQCandProcess(t, blockchain, currentBlock)
+
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 	header := currentBlock.Header()
-	// snapshot should not be created before initial
+
 	snap, _ := adaptor.EngineV2.GetSnapshot(blockchain, currentBlock.Header())
 	assert.NotNil(t, snap)
 

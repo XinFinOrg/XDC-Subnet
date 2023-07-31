@@ -17,6 +17,8 @@ import (
 
 func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	// PrepareQCandProcess(t, blockchain, currentBlock)
+
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Assuming we are getting block 906 which have QC pointing at block 905
@@ -33,7 +35,7 @@ func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 
 	// Set round to 905
 	engineV2.SetNewRoundFaker(blockchain, types.Round(905), false)
-	// Create two vote messages which will not reach vote pool threshold
+	// Create one vote messages which will not reach vote pool threshold
 	signedHash, err := signFn(accounts.Account{Address: signer}, voteSigningHash.Bytes())
 	assert.Nil(t, err)
 	voteMsg := &types.Vote{
@@ -42,14 +44,6 @@ func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 		GapNumber:         450,
 	}
 
-	err = engineV2.VoteHandler(blockchain, voteMsg)
-	assert.Nil(t, err)
-	signedHash = SignHashByPK(acc1Key, voteSigningHash.Bytes())
-	voteMsg = &types.Vote{
-		ProposedBlockInfo: blockInfo,
-		Signature:         signedHash,
-		GapNumber:         450,
-	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 

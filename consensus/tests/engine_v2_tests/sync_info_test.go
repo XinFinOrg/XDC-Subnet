@@ -12,8 +12,8 @@ import (
 )
 
 func TestSyncInfoShouldSuccessfullyUpdateByQC(t *testing.T) {
-	// Block 901 is the first v2 block with starting round of 0
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	// Block 0 is the first v2 block with starting round of 0
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	var extraField types.ExtraFields_v2
@@ -39,12 +39,12 @@ func TestSyncInfoShouldSuccessfullyUpdateByQC(t *testing.T) {
 	assert.Equal(t, types.Round(5), round)
 	assert.Equal(t, extraField.QuorumCert, highestQuorumCert)
 	assert.Equal(t, types.Round(2), highestCommitBlock.Round)
-	assert.Equal(t, big.NewInt(902), highestCommitBlock.Number)
+	assert.Equal(t, big.NewInt(2), highestCommitBlock.Number)
 }
 
 func TestSyncInfoShouldSuccessfullyUpdateByTC(t *testing.T) {
-	// Block 901 is the first v2 block with starting round of 0
-	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	// Block 0 is the first v2 block with starting round of 0
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	var extraField types.ExtraFields_v2
@@ -73,11 +73,11 @@ func TestSyncInfoShouldSuccessfullyUpdateByTC(t *testing.T) {
 }
 
 func TestSkipVerifySyncInfoIfBothQcTcNotQualified(t *testing.T) {
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Make the Highest QC in syncInfo point to an old block to simulate it's no longer qualified
-	parentBlock := blockchain.GetBlockByNumber(903)
+	parentBlock := blockchain.GetBlockByNumber(3)
 	var extraField types.ExtraFields_v2
 	err := utils.DecodeBytesExtraFields(parentBlock.Extra(), &extraField)
 	if err != nil {
