@@ -342,6 +342,11 @@ describe("checkpoint", () => {
       const blockHeader8Resp = await custom.getHeaderByNumber(8);
       expect(blockHeader8Resp[0]).to.eq(block8Hash);
       expect(blockHeader8Resp[1]).to.eq(8);
+
+      const currentValidators = await custom.getCurrentValidators();
+      expect(currentValidators[0]).to.deep.eq(
+        newValidators.map((item) => item.address)
+      );
     });
 
     it("switch a validator set in special case", async () => {
@@ -420,9 +425,13 @@ describe("checkpoint", () => {
       const block2HeaderResp = await custom.getHeaderByNumber(2);
       expect(block2HeaderResp[0]).to.eq(block2Hash);
       expect(block2HeaderResp[1]).to.eq(2);
+      const currentValidators = await custom.getCurrentValidators();
+      expect(currentValidators[0]).to.deep.eq(
+        customValidators.map((item) => item.address)
+      );
     });
 
-    it("penalty validity verify", async () => {
+    it("penalty validitor verify", async () => {
       const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
         2,
         2,

@@ -43,6 +43,8 @@ contract LiteCheckpoint {
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
 
+    event Warn(string);
+
     constructor(
         address[] memory initialValidatorSet,
         bytes memory block1,
@@ -121,102 +123,18 @@ contract LiteCheckpoint {
             revert("headers length must greater than 0");
         }
         bytes memory header0 = headers[0];
-        HeaderReader.ValidationParams memory validationParams = HeaderReader
-            .getValidationParams(header0);
-
-        (address[] memory current, address[] memory next) = HeaderReader
-            .getEpoch(header0);
         bytes32 blockHash = keccak256(header0);
-        checkSig(validationParams);
-        if (headerTree[blockHash] != 0) {
-            revert("Repeated Block");
-        }
-        if (current.length > 0 && next.length > 0) {
-            revert("Malformed Block");
-        } else if (current.length > 0) {
-            if (
-                validationParams.prevRoundNumber <
-                validationParams.roundNumber -
-                    (validationParams.roundNumber % EPOCH)
-            ) {
-                int256 gapNumber = validationParams.number -
-                    (validationParams.number % int256(uint256(EPOCH))) -
-                    int256(uint256(GAP));
-                // Edge case at the beginning
-                if (gapNumber < 0) {
-                    gapNumber = 0;
-                }
-                gapNumber = gapNumber + 1;
-                if (validators[gapNumber].threshold > 0) {
-                    if (validators[gapNumber].set.length != current.length) {
-                        revert("Mismatched Validators");
-                    }
-                    setLookup(validators[gapNumber].set);
-                    currentValidators = validators[gapNumber];
-                    latestCurrentEpochBlock = blockHash;
-                    currentTree.push(blockHash);
-                } else {
-                    revert("Missing Current Validators");
-                }
-            } else {
-                revert("Invalid Current Block");
-            }
-        } else if (next.length > 0) {
-            if (
-                uint64(
-                    uint256(validationParams.number % int256(uint256(EPOCH)))
-                ) == EPOCH - GAP + 1
-            ) {
-                (bool isValidatorUnique, ) = checkUniqueness(next);
-                if (!isValidatorUnique) revert("Repeated Validator");
-
-                validators[validationParams.number] = Validators({
-                    set: next,
-                    threshold: int256((next.length * 2) / 3)
-                });
-                latestNextEpochBlock = blockHash;
-                nextTree.push(blockHash);
-            } else {
-                revert("Invalid Next Block");
-            }
-        }
-        uint256 epochInfo = (uint256(validationParams.number) << 128) |
-            (uint256(validationParams.roundNumber) << 64) |
-            uint256(uint64(int64(-1)));
-        unCommittedLastHash[blockHash] = blockHash;
-        unCommittedTree[blockHash] =
-            (0 << 128) |
-            (uint256(validationParams.roundNumber) << 64) |
-            uint256(validationParams.number);
-
-        headerTree[blockHash] = epochInfo;
-        heightTree[uint64(epochInfo >> 128)] = blockHash;
+        checkEpochAndSave(header0);
         //for commit epoch
         if (headers.length > 1) {
             commitHeader(blockHash, sliceBytes(headers, 1));
         }
-        emit SubnetEpochBlockAccepted(blockHash, uint64(epochInfo >> 128));
-    }
-
-    function sliceBytes(
-        bytes[] calldata data,
-        uint256 startIndex
-    ) public pure returns (bytes[] memory) {
-        require(startIndex < data.length, "Start index is out of range");
-
-        bytes[] memory result = new bytes[](data.length - startIndex);
-
-        for (uint i = startIndex; i < data.length; i++) {
-            result[i - startIndex] = data[i];
-        }
-
-        return result;
     }
 
     function commitHeaderByNumber(
         uint256 number,
         bytes[] memory headers
-    ) public {
+    ) external {
         bytes32 epochHash = heightTree[uint64(number)];
         commitHeader(epochHash, headers);
     }
@@ -232,7 +150,7 @@ contract LiteCheckpoint {
         }
         bytes32 parenHash = unCommittedLastHash[epochHash];
         if (parenHash == 0) {
-            revert("epochhash not found");
+            revert("epochhash not found, may be it have not been saved");
         }
         UnCommittedHeaderInfo memory uc = getUnCommittedHeader(epochHash);
 
@@ -241,6 +159,7 @@ contract LiteCheckpoint {
         uint64 lastNum = uc.lastNum;
 
         for (uint256 x = 0; x < headers.length; x++) {
+            checkEpochAndSave(headers[x]);
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
             bytes32 blockHash = keccak256(headers[x]);
@@ -274,6 +193,102 @@ contract LiteCheckpoint {
             bytes32 blockHash = keccak256(headers[headers.length - 1]);
             unCommittedLastHash[epochHash] = blockHash;
         }
+    }
+
+    function checkEpochAndSave(bytes memory header) private {
+        HeaderReader.ValidationParams memory validationParams = HeaderReader
+            .getValidationParams(header);
+
+        (address[] memory current, address[] memory next) = HeaderReader
+            .getEpoch(header);
+        bytes32 blockHash = keccak256(header);
+
+        if (headerTree[blockHash] != 0) {
+            emit Warn("Repeated Block");
+            return;
+        }
+        if (current.length > 0 && next.length > 0) {
+            emit Warn("Malformed Block");
+            return;
+        }
+
+        if (current.length > 0) {
+            if (
+                validationParams.prevRoundNumber <
+                validationParams.roundNumber -
+                    (validationParams.roundNumber % EPOCH)
+            ) {
+                int256 gapNumber = validationParams.number -
+                    (validationParams.number % int256(uint256(EPOCH))) -
+                    int256(uint256(GAP));
+                // Edge case at the beginning
+                if (gapNumber < 0) {
+                    gapNumber = 0;
+                }
+                gapNumber = gapNumber + 1;
+                if (validators[gapNumber].threshold > 0) {
+                    if (validators[gapNumber].set.length != current.length) {
+                        revert("Mismatched Validators");
+                    }
+                    setLookup(validators[gapNumber].set);
+                    currentValidators = validators[gapNumber];
+                    latestCurrentEpochBlock = blockHash;
+                    currentTree.push(blockHash);
+                } else {
+                    revert("Missing Current Validators");
+                }
+            } else {
+                revert("Invalid Current Block");
+            }
+        }
+
+        if (next.length > 0) {
+            if (
+                uint64(
+                    uint256(validationParams.number % int256(uint256(EPOCH)))
+                ) == EPOCH - GAP + 1
+            ) {
+                (bool isValidatorUnique, ) = checkUniqueness(next);
+                if (!isValidatorUnique) revert("Repeated Validator");
+
+                validators[validationParams.number] = Validators({
+                    set: next,
+                    threshold: int256((next.length * 2) / 3)
+                });
+                latestNextEpochBlock = blockHash;
+                nextTree.push(blockHash);
+            } else {
+                revert("Invalid Next Block");
+            }
+        }
+        checkSig(validationParams);
+        uint256 epochInfo = (uint256(validationParams.number) << 128) |
+            (uint256(validationParams.roundNumber) << 64) |
+            uint256(uint64(int64(-1)));
+        unCommittedLastHash[blockHash] = blockHash;
+        unCommittedTree[blockHash] =
+            (0 << 128) |
+            (uint256(validationParams.roundNumber) << 64) |
+            uint256(validationParams.number);
+
+        headerTree[blockHash] = epochInfo;
+        heightTree[uint64(epochInfo >> 128)] = blockHash;
+        emit SubnetEpochBlockAccepted(blockHash, uint64(epochInfo >> 128));
+    }
+
+    function sliceBytes(
+        bytes[] calldata data,
+        uint256 startIndex
+    ) private pure returns (bytes[] memory) {
+        require(startIndex < data.length, "Start index is out of range");
+
+        bytes[] memory result = new bytes[](data.length - startIndex);
+
+        for (uint i = startIndex; i < data.length; i++) {
+            result[i - startIndex] = data[i];
+        }
+
+        return result;
     }
 
     function checkSig(

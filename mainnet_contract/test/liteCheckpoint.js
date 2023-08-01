@@ -183,7 +183,7 @@ describe("lite checkpoint", () => {
   });
   describe("test lite checkpoint custom block data", () => {
     //TODO
-    it("receive new header which has only the next and no committed", async () => {
+    it("receive new header which has only the next and uncommitted", async () => {
       const next = createValidators(3).map((item) => {
         return item["address"];
       });
@@ -214,7 +214,6 @@ describe("lite checkpoint", () => {
       expect(unBlock6Resp["lastRoundNum"]).to.eq(7);
       expect(unBlock6Resp["lastNum"]).to.eq(6);
     });
-    it("receive new header which has only the current and no committed", async () => {});
     it("receive new header which has only the next and committed", async () => {
       const next = createValidators(3).map((item) => {
         return item["address"];
@@ -281,6 +280,147 @@ describe("lite checkpoint", () => {
       expect(unBlock6Resp["lastRoundNum"]).to.eq(0);
       expect(unBlock6Resp["lastNum"]).to.eq(0);
     });
-    it("commit header", async () => {});
+    it("commit header", async () => {
+      const next = createValidators(3).map((item) => {
+        return item["address"];
+      });
+      const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
+        6,
+        7,
+        6,
+        //doesn't matter random value, lite not check the value at array 0
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        next
+      );
+      const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
+        7,
+        8,
+        7,
+        block6Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block8, block8Encoded, block8Hash] = composeAndSignBlock(
+        8,
+        9,
+        8,
+        block7Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block9, block9Encoded, block9Hash] = composeAndSignBlock(
+        9,
+        10,
+        9,
+        block8Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const canBeSaved = await custom.checkHeader(block6Encoded);
+      expect(canBeSaved).to.equal(true);
+      await custom.receiveHeader([block6Encoded, block7Encoded]);
+
+      const block6Resp = await custom.getHeader(block6Hash);
+
+      const unBlock6Resp = await custom.getUnCommittedHeader(block6Hash);
+
+      expect(block6Resp["number"]).to.eq(6);
+      expect(block6Resp["roundNum"]).to.eq(7);
+      expect(block6Resp["mainnetNum"]).to.eq(-1);
+      expect(unBlock6Resp["sequence"]).to.eq(1);
+      expect(unBlock6Resp["lastRoundNum"]).to.eq(8);
+      expect(unBlock6Resp["lastNum"]).to.eq(7);
+
+      await custom.commitHeader(block6Hash, [block8Encoded, block9Encoded]);
+
+      const committedBlock6Resp = await custom.getHeader(block6Hash);
+      const committedUnBlock6Resp = await custom.getUnCommittedHeader(
+        block6Hash
+      );
+
+      expect(committedBlock6Resp["number"]).to.eq(6);
+      expect(committedBlock6Resp["roundNum"]).to.eq(7);
+      expect(committedBlock6Resp["mainnetNum"]).to.not.eq(-1);
+      expect(committedUnBlock6Resp["sequence"]).to.eq(0);
+      expect(committedUnBlock6Resp["lastRoundNum"]).to.eq(0);
+      expect(committedUnBlock6Resp["lastNum"]).to.eq(0);
+    });
+
+    it("switch a validator set", async () => {
+      const next = createValidators(3);
+
+      const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
+        6,
+        6,
+        5,
+        //doesn't matter random value, lite not check the value at array 0
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        next.map((item) => item.address)
+      );
+      const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
+        7,
+        7,
+        6,
+        block6Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block8, block8Encoded, block8Hash] = composeAndSignBlock(
+        8,
+        8,
+        7,
+        block7Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block9, block9Encoded, block9Hash] = composeAndSignBlock(
+        9,
+        9,
+        8,
+        block8Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block10, block10Encoded, block10Hash] = composeAndSignBlock(
+        10,
+        10,
+        9,
+        block9Hash,
+        next,
+        2,
+        next.map((item) => item.address),
+        []
+      );
+
+      await custom.receiveHeader([
+        block6Encoded,
+        block7Encoded,
+        block8Encoded,
+        block9Encoded,
+        block10Encoded,
+      ]);
+      const currentValidators = await custom.getCurrentValidators();
+      expect(currentValidators[0]).to.deep.eq(next.map((item) => item.address));
+    });
+    it("switch a validator set in special case", async () => {});
+    it("penalty validitor verify", async () => {});
   });
 });
