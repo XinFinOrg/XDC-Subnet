@@ -417,6 +417,30 @@ describe("lite checkpoint", () => {
         block9Encoded,
         block10Encoded,
       ]);
+      const committedBlock6Resp = await custom.getHeader(block6Hash);
+      const committedUnBlock6Resp = await custom.getUnCommittedHeader(
+        block6Hash
+      );
+
+      expect(committedBlock6Resp["number"]).to.eq(6);
+      expect(committedBlock6Resp["roundNum"]).to.eq(6);
+      expect(committedBlock6Resp["mainnetNum"]).to.not.eq(-1);
+      expect(committedUnBlock6Resp["sequence"]).to.eq(0);
+      expect(committedUnBlock6Resp["lastRoundNum"]).to.eq(0);
+      expect(committedUnBlock6Resp["lastNum"]).to.eq(0);
+
+      const committedBlock10Resp = await custom.getHeader(block10Hash);
+      const committedUnBlock10Resp = await custom.getUnCommittedHeader(
+        block10Hash
+      );
+
+      expect(committedBlock10Resp["number"]).to.eq(10);
+      expect(committedBlock10Resp["roundNum"]).to.eq(10);
+      expect(committedBlock10Resp["mainnetNum"]).to.eq(-1);
+      expect(committedUnBlock10Resp["sequence"]).to.eq(0);
+      expect(committedUnBlock10Resp["lastRoundNum"]).to.eq(10);
+      expect(committedUnBlock10Resp["lastNum"]).to.eq(10);
+
       const currentValidators = await custom.getCurrentValidators();
       expect(currentValidators[0]).to.deep.eq(next.map((item) => item.address));
     });
