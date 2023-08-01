@@ -119,14 +119,15 @@ contract LiteCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) external {
-        if (headers.length == 0) {
-            revert("headers length must greater than 0");
-        }
+         require(
+            headers.length > 0,
+            "receiveHeader : Headers length must be greater than 0"
+        );
         bytes memory header0 = headers[0];
-        bytes32 blockHash = keccak256(header0);
         checkEpochAndSave(header0);
         //for commit epoch
         if (headers.length > 1) {
+            bytes32 blockHash = keccak256(header0);
             commitHeader(blockHash, sliceBytes(headers, 1));
         }
     }
@@ -145,8 +146,10 @@ contract LiteCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function commitHeader(bytes32 epochHash, bytes[] memory headers) public {
-        
-        require(headers.length > 0, "Headers length must be greater than 0");
+        require(
+            headers.length > 0,
+            "commitHeader : Headers length must be greater than 0"
+        );
 
         bytes32 parenHash = unCommittedLastHash[epochHash];
         require(parenHash != 0, "EpochHash not found, may not have been saved");
