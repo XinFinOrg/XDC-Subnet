@@ -119,7 +119,7 @@ contract LiteCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) external {
-         require(
+        require(
             headers.length > 0,
             "receiveHeader : Headers length must be greater than 0"
         );
@@ -206,11 +206,19 @@ contract LiteCheckpoint {
         bytes32 blockHash = keccak256(header);
 
         if (headerTree[blockHash] != 0) {
-            emit Warn("Repeated Block");
+            emit Warn(
+                string(
+                    abi.encodePacked("Repeated Block blockhash : ", blockHash)
+                )
+            );
             return;
         }
         if (current.length > 0 && next.length > 0) {
-            emit Warn("Malformed Block");
+            emit Warn(
+                string(
+                    abi.encodePacked("Malformed Block blockhash : ", blockHash)
+                )
+            );
             return;
         }
 
