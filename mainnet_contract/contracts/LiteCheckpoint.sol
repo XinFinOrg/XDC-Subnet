@@ -145,13 +145,12 @@ contract LiteCheckpoint {
      * @param list of rlp-encoded block headers.
      */
     function commitHeader(bytes32 epochHash, bytes[] memory headers) public {
-        if (headers.length == 0) {
-            revert("headers length must greater than 0");
-        }
+        
+        require(headers.length > 0, "Headers length must be greater than 0");
+
         bytes32 parenHash = unCommittedLastHash[epochHash];
-        if (parenHash == 0) {
-            revert("epochhash not found, may be it have not been saved");
-        }
+        require(parenHash != 0, "EpochHash not found, may not have been saved");
+
         UnCommittedHeaderInfo memory uc = getUnCommittedHeader(epochHash);
 
         uint64 sequence = uc.sequence;
