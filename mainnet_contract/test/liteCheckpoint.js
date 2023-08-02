@@ -444,7 +444,105 @@ describe("lite checkpoint", () => {
       const currentValidators = await custom.getCurrentValidators();
       expect(currentValidators[0]).to.deep.eq(next.map((item) => item.address));
     });
-    it("switch a validator set in special case", async () => {});
-    it("penalty validitor verify", async () => {});
+    it("switch a validator set in special case", async () => {
+      const next = createValidators(3);
+      const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
+        6,
+        9,
+        5,
+        //doesn't matter random value, lite not check the value at array 0
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        next.map((item) => item.address)
+      );
+      const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
+        7,
+        10,
+        9,
+        block6Hash,
+        customValidators,
+        2,
+        next.map((item) => item.address),
+        []
+      );
+      await custom.receiveHeader([block6Encoded, block7Encoded]);
+      const currentValidators = await custom.getCurrentValidators();
+      expect(currentValidators[0]).to.deep.eq(
+        customValidators.map((item) => item.address)
+      );
+    });
+    it("penalty validitor verify", async () => {
+      const next = createValidators(5);
+      const penalties = [next[0], next[1]];
+      const actualValidators = [next[2], next[3], next[4]];
+
+      const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
+        6,
+        6,
+        5,
+        //doesn't matter random value, lite not check the value at array 0
+        customeBlock1["hash"],
+        customValidators,
+        2,
+        [],
+        next.map((item) => item.address),
+        penalties.map((item) => item.address)
+      );
+      const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
+        7,
+        7,
+        6,
+        block6Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block8, block8Encoded, block8Hash] = composeAndSignBlock(
+        8,
+        8,
+        7,
+        block7Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block9, block9Encoded, block9Hash] = composeAndSignBlock(
+        9,
+        9,
+        8,
+        block8Hash,
+        customValidators,
+        2,
+        [],
+        []
+      );
+      const [block10, block10Encoded, block10Hash] = composeAndSignBlock(
+        10,
+        10,
+        9,
+        block9Hash,
+        actualValidators,
+        2,
+        actualValidators.map((item) => item.address),
+        []
+      );
+
+      await custom.receiveHeader([
+        block6Encoded,
+        block7Encoded,
+        block8Encoded,
+        block9Encoded,
+        block10Encoded,
+      ]);
+
+      const currentValidators = await custom.getCurrentValidators();
+      expect(currentValidators[0]).to.deep.eq(
+        actualValidators.map((item) => item.address)
+      );
+    });
   });
 });

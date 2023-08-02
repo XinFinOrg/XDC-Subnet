@@ -263,7 +263,7 @@ describe("checkpoint", () => {
         []
       );
 
-      const newValidators = createValidators(3);
+      const next = createValidators(3);
 
       const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
         6,
@@ -273,7 +273,7 @@ describe("checkpoint", () => {
         customValidators,
         2,
         [],
-        newValidators.map((item) => item.address)
+        next.map((item) => item.address)
       );
       const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
         7,
@@ -310,9 +310,9 @@ describe("checkpoint", () => {
         10,
         9,
         block9Hash,
-        newValidators,
+        next,
         2,
-        newValidators.map((item) => item.address),
+        next.map((item) => item.address),
         []
       );
       await custom.receiveHeader([block2Encoded, block3Encoded, block4Encoded]);
@@ -345,7 +345,7 @@ describe("checkpoint", () => {
 
       const currentValidators = await custom.getCurrentValidators();
       expect(currentValidators[0]).to.deep.eq(
-        newValidators.map((item) => item.address)
+        next.map((item) => item.address)
       );
     });
 
@@ -391,7 +391,7 @@ describe("checkpoint", () => {
         []
       );
 
-      const newValidators = createValidators(3);
+      const next = createValidators(3);
       const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
         6,
         9,
@@ -400,7 +400,7 @@ describe("checkpoint", () => {
         customValidators,
         2,
         [],
-        newValidators.map((item) => item.address)
+        next.map((item) => item.address)
       );
       const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
         7,
@@ -409,7 +409,7 @@ describe("checkpoint", () => {
         block6Hash,
         customValidators,
         2,
-        newValidators.map((item) => item.address),
+        next.map((item) => item.address),
         []
       );
       await custom.receiveHeader([block2Encoded, block3Encoded, block4Encoded]);
@@ -472,12 +472,12 @@ describe("checkpoint", () => {
         [],
         []
       );
-      const newValidators = createValidators(5);
-      const penalties = [newValidators[0], newValidators[1]];
+      const next = createValidators(5);
+      const penalties = [next[0], next[1]];
       const actualValidators = [
-        newValidators[2],
-        newValidators[3],
-        newValidators[4],
+        next[2],
+        next[3],
+        next[4],
       ];
 
       const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
@@ -488,7 +488,7 @@ describe("checkpoint", () => {
         customValidators,
         2,
         [],
-        newValidators.map((item) => item.address),
+        next.map((item) => item.address),
         penalties.map((item) => item.address)
       );
       const [block7, block7Encoded, block7Hash] = composeAndSignBlock(
