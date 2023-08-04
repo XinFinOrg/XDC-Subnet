@@ -185,8 +185,8 @@ contract LiteCheckpoint {
         if (sequence >= 3) {
             headerTree[epochHash] = clearLowest(headerTree[epochHash], 64);
             headerTree[epochHash] |= block.number;
-            unCommittedTree[epochHash] = 0;
-            unCommittedLastHash[epochHash] = 0;
+            delete unCommittedTree[epochHash];
+            delete unCommittedLastHash[epochHash];
         } else {
             unCommittedTree[epochHash] =
                 (uint256(sequence) << 128) |
