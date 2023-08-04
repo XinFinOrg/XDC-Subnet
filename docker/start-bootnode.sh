@@ -31,10 +31,18 @@ elif [[ ! -f ./bootnode.key ]]; then
   bootnode -genkey bootnode.key
 fi
 
+# listen port
+if [[ ! -z "$BOOTNODE_PORT" ]]; then
+  params="$params --addr ${BOOTNODE_PORT}"
+else
+  BOOTNODE_PORT=:30301
+  params="$params --addr ${BOOTNODE_PORT}"
+fi
+
 # dump address
-address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@$(hostname -i):30301"
+address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@$(hostname -i)${BOOTNODE_PORT}"
 if [[ ! -z $EXTIP ]]; then
-  address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@$EXTIP:30301"
+  address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@$EXTIP${BOOTNODE_PORT}"
 fi
 
 echo "🥾 Starting the bootnode with address at $address"
