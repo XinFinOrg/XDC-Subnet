@@ -294,8 +294,8 @@ contract Checkpoint {
             }
             bytes32 prev_hash = header_tree[committed_block].parent_hash;
             if (
-                uint64(header_tree[committed_block].mix >> 65) !=
-                uint64(header_tree[prev_hash].mix >> 65) + 1
+                header_tree[committed_block].mix >> 65 !=
+                (header_tree[prev_hash].mix >> 65) + 1
             ) {
                 is_committed = false;
                 break;
