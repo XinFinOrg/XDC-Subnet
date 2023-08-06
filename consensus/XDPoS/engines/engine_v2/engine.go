@@ -1080,16 +1080,6 @@ func (x *XDPoS_v2) GetMasternodesByHash(chain consensus.ChainReader, hash common
 	return epochSwitchInfo.Masternodes
 }
 
-// Given hash, get master node from the epoch switch block of the previous `limit` epoch
-func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash common.Hash, limit int) []common.Address {
-	epochSwitchInfo, err := x.getPreviousEpochSwitchInfoByHash(chain, hash, limit)
-	if err != nil {
-		log.Error("[GetPreviousPenaltyByHash] Adaptor v2 getPreviousEpochSwitchInfoByHash has error, potentially bug", "err", err)
-		return []common.Address{}
-	}
-	return epochSwitchInfo.Penalties
-}
-
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {
 	parent := chain.GetBlock(x.highestQuorumCert.ProposedBlockInfo.Hash, x.highestQuorumCert.ProposedBlockInfo.Number.Uint64())
 	if parent == nil {

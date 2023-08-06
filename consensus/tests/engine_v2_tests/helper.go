@@ -626,10 +626,7 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			Coinbase:   common.HexToAddress(blockCoinBase),
 			Extra:      extraInBytes,
 		}
-		if int64(blockNumber) == (chainConfig.XDPoS.V2.SwitchBlock.Int64() + 1) { // This is the first v2 block, we need v2 validators aka masternodes
-			// Get last master node list from last v1 block
-			header.Validators = masternodes
-		} else if roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 {
+		if header.Number.Uint64()%chainConfig.XDPoS.Epoch == 0 {
 			// epoch switch blocks, we need v2 validators aka masternodes
 			header.Validators = masternodes
 		} else if (header.Number.Uint64()%chainConfig.XDPoS.Epoch) == (chainConfig.XDPoS.Epoch-chainConfig.XDPoS.Gap+1) || header.Number.Uint64() == 1 { // This is the gapPlusOneBlock
