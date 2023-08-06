@@ -25,20 +25,20 @@ contract LiteCheckpoint {
         address[] set;
         int256 threshold;
     }
-    mapping(bytes32 => bytes32) unCommittedLastHash;
-    mapping(bytes32 => uint256) unCommittedTree; // padding uint64 | uint64 sequence | uint64 lastRoundNum | uint64 lastNum
-    mapping(bytes32 => uint256) headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
-    mapping(uint64 => bytes32) heightTree;
-    bytes32[] currentTree;
-    bytes32[] nextTree;
-    mapping(address => bool) lookup;
-    mapping(address => bool) uniqueAddr;
-    mapping(int256 => Validators) validators;
-    Validators currentValidators;
-    bytes32 latestCurrentEpochBlock;
-    bytes32 latestNextEpochBlock;
-    uint64 GAP;
-    uint64 EPOCH;
+    mapping(bytes32 => bytes32) private unCommittedLastHash;
+    mapping(bytes32 => uint256) private unCommittedTree; // padding uint64 | uint64 sequence | uint64 lastRoundNum | uint64 lastNum
+    mapping(bytes32 => uint256) private headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
+    mapping(uint64 => bytes32) private heightTree;
+    bytes32[] private currentTree;
+    bytes32[] private nextTree;
+    mapping(address => bool) private lookup;
+    mapping(address => bool) private uniqueAddr;
+    mapping(int256 => Validators) private validators;
+    Validators private currentValidators;
+    bytes32 private latestCurrentEpochBlock;
+    bytes32 private latestNextEpochBlock;
+    uint64 private GAP;
+    uint64 private EPOCH;
 
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);

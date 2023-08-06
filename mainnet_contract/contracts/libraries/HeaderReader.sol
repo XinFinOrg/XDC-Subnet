@@ -6,11 +6,11 @@ pragma solidity =0.8.19;
 // solidity-rlp-encode(https://github.com/bakaoh/solidity-rlp-encode)
 library HeaderReader {
     // Solidity-RLP defined constants and struct
-    uint8 constant STRING_SHORT_START = 0x80;
-    uint8 constant STRING_LONG_START = 0xb8;
-    uint8 constant LIST_SHORT_START = 0xc0;
-    uint8 constant LIST_LONG_START = 0xf8;
-    uint8 constant WORD_SIZE = 32;
+    uint8 constant private STRING_SHORT_START = 0x80;
+    uint8 constant private STRING_LONG_START = 0xb8;
+    uint8 constant private LIST_SHORT_START = 0xc0;
+    uint8 constant private LIST_LONG_START = 0xf8;
+    uint8 constant private WORD_SIZE = 32;
 
     struct RLPItem {
         uint256 len;
@@ -48,8 +48,8 @@ library HeaderReader {
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
         );
-        uint64 round_number = uint64(toUint(extra[0]));
-        return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number);
+        uint64 roundNumber = uint64(toUint(extra[0]));
+        return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), roundNumber);
     }
 
     /*
@@ -63,31 +63,31 @@ library HeaderReader {
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
         );
-        uint64 round_number = uint64(toUint(extra[0]));
-        RLPItem[] memory proposed_block = toList(toList(extra[1])[0]);
-        bytes32 parent_hash = toBytes32(toBytes(proposed_block[0]));
-        uint64 parent_round_number = uint64(toUint(proposed_block[1]));
-        int parent_number = int(toUint(proposed_block[2]));
-        if (parent_hash != toBytes32(toBytes(ls[0]))) {
+        uint64 roundNumber = uint64(toUint(extra[0]));
+        RLPItem[] memory proposedBlock = toList(toList(extra[1])[0]);
+        bytes32 parentHash = toBytes32(toBytes(proposedBlock[0]));
+        uint64 parentRoundNumber = uint64(toUint(proposedBlock[1]));
+        int parentNumber = int(toUint(proposedBlock[2]));
+        if (parentHash != toBytes32(toBytes(ls[0]))) {
             revert("Verification Failed");
         }
-        RLPItem[] memory raw_sigs = toList(toList(extra[1])[1]);
-        bytes[] memory sigs = new bytes[](raw_sigs.length);
-        for (uint i = 0; i < raw_sigs.length; i++) {
-            sigs[i] = toBytes(raw_sigs[i]);
+        RLPItem[] memory rawSigs = toList(toList(extra[1])[1]);
+        bytes[] memory sigs = new bytes[](rawSigs.length);
+        for (uint i = 0; i < rawSigs.length; i++) {
+            sigs[i] = toBytes(rawSigs[i]);
         }
         bytes32 signHash = createSignHash(
-            parent_hash,
-            parent_round_number,
-            parent_number,
+            parentHash,
+            parentRoundNumber,
+            parentNumber,
             uint64(toUint(toList(extra[1])[2]))
         );
         return
             ValidationParams(
                 toBytes32(toBytes(ls[0])),
                 int(toUint(ls[8])),
-                round_number,
-                parent_round_number,
+                roundNumber,
+                parentRoundNumber,
                 signHash,
                 sigs
             );
@@ -112,17 +112,17 @@ library HeaderReader {
 
         if (list1.length > 0) {
             RLPItem[] memory list2 = toList(ls[18]);
-            address[] memory unique_addr = new address[](list2.length);
+            address[] memory uniqueAddr = new address[](list2.length);
             address[] memory penalty = new address[](list2.length);
             uint counter = 0;
             for (uint i = 0; i < list2.length; i++) {
                 penalty[i] = toAddress(list2[i]);
-                unique_addr[i] = penalty[i];
+                uniqueAddr[i] = penalty[i];
             }
             next = new address[](list1.length - list2.length);
             for (uint i = 0; i < list1.length; i++) {
                 address temp = toAddress(list1[i]);
-                if (!addressExist(unique_addr, temp)) {
+                if (!addressExist(uniqueAddr, temp)) {
                     next[counter] = temp;
                     counter++;
                 }
@@ -169,19 +169,19 @@ library HeaderReader {
      * @return hash of rlp-encoded of [[parentHash, parentRoundNum, parentNum], gapNum].
      */
     function createSignHash(
-        bytes32 block_hash,
-        uint64 round_num,
+        bytes32 blockHash,
+        uint64 roundNum,
         int number,
-        uint64 gap_num
+        uint64 gapNum
     ) internal pure returns (bytes32 signHash) {
         bytes[] memory x = new bytes[](3);
-        x[0] = encodeBytes(abi.encodePacked(block_hash));
-        x[1] = encodeUint(round_num);
+        x[0] = encodeBytes(abi.encodePacked(blockHash));
+        x[1] = encodeUint(roundNum);
         x[2] = encodeUint(uint(number));
 
         bytes[] memory y = new bytes[](2);
         y[0] = encodeList(x);
-        y[1] = encodeUint(gap_num);
+        y[1] = encodeUint(gapNum);
         signHash = keccak256(encodeList(y));
     }
 
