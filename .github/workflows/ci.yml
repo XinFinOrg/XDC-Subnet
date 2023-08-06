@@ -46,8 +46,17 @@ jobs:
           DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
         run: |
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    
+      - name: Determine Docker Image Name
+        id: image
+        run: |
+          if [[ "${{github.ref_name}}" == "master" ]]; then
+            echo "name= xinfinorg/xdcsubnets:latest" >> $GITHUB_OUTPUT
+          else
+            echo "name= xinfinorg/xdcsubnets:${{github.ref_name}}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push image
         run: |
-          docker build -t xdc-subnet -f docker/Dockerfile .
-          docker tag xdc-subnet:latest xinfinorg/xdcsubnets:latest
-          docker push xinfinorg/xdcsubnets:latest
+          docker build . --file Dockerfile --tag ${{ steps.image.outputs.name }}
+          docker push ${{ steps.image.outputs.name }}
