@@ -37,6 +37,7 @@ contract LiteCheckpoint {
     Validators private currentValidators;
     bytes32 private latestCurrentEpochBlock;
     bytes32 private latestNextEpochBlock;
+    uint64 private epochNum;
     uint64 private immutable INIT_GAP;
     uint64 private immutable INIT_EPOCH;
 
@@ -62,55 +63,6 @@ contract LiteCheckpoint {
         latestCurrentEpochBlock = block1HeaderHash;
         INIT_GAP = initGap;
         INIT_EPOCH = initEpoch;
-    }
-
-    //Check if the blocks can be stored
-    //params HexRLP array
-    function checkHeaders(
-        bytes[] calldata headers
-    ) external view returns (bool[] memory) {
-        bool[] memory result = new bool[](headers.length);
-        for (uint256 i = 0; i < headers.length; i++) {
-            result[i] = checkHeader(headers[i]);
-        }
-        return result;
-    }
-
-    //Check if the block can be stored
-    //params HexRLP
-    function checkHeader(bytes calldata header) public view returns (bool) {
-        HeaderReader.ValidationParams memory validationParams = HeaderReader
-            .getValidationParams(header);
-
-        (address[] memory current, address[] memory next) = HeaderReader
-            .getEpoch(header);
-        bytes32 blockHash = keccak256(header);
-        if (headerTree[blockHash] != 0) {
-            return false;
-        }
-        if (current.length > 0 && next.length > 0) {
-            return false;
-        }
-
-        if (
-            current.length > 0 &&
-            validationParams.prevRoundNumber <
-            validationParams.roundNumber -
-                (validationParams.roundNumber % INIT_EPOCH)
-        ) {
-            return true;
-        }
-
-        if (
-            next.length > 0 &&
-            uint64(
-                uint256(validationParams.number % int256(uint256(INIT_EPOCH)))
-            ) ==
-            INIT_EPOCH - INIT_GAP + 1
-        ) {
-            return true;
-        }
-        return false;
     }
 
     /*
@@ -226,9 +178,9 @@ contract LiteCheckpoint {
 
         if (current.length > 0) {
             if (
-                validationParams.prevRoundNumber <
-                validationParams.roundNumber -
-                    (validationParams.roundNumber % INIT_EPOCH)
+                uint64(uint256(validationParams.number)) % INIT_EPOCH == 0 &&
+                uint64(uint256(validationParams.number)) / INIT_EPOCH ==
+                epochNum + 1
             ) {
                 int256 gapNumber = validationParams.number -
                     (validationParams.number % int256(uint256(INIT_EPOCH))) -
@@ -238,6 +190,7 @@ contract LiteCheckpoint {
                     gapNumber = 0;
                 }
                 unchecked {
+                    epochNum++;
                     gapNumber++;
                 }
 
@@ -263,7 +216,10 @@ contract LiteCheckpoint {
                     uint256(
                         validationParams.number % int256(uint256(INIT_EPOCH))
                     )
-                ) == INIT_EPOCH - INIT_GAP + 1
+                ) ==
+                INIT_EPOCH - INIT_GAP + 1 &&
+                uint64(uint256(validationParams.number)) / INIT_EPOCH ==
+                epochNum
             ) {
                 (bool isValidatorUnique, ) = checkUniqueness(next);
                 if (!isValidatorUnique) revert("Repeated Validator");

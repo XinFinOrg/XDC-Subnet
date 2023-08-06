@@ -37,6 +37,7 @@ contract Checkpoint {
     Validators private currentValidators;
     bytes32 private latestBlock;
     bytes32 private latestFinalizedBlock;
+    uint64 private epochNum;
     uint64 private immutable INIT_GAP;
     uint64 private immutable INIT_EPOCH;
 
@@ -154,9 +155,10 @@ contract Checkpoint {
                 revert("Malformed Block");
             else if (current.length > 0) {
                 if (
-                    validationParams.prevRoundNumber <
-                    validationParams.roundNumber -
-                        (validationParams.roundNumber % INIT_EPOCH)
+                    uint64(uint256(validationParams.number)) % INIT_EPOCH ==
+                    0 &&
+                    uint64(uint256(validationParams.number)) / INIT_EPOCH ==
+                    epochNum + 1
                 ) {
                     int256 gapNumber = validationParams.number -
                         (validationParams.number %
@@ -167,6 +169,7 @@ contract Checkpoint {
                         gapNumber = 0;
                     }
                     unchecked {
+                        epochNum++;
                         gapNumber++;
                     }
 
@@ -176,7 +179,9 @@ contract Checkpoint {
                         setLookup(validators[gapNumber].set);
                         currentValidators = validators[gapNumber];
                     } else revert("Missing Current Validators");
-                } else revert("Invalid Current Block");
+                } else {
+                    revert("Invalid Current Block");
+                }
             } else if (next.length > 0) {
                 if (
                     uint64(
@@ -184,7 +189,10 @@ contract Checkpoint {
                             validationParams.number %
                                 int256(uint256(INIT_EPOCH))
                         )
-                    ) == INIT_EPOCH - INIT_GAP + 1
+                    ) ==
+                    INIT_EPOCH - INIT_GAP + 1 &&
+                    uint64(uint256(validationParams.number)) / INIT_EPOCH ==
+                    epochNum
                 ) {
                     (bool isValidatorUnique, ) = checkUniqueness(next);
                     if (!isValidatorUnique) revert("Repeated Validator");

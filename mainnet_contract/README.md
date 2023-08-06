@@ -72,4 +72,4 @@ npx solhint 'contracts/**/*.sol' --fix
 
 ## Gas report
 
-![Alt text](gasReport.png)
+![Alt text](image.png)
