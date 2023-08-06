@@ -6,11 +6,11 @@ pragma solidity =0.8.19;
 // solidity-rlp-encode(https://github.com/bakaoh/solidity-rlp-encode)
 library HeaderReader {
     // Solidity-RLP defined constants and struct
-    uint8 constant private STRING_SHORT_START = 0x80;
-    uint8 constant private STRING_LONG_START = 0xb8;
-    uint8 constant private LIST_SHORT_START = 0xc0;
-    uint8 constant private LIST_LONG_START = 0xf8;
-    uint8 constant private WORD_SIZE = 32;
+    uint8 private constant STRING_SHORT_START = 0x80;
+    uint8 private constant STRING_LONG_START = 0xb8;
+    uint8 private constant LIST_SHORT_START = 0xc0;
+    uint8 private constant LIST_LONG_START = 0xf8;
+    uint8 private constant WORD_SIZE = 32;
 
     struct RLPItem {
         uint256 len;

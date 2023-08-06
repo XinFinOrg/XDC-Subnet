@@ -114,9 +114,7 @@ contract Checkpoint {
                 validationParams.number >
                     int256(
                         uint256(
-                            uint64(
-                                headerTree[latestFinalizedBlock].mix >> 129
-                            )
+                            uint64(headerTree[latestFinalizedBlock].mix >> 129)
                         )
                     ),
                 "Old Block"
@@ -413,9 +411,7 @@ contract Checkpoint {
             BlockLite({
                 hash: latestFinalizedBlock,
                 number: int256(
-                    uint256(
-                        uint64(headerTree[latestFinalizedBlock].mix >> 129)
-                    )
+                    uint256(uint64(headerTree[latestFinalizedBlock].mix >> 129))
                 )
             })
         );
