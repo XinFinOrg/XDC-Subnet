@@ -287,7 +287,7 @@ contract Checkpoint {
     ) internal view returns (bool is_committed, bytes32 committed_block) {
         is_committed = true;
         committed_block = block_hash;
-        for (uint i = 0; i < 3; i++) {
+        for (uint i = 0; i < 2; i++) {
 
             bytes32 prev_hash = header_tree[committed_block].parent_hash;
 
@@ -295,7 +295,7 @@ contract Checkpoint {
                 is_committed = false;
                 break;
             }
-            
+
             if (
                 uint64(header_tree[committed_block].mix >> 65) !=
                 uint64(header_tree[prev_hash].mix >> 65) + uint64(1)
