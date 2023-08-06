@@ -13,14 +13,16 @@ Environmental preparation
 
 Install dependencies
 
-```
+```shell
 yarn
 ```
 
 Test
-
-    npx hardhat compile
-    npx hardhat test
+```shell
+npx hardhat compile
+npx hardhat test
+REPORT_GAS=true npx hardhat test    
+```    
 
 ## Contract Setup:
 
@@ -42,12 +44,12 @@ And get the deployed contract address
 
 Checkpoint
 
-```
+```shell
 npx hardhat run scripts/checkpoint.js --network xdcdevnet
 ```
 
 Lite checkpoint
 
-```
+```shell
 npx hardhat run scripts/liteCheckpoint.js --network xdcdevnet
 ```

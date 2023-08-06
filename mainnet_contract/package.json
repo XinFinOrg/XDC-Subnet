@@ -10,6 +10,7 @@
     "ethereum-waffle": "^3.2.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.12.2",
+    "hardhat-gas-reporter": "^1.0.9",
     "node-fetch": "2",
     "patch-package": "^7.0.0",
     "rlp": "^3.0.0",

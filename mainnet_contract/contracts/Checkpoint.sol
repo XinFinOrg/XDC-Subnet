@@ -306,6 +306,7 @@ contract Checkpoint {
                 committed_block = prev_hash;
             }
         }
+        committed_block=header_tree[committed_block].parent_hash;
     }
 
     /// signature methods.
