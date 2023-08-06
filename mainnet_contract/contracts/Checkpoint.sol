@@ -13,52 +13,52 @@ contract Checkpoint {
 
     struct HeaderInfo {
         bytes32 parentHash;
-        int number;
+        int256 number;
         uint64 roundNum;
-        int mainnetNum;
+        int256 mainnetNum;
         bool finalized;
     }
 
     struct Validators {
         address[] set;
-        int threshold;
+        int256 threshold;
     }
 
     struct BlockLite {
         bytes32 hash;
-        int number;
+        int256 number;
     }
 
     mapping(bytes32 => Header) private headerTree;
-    mapping(int => bytes32) private committedBlocks;
+    mapping(int256 => bytes32) private committedBlocks;
     mapping(address => bool) private lookup;
     mapping(address => bool) private uniqueAddr;
-    mapping(int => Validators) private validators;
+    mapping(int256 => Validators) private validators;
     Validators private currentValidators;
     bytes32 private latestBlock;
     bytes32 private latestFinalizedBlock;
-    uint64 private GAP;
-    uint64 private EPOCH;
+    uint64 private immutable INIT_GAP;
+    uint64 private immutable INIT_EPOCH;
 
     // Event types
-    event SubnetBlockAccepted(bytes32 blockHash, int number);
-    event SubnetBlockFinalized(bytes32 blockHash, int number);
+    event SubnetBlockAccepted(bytes32 blockHash, int256 number);
+    event SubnetBlockFinalized(bytes32 blockHash, int256 number);
 
     constructor(
         address[] memory initialValidatorSet,
         bytes memory genesisHeader,
         bytes memory block1Header,
-        uint64 gap,
-        uint64 epoch
+        uint64 initGap,
+        uint64 initEpoch
     ) {
         require(initialValidatorSet.length > 0, "Validator Empty");
 
         bytes32 genesisHeaderHash = keccak256(genesisHeader);
         bytes32 block1HeaderHash = keccak256(block1Header);
-        (bytes32 ph, int n) = HeaderReader.getParentHashAndNumber(
+        (bytes32 ph, int256 n) = HeaderReader.getParentHashAndNumber(
             genesisHeader
         );
-        (bytes32 ph1, int n1, uint64 rn) = HeaderReader.getBlock1Params(
+        (bytes32 ph1, int256 n1, uint64 rn) = HeaderReader.getBlock1Params(
             block1Header
         );
         require(n == 0 && n1 == 1, "Invalid Init Block");
@@ -89,8 +89,8 @@ contract Checkpoint {
         latestFinalizedBlock = block1HeaderHash;
         committedBlocks[0] = genesisHeaderHash;
         committedBlocks[1] = block1HeaderHash;
-        GAP = gap;
-        EPOCH = epoch;
+        INIT_GAP = initGap;
+        INIT_EPOCH = initEpoch;
     }
 
     /*
@@ -101,7 +101,7 @@ contract Checkpoint {
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) public {
-        for (uint x = 0; x < headers.length; x++) {
+        for (uint256 x = 0; x < headers.length; x++) {
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
 
@@ -148,7 +148,7 @@ contract Checkpoint {
 
             bytes32 blockHash = keccak256(headers[x]);
 
-            // If block is the epoch block, prepared for validators switch
+            // If block is the INIT_EPOCH block, prepared for validators switch
             if (headerTree[blockHash].mix > 0) revert("Repeated Header");
             if (current.length > 0 && next.length > 0)
                 revert("Malformed Block");
@@ -156,16 +156,20 @@ contract Checkpoint {
                 if (
                     validationParams.prevRoundNumber <
                     validationParams.roundNumber -
-                        (validationParams.roundNumber % EPOCH)
+                        (validationParams.roundNumber % INIT_EPOCH)
                 ) {
                     int256 gapNumber = validationParams.number -
-                        (validationParams.number % int256(uint256(EPOCH))) -
-                        int256(uint256(GAP));
+                        (validationParams.number %
+                            int256(uint256(INIT_EPOCH))) -
+                        int256(uint256(INIT_GAP));
                     // Edge case at the beginning
                     if (gapNumber < 0) {
                         gapNumber = 0;
                     }
-                    gapNumber = gapNumber + 1;
+                    unchecked {
+                        gapNumber++;
+                    }
+
                     if (validators[gapNumber].threshold > 0) {
                         if (validators[gapNumber].set.length != current.length)
                             revert("Mismatched Validators");
@@ -177,9 +181,10 @@ contract Checkpoint {
                 if (
                     uint64(
                         uint256(
-                            validationParams.number % int256(uint256(EPOCH))
+                            validationParams.number %
+                                int256(uint256(INIT_EPOCH))
                         )
-                    ) == EPOCH - GAP + 1
+                    ) == INIT_EPOCH - INIT_GAP + 1
                 ) {
                     (bool isValidatorUnique, ) = checkUniqueness(next);
                     if (!isValidatorUnique) revert("Repeated Validator");
@@ -194,7 +199,7 @@ contract Checkpoint {
             address[] memory signerList = new address[](
                 validationParams.sigs.length
             );
-            for (uint i = 0; i < validationParams.sigs.length; i++) {
+            for (uint256 i = 0; i < validationParams.sigs.length; i++) {
                 address signer = recoverSigner(
                     validationParams.signHash,
                     validationParams.sigs[i]
@@ -203,7 +208,7 @@ contract Checkpoint {
                     revert("Verification Fail : lookup[signer] is not true");
                 signerList[i] = signer;
             }
-            (bool isUnique, int uniqueCounter) = checkUniqueness(signerList);
+            (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
             if (!isUnique) revert("Verification Fail : isUnique is false");
             if (uniqueCounter < currentValidators.threshold)
                 revert(
@@ -238,10 +243,10 @@ contract Checkpoint {
     }
 
     function setLookup(address[] memory validatorSet) internal {
-        for (uint i = 0; i < currentValidators.set.length; i++) {
+        for (uint256 i = 0; i < currentValidators.set.length; i++) {
             lookup[currentValidators.set[i]] = false;
         }
-        for (uint i = 0; i < validatorSet.length; i++) {
+        for (uint256 i = 0; i < validatorSet.length; i++) {
             lookup[validatorSet[i]] = true;
         }
     }
@@ -264,10 +269,10 @@ contract Checkpoint {
 
     function checkUniqueness(
         address[] memory list
-    ) internal returns (bool isUnique, int uniqueCounter) {
+    ) internal returns (bool isUnique, int256 uniqueCounter) {
         uniqueCounter = 0;
         isUnique = true;
-        for (uint i = 0; i < list.length; i++) {
+        for (uint256 i = 0; i < list.length; i++) {
             if (!uniqueAddr[list[i]]) {
                 uniqueCounter++;
                 uniqueAddr[list[i]] = true;
@@ -275,7 +280,7 @@ contract Checkpoint {
                 isUnique = false;
             }
         }
-        for (uint i = 0; i < list.length; i++) {
+        for (uint256 i = 0; i < list.length; i++) {
             uniqueAddr[list[i]] = false;
         }
     }
@@ -285,7 +290,7 @@ contract Checkpoint {
     ) internal view returns (bool isCommitted, bytes32 committedBlock) {
         isCommitted = true;
         committedBlock = blockHash;
-        for (uint i = 0; i < 2; i++) {
+        for (uint256 i = 0; i < 2; i++) {
             bytes32 prevHash = headerTree[committedBlock].parentHash;
 
             if (prevHash == 0) {
@@ -357,18 +362,18 @@ contract Checkpoint {
      * @return BlockLite struct defined above.
      */
     function getHeaderByNumber(
-        int number
+        int256 number
     ) public view returns (BlockLite memory) {
         if (committedBlocks[number] == 0) {
-            int blockNum = int256(
+            int256 blockNum = int256(
                 uint256(uint64(headerTree[latestBlock].mix >> 129))
             );
             if (number > blockNum) {
                 return BlockLite({hash: bytes32(0), number: 0});
             }
-            int numGap = blockNum - number;
+            int256 numGap = blockNum - number;
             bytes32 currHash = latestBlock;
-            for (int i = 0; i < numGap; i++) {
+            for (int256 i = 0; i < numGap; i++) {
                 currHash = headerTree[currHash].parentHash;
             }
             return

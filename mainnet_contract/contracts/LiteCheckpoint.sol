@@ -37,8 +37,8 @@ contract LiteCheckpoint {
     Validators private currentValidators;
     bytes32 private latestCurrentEpochBlock;
     bytes32 private latestNextEpochBlock;
-    uint64 private GAP;
-    uint64 private EPOCH;
+    uint64 private immutable INIT_GAP;
+    uint64 private immutable INIT_EPOCH;
 
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
@@ -48,8 +48,8 @@ contract LiteCheckpoint {
     constructor(
         address[] memory initialValidatorSet,
         bytes memory block1,
-        uint64 gap,
-        uint64 epoch
+        uint64 initGap,
+        uint64 initEpoch
     ) {
         require(initialValidatorSet.length > 0, "Validator Empty");
         bytes32 block1HeaderHash = keccak256(block1);
@@ -60,8 +60,8 @@ contract LiteCheckpoint {
         currentValidators = validators[1];
         setLookup(initialValidatorSet);
         latestCurrentEpochBlock = block1HeaderHash;
-        GAP = gap;
-        EPOCH = epoch;
+        INIT_GAP = initGap;
+        INIT_EPOCH = initEpoch;
     }
 
     //Check if the blocks can be stored
@@ -96,15 +96,17 @@ contract LiteCheckpoint {
             current.length > 0 &&
             validationParams.prevRoundNumber <
             validationParams.roundNumber -
-                (validationParams.roundNumber % EPOCH)
+                (validationParams.roundNumber % INIT_EPOCH)
         ) {
             return true;
         }
 
         if (
             next.length > 0 &&
-            uint64(uint256(validationParams.number % int256(uint256(EPOCH)))) ==
-            EPOCH - GAP + 1
+            uint64(
+                uint256(validationParams.number % int256(uint256(INIT_EPOCH)))
+            ) ==
+            INIT_EPOCH - INIT_GAP + 1
         ) {
             return true;
         }
@@ -125,7 +127,7 @@ contract LiteCheckpoint {
         );
         bytes memory header0 = headers[0];
         checkEpochAndSave(header0);
-        //for commit epoch
+        //for commit INIT_EPOCH
         if (headers.length > 1) {
             bytes32 blockHash = keccak256(header0);
             commitHeader(blockHash, sliceBytes(headers, 1));
@@ -226,16 +228,19 @@ contract LiteCheckpoint {
             if (
                 validationParams.prevRoundNumber <
                 validationParams.roundNumber -
-                    (validationParams.roundNumber % EPOCH)
+                    (validationParams.roundNumber % INIT_EPOCH)
             ) {
                 int256 gapNumber = validationParams.number -
-                    (validationParams.number % int256(uint256(EPOCH))) -
-                    int256(uint256(GAP));
+                    (validationParams.number % int256(uint256(INIT_EPOCH))) -
+                    int256(uint256(INIT_GAP));
                 // Edge case at the beginning
                 if (gapNumber < 0) {
                     gapNumber = 0;
                 }
-                gapNumber = gapNumber + 1;
+                unchecked {
+                    gapNumber++;
+                }
+
                 if (validators[gapNumber].threshold > 0) {
                     if (validators[gapNumber].set.length != current.length) {
                         revert("Mismatched Validators");
@@ -255,8 +260,10 @@ contract LiteCheckpoint {
         if (next.length > 0) {
             if (
                 uint64(
-                    uint256(validationParams.number % int256(uint256(EPOCH)))
-                ) == EPOCH - GAP + 1
+                    uint256(
+                        validationParams.number % int256(uint256(INIT_EPOCH))
+                    )
+                ) == INIT_EPOCH - INIT_GAP + 1
             ) {
                 (bool isValidatorUnique, ) = checkUniqueness(next);
                 if (!isValidatorUnique) revert("Repeated Validator");
@@ -294,7 +301,7 @@ contract LiteCheckpoint {
 
         bytes[] memory result = new bytes[](data.length - startIndex);
 
-        for (uint i = startIndex; i < data.length; i++) {
+        for (uint256 i = startIndex; i < data.length; i++) {
             result[i - startIndex] = data[i];
         }
 

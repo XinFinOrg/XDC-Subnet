@@ -33,7 +33,8 @@ jobs:
         run: |
           cd mainnet_contract
           yarn
-          npx hardhat compile
+          npx prettier '**/*.{json,sol,md}' --write
+          npx solhint 'contracts/**/*.sol' --fix
           npx hardhat test
       - name: Run tests
         run: |
