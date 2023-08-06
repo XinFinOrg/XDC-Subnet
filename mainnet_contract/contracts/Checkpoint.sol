@@ -288,11 +288,14 @@ contract Checkpoint {
         is_committed = true;
         committed_block = block_hash;
         for (uint i = 0; i < 3; i++) {
-            if (header_tree[committed_block].parent_hash == 0) {
+
+            bytes32 prev_hash = header_tree[committed_block].parent_hash;
+
+            if (prev_hash == 0) {
                 is_committed = false;
                 break;
             }
-            bytes32 prev_hash = header_tree[committed_block].parent_hash;
+            
             if (
                 uint64(header_tree[committed_block].mix >> 65) !=
                 uint64(header_tree[prev_hash].mix >> 65) + uint64(1)
