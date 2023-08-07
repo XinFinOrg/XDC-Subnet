@@ -108,15 +108,19 @@ func SimulateWalletAddressAndSignFn(path string) (common.Address, func(account a
 }
 
 // XDC simulated backend for testing purpose.
-func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfig *params.ChainConfig) *SimulatedBackend {
+func NewXDCSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64, chainConfig *params.ChainConfig, initialCandidates []common.Address) *SimulatedBackend {
 	// database := ethdb.NewMemDatabase()
 	database := rawdb.NewMemoryDatabase()
 
+	// put candidates/master nodes inside genesis extra data
+	extra := make([]byte, 32)
+	extra = append(extra, common.ExtractAddressToBytes(initialCandidates)...)
+	extra = append(extra, make([]byte, 65)...)
 	genesis := core.Genesis{
 		GasLimit:  gasLimit, // need this big, support initial smart contract
 		Config:    chainConfig,
 		Alloc:     alloc,
-		ExtraData: append(make([]byte, 32), make([]byte, 65)...),
+		ExtraData: extra,
 	}
 	genesis.MustCommit(database)
 	consensus := XDPoS.NewFaker(database, chainConfig)

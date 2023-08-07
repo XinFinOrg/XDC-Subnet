@@ -36,7 +36,7 @@ var (
 )
 
 func TestENS(t *testing.T) {
-	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig)
+	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig, nil)
 	transactOpts := bind.NewKeyedTransactor(key)
 
 	ensAddr, ens, err := DeployENS(transactOpts, contractBackend)
