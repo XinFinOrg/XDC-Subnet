@@ -201,13 +201,16 @@ contract Subnet {
                     validationParams.signHash,
                     validationParams.sigs[i]
                 );
-                if (lookup[signer] != true) revert("Verification Fail : lookup[signer] is not true");
+                if (lookup[signer] != true)
+                    revert("Verification Fail : lookup[signer] is not true");
                 signer_list[i] = signer;
             }
             (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
             if (!is_unique) revert("Verification Fail : is_unique is false");
             if (unique_counter < current_validators.threshold)
-                revert("Verification Fail : unique_counter lower current_validators.threshold");
+                revert(
+                    "Verification Fail : unique_counter lower current_validators.threshold"
+                );
 
             // Store subnet header
             header_tree[block_hash] = Header({
@@ -246,7 +249,7 @@ contract Subnet {
     }
 
     function setCommittedStatus(bytes32 start_block) internal {
-        while ((header_tree[start_block].mix & 1) != 1) {
+        while ((header_tree[start_block].mix & 1) != 1 && start_block != 0) {
             header_tree[start_block].mix |= 1;
             //change mainnet_num value -1 to block.number
             header_tree[start_block].mainnet_num = int256(block.number);
@@ -284,7 +287,7 @@ contract Subnet {
     ) internal view returns (bool is_committed, bytes32 committed_block) {
         is_committed = true;
         committed_block = block_hash;
-        for (uint i = 0; i < 3; i++) {
+        for (uint i = 0; i < 2; i++) {
             if (header_tree[committed_block].parent_hash == 0) {
                 is_committed = false;
                 break;
@@ -300,6 +303,7 @@ contract Subnet {
                 committed_block = prev_hash;
             }
         }
+        committed_block = header_tree[committed_block].parent_hash;
     }
 
     /// signature methods.
