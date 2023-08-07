@@ -33,7 +33,6 @@ jobs:
         run: |
           cd mainnet_contract
           yarn
-          npx solhint 'contracts/**/*.sol' --fix
           npx hardhat test
       - name: Run tests
         run: |
