@@ -31,7 +31,7 @@ This step is recommended to complete in python virtual environment because it is
    - `validators`: List of initial validator addresses
    - `gap`: GAP block number on public chain
    - `epoch`: EPOCH block number on public chain
-   - `xdcdevnet`: Targeted XDC public chain devnet, testnet or mainnet node RPC link
+   - `xdcparentnet`: Targeted XDC public chain devnet, testnet or mainnet node RPC link
    - `xdcsubnet`: Targeted XDC private subnet chain devnet, testnet or mainnet node RPC link
 
 2. Create a `.env` file which contain a valid account privatekey, check `.env.sample` for example
@@ -41,5 +41,5 @@ This step is recommended to complete in python virtual environment because it is
 And get the deployed contract address
 
 ```
-npx hardhat run scripts/deployment.js --network xdcdevnet
+npx hardhat run scripts/deployment.js --network xdcparentnet
 ```
