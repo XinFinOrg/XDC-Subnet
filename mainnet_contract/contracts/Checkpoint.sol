@@ -260,7 +260,7 @@ contract Checkpoint {
     }
 
     function setCommittedStatus(bytes32 startBlock) internal {
-        while ((headerTree[startBlock].mix & 1) != 1) {
+        while ((headerTree[startBlock].mix & 1) != 1 && startBlock != 0) {
             headerTree[startBlock].mix |= 1;
             //change mainnetNum value -1 to block.number
             headerTree[startBlock].mainnetNum = int256(block.number);

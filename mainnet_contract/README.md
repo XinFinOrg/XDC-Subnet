@@ -45,13 +45,13 @@ And get the deployed contract address
 Checkpoint
 
 ```shell
-npx hardhat run scripts/checkpointDeploy.js --network xdcdevnet
+npx hardhat run scripts/checkpointDeploy.js --network xdcparentnet
 ```
 
 Lite checkpoint
 
 ```shell
-npx hardhat run scripts/liteCheckpointDeploy.js --network xdcdevnet
+npx hardhat run scripts/liteCheckpointDeploy.js --network xdcparentnet
 ```
 
 ## Other command
