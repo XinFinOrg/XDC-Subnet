@@ -81,7 +81,8 @@ contract Subnet {
         });
         validators[1] = Validators({
             set: initial_validator_set,
-            threshold: int256((initial_validator_set.length * 2) / 3)
+            //float mul 100
+            threshold: int256((initial_validator_set.length * 2 * 100) / 3)
         });
         current_validators = validators[1];
         setLookup(initial_validator_set);
@@ -188,7 +189,8 @@ contract Subnet {
 
                     validators[validationParams.number] = Validators({
                         set: next,
-                        threshold: int256((next.length * 2) / 3)
+                        //float mul 100
+                        threshold: int256((next.length * 2 * 100) / 3)
                     });
                 } else revert("Invalid Next Block");
             }
@@ -207,7 +209,7 @@ contract Subnet {
             }
             (bool is_unique, int unique_counter) = checkUniqueness(signer_list);
             if (!is_unique) revert("Verification Fail : is_unique is false");
-            if (unique_counter < current_validators.threshold)
+            if (unique_counter * 100 < current_validators.threshold)
                 revert(
                     "Verification Fail : unique_counter lower current_validators.threshold"
                 );
