@@ -82,7 +82,7 @@ contract Checkpoint {
         });
         validators[1] = Validators({
             set: initialValidatorSet,
-            threshold: int256((initialValidatorSet.length * 2) / 3)
+            threshold: int256((initialValidatorSet.length * 2 * 100) / 3)
         });
         currentValidators = validators[1];
         setLookup(initialValidatorSet);
@@ -199,7 +199,7 @@ contract Checkpoint {
 
                     validators[validationParams.number] = Validators({
                         set: next,
-                        threshold: int256((next.length * 2) / 3)
+                        threshold: int256((next.length * 2 * 100) / 3)
                     });
                 } else revert("Invalid Next Block");
             }
@@ -218,7 +218,7 @@ contract Checkpoint {
             }
             (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
             if (!isUnique) revert("Verification Fail : isUnique is false");
-            if (uniqueCounter < currentValidators.threshold)
+            if (uniqueCounter * 100 < currentValidators.threshold)
                 revert(
                     "Verification Fail : uniqueCounter lower currentValidators.threshold"
                 );
