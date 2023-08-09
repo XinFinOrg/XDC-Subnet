@@ -6,6 +6,6 @@
   ],
   "gap": 450,
   "epoch": 900,
-  "xdcdevnet": "https://devnetstats.apothem.network/devnet",
+  "xdcparentnet": "https://devnetstats.apothem.network/devnet",
   "xdcsubnet": "https://devnetstats.apothem.network/subnet"
 }
