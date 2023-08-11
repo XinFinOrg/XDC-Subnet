@@ -23,9 +23,16 @@ import (
 )
 
 // makeWizard creates and returns a new puppeth wizard.
-func makeWizard(network string) *wizard {
+type flagOptions struct {
+	network  string
+	filePath string
+}
+
+// func makeWizard(network string) *wizard {
+func makeWizard(options flagOptions) *wizard {
 	return &wizard{
-		network: network,
+		network:  options.network,
+		filePath: options.filePath,
 		conf: config{
 			Servers: make(map[string][]byte),
 		},
@@ -41,9 +48,15 @@ func (w *wizard) run() {
 	fmt.Println("+-----------------------------------------------------------+")
 	fmt.Println("| Welcome to puppeth, your Ethereum private network manager |")
 	fmt.Println("| This is a modified version for the purposes of XDC-Subnet |")
-	fmt.Println("| genesis generation.																			 |")
+	fmt.Println("| genesis generation.                                       |")
 	fmt.Println("+-----------------------------------------------------------+")
 	fmt.Println()
 
-	w.makeGenesis()
+	fmt.Println(w.filePath)
+	if w.filePath == "" {
+		fmt.Println("no file input")
+		w.makeGenesis()
+	} else {
+		w.makeGenesisFile()
+	}
 }
