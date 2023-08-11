@@ -54,6 +54,21 @@ Lite checkpoint
 npx hardhat run scripts/liteCheckpointDeploy.js --network xdcparentnet
 ```
 
+## Other command
+
+```shell
+npx hardhat accounts
+npx hardhat compile
+npx hardhat clean
+npx hardhat test
+npx hardhat node
+npx hardhat help
+REPORT_GAS=true npx hardhat test
+npx prettier '**/*.{json,sol,md}' --check
+npx prettier '**/*.{json,sol,md}' --write
+npx solhint 'contracts/**/*.sol'
+npx solhint 'contracts/**/*.sol' --fix
+```
 
 ## Gas report
 
