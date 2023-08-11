@@ -19,6 +19,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,7 +96,7 @@ func (w *wizard) makeGenesisFile() {
 			ByzantiumBlock: big.NewInt(4),
 		},
 	}
-	configFile, err := os.ReadFile("test.yaml")
+	configFile, err := ioutil.ReadFile(w.filePath)
 	if err != nil {
 		fmt.Println("read file error ", err)
 		return
