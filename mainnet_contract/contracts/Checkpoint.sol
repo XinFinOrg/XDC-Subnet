@@ -38,8 +38,8 @@ contract Checkpoint {
     bytes32 private latestBlock;
     bytes32 private latestFinalizedBlock;
     uint64 private epochNum;
-    uint64 private immutable INIT_GAP;
-    uint64 private immutable INIT_EPOCH;
+    uint64 public immutable INIT_GAP;
+    uint64 public immutable INIT_EPOCH;
 
     // Event types
     event SubnetBlockAccepted(bytes32 blockHash, int256 number);

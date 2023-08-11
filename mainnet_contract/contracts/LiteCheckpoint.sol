@@ -38,8 +38,8 @@ contract LiteCheckpoint {
     bytes32 private latestCurrentEpochBlock;
     bytes32 private latestNextEpochBlock;
     uint64 private epochNum;
-    uint64 private immutable INIT_GAP;
-    uint64 private immutable INIT_EPOCH;
+    uint64 public immutable INIT_GAP;
+    uint64 public immutable INIT_EPOCH;
 
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
