@@ -30,14 +30,13 @@ contract LiteCheckpoint {
     mapping(bytes32 => uint256) private headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
     mapping(uint64 => bytes32) private heightTree;
     bytes32[] private currentTree;
-    bytes32[] private nextTree;
     mapping(address => bool) private lookup;
     mapping(address => bool) private uniqueAddr;
     mapping(int256 => Validators) private validators;
     Validators private currentValidators;
-    bytes32 private latestCurrentEpochBlock;
-    bytes32 private latestNextEpochBlock;
-    uint64 private epochNum;
+    bytes32 private latestEpoch;
+    bytes32 private latestFinalizedBlock;
+    uint64 public epochNum;
     uint64 public immutable INIT_GAP;
     uint64 public immutable INIT_EPOCH;
 
@@ -60,7 +59,7 @@ contract LiteCheckpoint {
         });
         currentValidators = validators[1];
         setLookup(initialValidatorSet);
-        latestCurrentEpochBlock = block1HeaderHash;
+        latestEpoch = block1HeaderHash;
         INIT_GAP = initGap;
         INIT_EPOCH = initEpoch;
     }
@@ -139,6 +138,7 @@ contract LiteCheckpoint {
         if (sequence >= 3) {
             headerTree[epochHash] = clearLowest(headerTree[epochHash], 64);
             headerTree[epochHash] |= block.number;
+            latestFinalizedBlock = epochHash;
             delete unCommittedTree[epochHash];
             delete unCommittedLastHash[epochHash];
         } else {
@@ -200,7 +200,7 @@ contract LiteCheckpoint {
                     }
                     setLookup(validators[gapNumber].set);
                     currentValidators = validators[gapNumber];
-                    latestCurrentEpochBlock = blockHash;
+                    latestEpoch = blockHash;
                     currentTree.push(blockHash);
                 } else {
                     revert("Missing Current Validators");
@@ -228,8 +228,8 @@ contract LiteCheckpoint {
                     set: next,
                     threshold: int256((next.length * 2 * 100) / 3)
                 });
-                latestNextEpochBlock = blockHash;
-                nextTree.push(blockHash);
+                latestEpoch = blockHash;
+                currentTree.push(blockHash);
             } else {
                 revert("Invalid Next Block");
             }
@@ -419,22 +419,6 @@ contract LiteCheckpoint {
         }
     }
 
-    function getNextEpochBlockByIndex(
-        uint256 idx
-    ) public view returns (HeaderInfo memory) {
-        if (idx < nextTree.length) {
-            return (
-                HeaderInfo({
-                    number: uint64(headerTree[nextTree[idx]] >> 128),
-                    roundNum: uint64(headerTree[nextTree[idx]] >> 64),
-                    mainnetNum: int64(uint64(headerTree[nextTree[idx]]))
-                })
-            );
-        } else {
-            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}));
-        }
-    }
-
     /*
      * @return pair of BlockLite structs defined above.
      */
@@ -445,12 +429,12 @@ contract LiteCheckpoint {
     {
         return (
             BlockLite({
-                blockHash: latestCurrentEpochBlock,
-                number: uint64(headerTree[latestCurrentEpochBlock] >> 128)
+                blockHash: latestEpoch,
+                number: uint64(headerTree[latestEpoch] >> 128)
             }),
             BlockLite({
-                blockHash: latestNextEpochBlock,
-                number: uint64(headerTree[latestNextEpochBlock] >> 128)
+                blockHash: latestFinalizedBlock,
+                number: uint64(headerTree[latestFinalizedBlock] >> 128)
             })
         );
     }
