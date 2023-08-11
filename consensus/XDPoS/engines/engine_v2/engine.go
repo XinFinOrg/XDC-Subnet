@@ -143,6 +143,13 @@ func (x *XDPoS_v2) UpdateParams(header *types.Header) {
 	}()
 }
 
+func (x *XDPoS_v2) UpdateSkipV2Validation(skip bool) {
+	// This is for testing and generating genesis purpose,
+	// the current generating smart contract is creating fake block
+	// but that doesn't pass verify header function
+	x.config.V2.SkipV2Validation = skip
+}
+
 /*
 	V2 Block
 
@@ -871,7 +878,7 @@ func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *
 	}
 	if gapNumber != quorumCert.GapNumber {
 		log.Error("[verifyQC] QC gap number mismatch", "epochSwitchNumber", epochSwitchNumber, "BlockNum", quorumCert.ProposedBlockInfo.Number, "BlockInfoHash", quorumCert.ProposedBlockInfo.Hash, "Gap", quorumCert.GapNumber, "GapShouldBe", gapNumber)
-		return fmt.Errorf("gap number mismatch QC Gap %d, shouldBe %d", quorumCert.GapNumber, gapNumber)
+		return fmt.Errorf("gap number mismatch QC Gap %d, should be %d", quorumCert.GapNumber, gapNumber)
 	}
 
 	return x.VerifyBlockInfo(blockChainReader, quorumCert.ProposedBlockInfo, parentHeader)
@@ -895,6 +902,7 @@ func (x *XDPoS_v2) processQC(blockChainReader consensus.ChainReader, incomingQuo
 		// Extra field contain parent information
 		proposedBlockQuorumCert, round, _, err := x.getExtraFields(proposedBlockHeader)
 		if err != nil {
+			log.Error("[processQC] get extra fields", "number", proposedBlockHeader.Number, "lengthExtra", len(proposedBlockHeader.Extra), "error", err)
 			return err
 		}
 		if x.lockQuorumCert == nil || proposedBlockQuorumCert.ProposedBlockInfo.Round > x.lockQuorumCert.ProposedBlockInfo.Round {
@@ -1017,10 +1025,19 @@ func (x *XDPoS_v2) GetMasternodes(chain consensus.ChainReader, header *types.Hea
 func (x *XDPoS_v2) GetPenalties(chain consensus.ChainReader, header *types.Header) []common.Address {
 	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
 	if err != nil {
-		log.Error("[GetMasternodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		log.Error("[GetPenalties] Adaptor v2 getEpochSwitchInfo has error", "err", err)
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Penalties
+}
+
+func (x *XDPoS_v2) GetStandbynodes(chain consensus.ChainReader, header *types.Header) []common.Address {
+	epochSwitchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		log.Error("[GetStandbynodes] Adaptor v2 getEpochSwitchInfo has error", "err", err)
+		return []common.Address{}
+	}
+	return epochSwitchInfo.Standbynodes
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
@@ -1061,17 +1078,6 @@ func (x *XDPoS_v2) GetMasternodesByHash(chain consensus.ChainReader, hash common
 		return []common.Address{}
 	}
 	return epochSwitchInfo.Masternodes
-}
-
-// Given hash, get master node from the epoch switch block of the previous `limit` epoch
-func (x *XDPoS_v2) GetPreviousPenaltyByHash(chain consensus.ChainReader, hash common.Hash, limit int) []common.Address {
-	epochSwitchInfo, err := x.getPreviousEpochSwitchInfoByHash(chain, hash, limit)
-	if err != nil {
-		log.Error("[GetPreviousPenaltyByHash] Adaptor v2 getPreviousEpochSwitchInfoByHash has error, potentially bug", "err", err)
-		return []common.Address{}
-	}
-	header := chain.GetHeaderByHash(epochSwitchInfo.EpochSwitchBlockInfo.Hash)
-	return header.Penalties
 }
 
 func (x *XDPoS_v2) FindParentBlockToAssign(chain consensus.ChainReader) *types.Block {

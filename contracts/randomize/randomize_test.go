@@ -41,7 +41,7 @@ var (
 )
 
 func TestRandomize(t *testing.T) {
-	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(100000000000000)}}, 10000000, params.TestXDPoSMockChainConfig)
+	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(100000000000000)}}, 10000000, params.TestXDPoSMockChainConfig, nil)
 	transactOpts := bind.NewKeyedTransactor(key)
 	transactOpts.GasLimit = 1000000
 

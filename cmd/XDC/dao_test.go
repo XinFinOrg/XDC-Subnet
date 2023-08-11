@@ -127,10 +127,7 @@ func testDAOForkBlockNewChain(t *testing.T, test int, genesis string, expectBloc
 	}
 	defer db.Close()
 
-	genesisHash := common.HexToHash("8d13370621558f4ed0da587934473c0404729f28b0ff1d50e5fdd840457a2f17")
-	if genesis != "" {
-		genesisHash = daoGenesisHash
-	}
+	genesisHash := common.HexToHash("0xe1c1fd6b615d022dc291b85fbf1ab9d6093222858d8b37dcceacf01a595851ef")
 	config, err := core.GetChainConfig(db, genesisHash)
 	if err != nil {
 		t.Errorf("test %d: failed to retrieve chain config: %v", test, err)

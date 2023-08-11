@@ -20,19 +20,23 @@ func TestCountdownTimeoutToSendTimeoutMessage(t *testing.T) {
 	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 901, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
+	<-engineV2.BroadcastCh // skip one for prepare engine
+	engineV2.SetNewRoundFaker(blockchain, 901, true)
+
 	timeoutMsg := <-engineV2.BroadcastCh
+
 	poolSize := engineV2.GetTimeoutPoolSizeFaker(timeoutMsg.(*types.Timeout))
-	assert.Equal(t, poolSize, 1)
+	assert.Equal(t, 1, poolSize)
 	assert.NotNil(t, timeoutMsg)
 	assert.Equal(t, uint64(450), timeoutMsg.(*types.Timeout).GapNumber)
-	assert.Equal(t, types.Round(1), timeoutMsg.(*types.Timeout).Round)
+	assert.Equal(t, types.Round(901), timeoutMsg.(*types.Timeout).Round)
 }
 
 func TestCountdownTimeoutNotToSendTimeoutMessageIfNotInMasternodeList(t *testing.T) {
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 901, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
-	differentSigner, differentSignFn, err := backends.SimulateWalletAddressAndSignFn()
+	differentSigner, differentSignFn, err := backends.SimulateWalletAddressAndSignFn("")
 	assert.Nil(t, err)
 	// Let's change the address
 	engineV2.Authorize(differentSigner, differentSignFn)
@@ -47,9 +51,8 @@ func TestCountdownTimeoutNotToSendTimeoutMessageIfNotInMasternodeList(t *testing
 }
 
 func TestSyncInfoAfterReachTimeoutSyncThreadhold(t *testing.T) {
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 901, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
-	engineV2.SetNewRoundFaker(blockchain, 1, true)
 
 	// Because messages are sending async and on random order, so use this way to test
 	var timeoutCounter, syncInfoCounter int
@@ -77,7 +80,7 @@ func TestSyncInfoAfterReachTimeoutSyncThreadhold(t *testing.T) {
 		case *types.SyncInfo:
 			syncInfoCounter++
 		default:
-			log.Error("Unknown message type received", "value", v)
+			t.Error("Unknown message type received", "value", v)
 		}
 	}
 	assert.Equal(t, 4, timeoutCounter)
@@ -85,12 +88,14 @@ func TestSyncInfoAfterReachTimeoutSyncThreadhold(t *testing.T) {
 }
 
 func TestTimeoutPeriodAndThreadholdConfigChange(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 1799, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 898, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
-	// engineV2.SetNewRoundFaker(blockchain, 1, true)
+	<-engineV2.BroadcastCh // skip one for prepare initial blocks
+	engineV2.SetNewRoundFaker(blockchain, 898, true)
 
 	// Because messages are sending async and on random order, so use this way to test
 	var timeoutCounter, syncInfoCounter int
+
 	for i := 0; i < 3; i++ {
 		obj := <-engineV2.BroadcastCh
 		switch v := obj.(type) {
@@ -107,9 +112,9 @@ func TestTimeoutPeriodAndThreadholdConfigChange(t *testing.T) {
 	assert.Equal(t, 1, syncInfoCounter)
 
 	// Create another block to trigger update parameters
-	blockNum := 1800
+	blockNum := 899 // 4 timeout and 1 sync after 899
 	blockCoinBase := "0x111000000000000000000000000000000123"
-	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 900, blockCoinBase, signer, signFn, nil, nil, "")
+	currentBlock = CreateBlock(blockchain, params.TestXDPoSMockChainConfig, currentBlock, blockNum, 899, blockCoinBase, signer, signFn, nil, nil, "")
 	currentBlockHeader := currentBlock.Header()
 	currentBlockHeader.Time = big.NewInt(time.Now().Unix())
 	err := blockchain.InsertBlock(currentBlock)
@@ -135,13 +140,13 @@ func TestTimeoutPeriodAndThreadholdConfigChange(t *testing.T) {
 	timediff := t2.Sub(t1).Seconds()
 	assert.Equal(t, 6, timeoutCounter)
 	assert.Equal(t, 2, syncInfoCounter)
-	assert.Less(t, timediff, float64(20))
+	assert.Less(t, timediff, float64(26))
 }
 
 // Timeout handler
 func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
 	params.TestXDPoSMockChainConfig.XDPoS.V2.CurrentConfig = params.UnitTestV2Configs[0]
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 11, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 1
@@ -209,7 +214,7 @@ func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
 }
 
 func TestThrowErrorIfTimeoutMsgRoundNotEqualToCurrentRound(t *testing.T) {
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 11, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 3

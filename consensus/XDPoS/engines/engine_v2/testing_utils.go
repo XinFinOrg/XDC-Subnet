@@ -15,6 +15,7 @@ func (x *XDPoS_v2) SetNewRoundFaker(blockChainReader consensus.ChainReader, newR
 	defer x.lock.Unlock()
 	// Reset a bunch of things
 	if resetTimer {
+		x.timeoutCount = 0
 		x.timeoutWorker.Reset(blockChainReader)
 	}
 	x.currentRound = newRound

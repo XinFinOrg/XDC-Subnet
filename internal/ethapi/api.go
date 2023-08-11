@@ -727,8 +727,6 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 		fieldSuccess:  true,
 	}
 
-	epochConfig := s.b.ChainConfig().XDPoS.Epoch
-
 	// checkpoint block
 	checkpointNumber, epochNumber = s.GetPreviousCheckpointFromEpoch(ctx, epoch)
 	result[fieldEpoch] = epochNumber.Int64()
@@ -806,21 +804,7 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 	}
 
 	// Third, Get penalties list
-	penalties = append(penalties, header.Penalties...)
-	// check last 5 epochs to find penalize masternodes
-	for i := 1; i <= common.LimitPenaltyEpoch; i++ {
-		if header.Number.Uint64() < epochConfig*uint64(i) {
-			break
-		}
-		blockNum := header.Number.Uint64() - epochConfig*uint64(i)
-		checkpointHeader, err := s.b.HeaderByNumber(ctx, rpc.BlockNumber(blockNum))
-		if checkpointHeader == nil || err != nil {
-			log.Error("Failed to get header by number", "num", blockNum, "err", err)
-			continue
-		}
-		penalties = append(penalties, checkpointHeader.Penalties...)
-	}
-	penaltyList = penalties
+	penaltyList = append(penalties, header.Penalties...)
 
 	// map slashing status
 	for _, pen := range penaltyList {
@@ -847,7 +831,6 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 	result := map[string]interface{}{
 		fieldSuccess: true,
 	}
-	epochConfig := s.b.ChainConfig().XDPoS.Epoch
 	candidatesStatusMap := map[string]map[string]interface{}{}
 
 	checkpointNumber, epochNumber = s.GetPreviousCheckpointFromEpoch(ctx, epoch)
@@ -916,19 +899,7 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 
 	// Third, Get penalties list
 	penalties = append(penalties, header.Penalties...)
-	// check last 5 epochs to find penalize masternodes
-	for i := 1; i <= common.LimitPenaltyEpoch; i++ {
-		if header.Number.Uint64() < epochConfig*uint64(i) {
-			break
-		}
-		blockNum := header.Number.Uint64() - epochConfig*uint64(i)
-		checkpointHeader, err := s.b.HeaderByNumber(ctx, rpc.BlockNumber(blockNum))
-		if checkpointHeader == nil || err != nil {
-			log.Error("Failed to get header by number", "num", blockNum, "err", err)
-			continue
-		}
-		penalties = append(penalties, checkpointHeader.Penalties...)
-	}
+
 	// map slashing status
 	if len(penalties) == 0 {
 		result[fieldCandidates] = candidatesStatusMap

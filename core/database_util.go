@@ -22,8 +22,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 	"math/big"
+
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
