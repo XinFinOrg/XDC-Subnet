@@ -53,7 +53,7 @@ var (
 )
 
 func TestValidator(t *testing.T) {
-	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig)
+	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig, nil)
 	transactOpts := bind.NewKeyedTransactor(key)
 
 	validatorCap := new(big.Int)
@@ -93,7 +93,7 @@ func TestRewardBalance(t *testing.T) {
 		acc1Addr: {Balance: new(big.Int).SetUint64(10000000)},
 		acc2Addr: {Balance: new(big.Int).SetUint64(10000000)},
 		acc4Addr: {Balance: new(big.Int).SetUint64(10000000)},
-	}, 42000000, params.TestXDPoSMockChainConfig)
+	}, 42000000, params.TestXDPoSMockChainConfig, nil)
 	acc1Opts := bind.NewKeyedTransactor(acc1Key)
 	acc2Opts := bind.NewKeyedTransactor(acc2Key)
 	accounts := []*bind.TransactOpts{acc1Opts, acc2Opts}
@@ -280,7 +280,7 @@ func TestStatedbUtils(t *testing.T) {
 		acc2Addr: {Balance: validatorCap},
 		acc4Addr: {Balance: validatorCap},
 	}
-	contractBackend := backends.NewXDCSimulatedBackend(genesisAlloc, 10000000, params.TestXDPoSMockChainConfig)
+	contractBackend := backends.NewXDCSimulatedBackend(genesisAlloc, 10000000, params.TestXDPoSMockChainConfig, nil)
 	transactOpts := bind.NewKeyedTransactor(key)
 
 	validatorAddress, _, err := DeployValidator(transactOpts, contractBackend, []common.Address{addr, acc3Addr}, []*big.Int{validatorCap, validatorCap}, addr, []common.Address{addr, acc3Addr})
@@ -315,7 +315,7 @@ func TestStatedbUtils(t *testing.T) {
 		Code:    code,
 		Storage: storage,
 	}
-	contractBackendForValidator := backends.NewXDCSimulatedBackend(genesisAlloc, 10000000, params.TestXDPoSMockChainConfig)
+	contractBackendForValidator := backends.NewXDCSimulatedBackend(genesisAlloc, 10000000, params.TestXDPoSMockChainConfig, nil)
 	validator, err := NewValidator(transactOpts, common.HexToAddress(common.MasternodeVotingSMC), contractBackendForValidator)
 	if err != nil {
 		t.Fatalf("can't get validator object: %v", err)

@@ -120,11 +120,6 @@ func voteTX(gasLimit uint64, nonce uint64, addr string) (*types.Transaction, err
 
 func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer common.Address) *backends.SimulatedBackend {
 
-	// initial helper backend
-	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
-		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
-	}, 10000000, chainConfig)
-
 	transactOpts := bind.NewKeyedTransactor(voterKey)
 
 	var candidates []common.Address
@@ -148,6 +143,10 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
 	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
+	// initial helper backend
+	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
+		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
+	}, 10000000, chainConfig, candidates)
 	// create validator smart contract
 	validatorSCAddr, _, _, err := contractValidator.DeployXDCValidator(
 		transactOpts,
@@ -203,17 +202,13 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000004)},
 		signer:    {Balance: new(big.Int).SetUint64(10000000005)},
 		common.HexToAddress(common.MasternodeVotingSMC): {Balance: new(big.Int).SetUint64(1), Code: code, Storage: storage}, // Binding the MasternodeVotingSMC with newly created 'code' for SC execution
-	}, 10000000, chainConfig)
+	}, 10000000, chainConfig, candidates)
 
 	return contractBackend2
 }
 
 func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n int) *backends.SimulatedBackend {
 	assert.GreaterOrEqual(t, n, 4)
-	// initial helper backend, give a very large gas limit
-	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
-		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
-	}, 1000000000, chainConfig)
 
 	transactOpts := bind.NewKeyedTransactor(voterKey)
 
@@ -237,6 +232,11 @@ func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n 
 
 	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap)
 	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr)
+
+	// initial helper backend, give a very large gas limit
+	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
+		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
+	}, 1000000000, chainConfig, candidates)
 
 	// create validator smart contract
 	validatorSCAddr, _, _, err := contractValidator.DeployXDCValidator(
@@ -292,7 +292,7 @@ func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n 
 		acc3Addr:  {Balance: new(big.Int).SetUint64(10000000000)},
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
 		common.HexToAddress(common.MasternodeVotingSMC): {Balance: new(big.Int).SetUint64(1), Code: code, Storage: storage}, // Binding the MasternodeVotingSMC with newly created 'code' for SC execution
-	}, 10000000, chainConfig)
+	}, 10000000, chainConfig, candidates)
 
 	return contractBackend2
 }
@@ -626,10 +626,7 @@ func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, starti
 			Coinbase:   common.HexToAddress(blockCoinBase),
 			Extra:      extraInBytes,
 		}
-		if int64(blockNumber) == (chainConfig.XDPoS.V2.SwitchBlock.Int64() + 1) { // This is the first v2 block, we need v2 validators aka masternodes
-			// Get last master node list from last v1 block
-			header.Validators = masternodes
-		} else if roundNumber%int64(chainConfig.XDPoS.Epoch) == 0 {
+		if header.Number.Uint64()%chainConfig.XDPoS.Epoch == 0 {
 			// epoch switch blocks, we need v2 validators aka masternodes
 			header.Validators = masternodes
 		} else if (header.Number.Uint64()%chainConfig.XDPoS.Epoch) == (chainConfig.XDPoS.Epoch-chainConfig.XDPoS.Gap+1) || header.Number.Uint64() == 1 { // This is the gapPlusOneBlock
