@@ -133,6 +133,9 @@ contract LiteCheckpoint {
             lastNum = uint64(uint256(validationParams.number));
             lastRoundNum = uint64(validationParams.roundNumber);
             parenHash = blockHash;
+            if (sequence >= 3) {
+                break;
+            }
         }
 
         if (sequence >= 3) {
