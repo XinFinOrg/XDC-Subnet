@@ -277,7 +277,7 @@ contract LiteCheckpoint {
             validationParams.sigs.length
         );
         for (uint256 i = 0; i < validationParams.sigs.length; i++) {
-            address signer = recoverSigner(
+            address signer = HeaderReader.recoverSigner(
                 validationParams.signHash,
                 validationParams.sigs[i]
             );
@@ -331,33 +331,6 @@ contract LiteCheckpoint {
         for (uint256 i = 0; i < list.length; i++) {
             uniqueAddr[list[i]] = false;
         }
-    }
-
-    /// signature methods.
-    function splitSignature(
-        bytes memory sig
-    ) internal pure returns (uint8 v, bytes32 r, bytes32 s) {
-        require(sig.length == 65, "Invalid Signature : sig.length != 65");
-        assembly {
-            // first 32 bytes, after the length prefix.
-            r := mload(add(sig, 32))
-            // second 32 bytes.
-            s := mload(add(sig, 64))
-            // final byte (first byte of the next 32 bytes).
-            v := byte(0, mload(add(sig, 96)))
-        }
-        // TOCHECK: v needs 27 more, may related with EIP1559
-        return (v + 27, r, s);
-    }
-
-    function recoverSigner(
-        bytes32 message,
-        bytes memory sig
-    ) internal pure returns (address) {
-        (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
-        address signer = ecrecover(message, v, r, s);
-        require(signer != address(0), "ECDSA: invalid signature");
-        return signer;
     }
 
     function getUnCommittedHeader(
