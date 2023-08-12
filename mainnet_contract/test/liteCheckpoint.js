@@ -418,8 +418,9 @@ describe("lite checkpoint", () => {
         block7Encoded,
         block8Encoded,
         block9Encoded,
-        block10Encoded,
       ]);
+
+      await custom.receiveHeader([block10Encoded]);
       const committedBlock6Resp = await custom.getHeader(block6Hash);
       const committedUnBlock6Resp = await custom.getUnCommittedHeader(
         block6Hash
@@ -511,8 +512,9 @@ describe("lite checkpoint", () => {
         block7Encoded,
         block8Encoded,
         block9Encoded,
-        block10Encoded,
       ]);
+
+      await custom.receiveHeader([block10Encoded]);
 
       const currentValidators = await custom.getCurrentValidators();
       expect(currentValidators[0]).to.deep.eq(
