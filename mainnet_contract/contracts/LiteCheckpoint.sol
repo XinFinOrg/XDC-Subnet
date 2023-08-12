@@ -43,8 +43,6 @@ contract LiteCheckpoint {
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
 
-    event Warn(string);
-
     constructor(
         address[] memory initialValidatorSet,
         bytes memory block1,
@@ -105,6 +103,7 @@ contract LiteCheckpoint {
             "commitHeader : Headers length must be greater than 0"
         );
 
+        require(epochHash != 0, "Error epoch hash");
         bytes32 parenHash = unCommittedLastHash[epochHash];
         require(parenHash != 0, "EpochHash not found, may not have been saved");
 
@@ -115,7 +114,6 @@ contract LiteCheckpoint {
         uint64 lastNum = uc.lastNum;
 
         for (uint256 x = 0; x < headers.length; x++) {
-            checkEpochAndSave(headers[x]);
             HeaderReader.ValidationParams memory validationParams = HeaderReader
                 .getValidationParams(headers[x]);
             bytes32 blockHash = keccak256(headers[x]);
@@ -126,7 +124,9 @@ contract LiteCheckpoint {
             }
 
             if (validationParams.roundNumber == lastRoundNum + 1) {
-                sequence++;
+                unchecked {
+                    sequence++;
+                }
             } else {
                 sequence = 0;
             }
@@ -164,19 +164,11 @@ contract LiteCheckpoint {
         bytes32 blockHash = keccak256(header);
 
         if (headerTree[blockHash] != 0) {
-            emit Warn(
-                string(
-                    abi.encodePacked("Repeated Block blockhash : ", blockHash)
-                )
-            );
+            //Repeated Block blockhash
             return false;
         }
         if (current.length > 0 && next.length > 0) {
-            emit Warn(
-                string(
-                    abi.encodePacked("Malformed Block blockhash : ", blockHash)
-                )
-            );
+            //Malformed Block blockhash
             return false;
         }
 
@@ -322,7 +314,10 @@ contract LiteCheckpoint {
         isVerified = true;
         for (uint256 i = 0; i < list.length; i++) {
             if (!uniqueAddr[list[i]]) {
-                uniqueCounter++;
+                unchecked {
+                    uniqueCounter++;
+                }
+
                 uniqueAddr[list[i]] = true;
             } else {
                 isVerified = false;
