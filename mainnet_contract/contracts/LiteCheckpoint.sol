@@ -165,6 +165,11 @@ contract LiteCheckpoint {
         if (headerTree[blockHash] != 0) {
             revert("Repeated Block blockhash");
         }
+        if (current.length == 0 && next.length == 0) {
+            revert(
+                "Not is epoch block format -- current or next length greater than 0"
+            );
+        }
         if (current.length > 0 && next.length > 0) {
             revert("Malformed Block blockhash");
         }
