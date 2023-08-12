@@ -78,7 +78,7 @@ contract LiteCheckpoint {
         );
         bytes memory header0 = headers[0];
         bool successSave = checkEpochAndSave(header0);
-        require(successSave, "header0 is not gap/epoch");
+        require(successSave, "receiveHeader : header0 is not gap/epoch");
         //for commit INIT_EPOCH
         if (headers.length > 1) {
             bytes32 blockHash = keccak256(header0);
