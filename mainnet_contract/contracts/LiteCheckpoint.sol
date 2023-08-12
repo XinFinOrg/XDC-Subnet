@@ -75,8 +75,7 @@ contract LiteCheckpoint {
             "receiveHeader : Headers length must be greater than 0"
         );
         bytes memory header0 = headers[0];
-        bool successSave = checkEpochAndSave(header0);
-        require(successSave, "receiveHeader : header0 is not gap/epoch");
+        saveEpoch(header0);
         //for commit INIT_EPOCH
         if (headers.length > 1) {
             bytes32 blockHash = keccak256(header0);
@@ -155,7 +154,7 @@ contract LiteCheckpoint {
         }
     }
 
-    function checkEpochAndSave(bytes memory header) private returns (bool) {
+    function saveEpoch(bytes memory header) private {
         HeaderReader.ValidationParams memory validationParams = HeaderReader
             .getValidationParams(header);
 
@@ -164,12 +163,10 @@ contract LiteCheckpoint {
         bytes32 blockHash = keccak256(header);
 
         if (headerTree[blockHash] != 0) {
-            //Repeated Block blockhash
-            return false;
+            revert("Repeated Block blockhash");
         }
         if (current.length > 0 && next.length > 0) {
-            //Malformed Block blockhash
-            return false;
+            revert("Malformed Block blockhash");
         }
 
         if (current.length > 0) {
@@ -243,7 +240,6 @@ contract LiteCheckpoint {
         headerTree[blockHash] = epochInfo;
         heightTree[uint64(epochInfo >> 128)] = blockHash;
         emit SubnetEpochBlockAccepted(blockHash, uint64(epochInfo >> 128));
-        return true;
     }
 
     function sliceBytes(
