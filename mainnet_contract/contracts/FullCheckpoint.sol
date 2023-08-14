@@ -37,6 +37,9 @@ contract FullCheckpoint {
     Validators private currentValidators;
     bytes32 private latestBlock;
     bytes32 private latestFinalizedBlock;
+
+    string public constant MODE = "full";
+    
     uint64 private epochNum;
     uint64 public immutable INIT_GAP;
     uint64 public immutable INIT_EPOCH;

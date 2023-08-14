@@ -36,6 +36,8 @@ contract LiteCheckpoint {
     Validators private currentValidators;
     bytes32 private latestEpoch;
     bytes32 private latestFinalizedBlock;
+
+    string public constant MODE = "lite";
     uint64 public epochNum;
     uint64 public immutable INIT_GAP;
     uint64 public immutable INIT_EPOCH;
