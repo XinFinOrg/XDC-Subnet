@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import {HeaderReader} from "./libraries/HeaderReader.sol";
 
-contract Checkpoint {
+contract FullCheckpoint {
     // Compressed subnet header information stored on chain
     struct Header {
         int256 mainnetNum;

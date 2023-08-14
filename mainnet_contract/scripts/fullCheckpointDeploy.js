@@ -47,11 +47,14 @@ async function main() {
 
   console.log("headerReader deployed to:", headerReader.address);
   // We get the contract to deploy
-  const checkpointFactory = await hre.ethers.getContractFactory("Checkpoint", {
-    libraries: {
-      HeaderReader: headerReader.address,
-    },
-  });
+  const checkpointFactory = await hre.ethers.getContractFactory(
+    "FullCheckpoint",
+    {
+      libraries: {
+        HeaderReader: headerReader.address,
+      },
+    }
+  );
 
   const checkpoint = await checkpointFactory.deploy(
     deploy["validators"],

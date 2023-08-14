@@ -36,7 +36,7 @@ describe("checkpoint", () => {
 
     const headerReader = await headerReaderFactory.deploy();
 
-    const factory = await ethers.getContractFactory("Checkpoint", {
+    const factory = await ethers.getContractFactory("FullCheckpoint", {
       libraries: {
         HeaderReader: headerReader.address,
       },

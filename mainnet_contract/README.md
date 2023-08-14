@@ -42,10 +42,10 @@ This step is recommended to complete in python virtual environment because it is
 
 And get the deployed contract address
 
-Checkpoint
+FullCheckpoint
 
 ```shell
-npx hardhat run scripts/checkpointDeploy.js --network xdcparentnet
+npx hardhat run scripts/fullCheckpointDeploy.js --network xdcparentnet
 ```
 
 Lite checkpoint
