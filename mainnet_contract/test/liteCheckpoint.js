@@ -407,7 +407,7 @@ describe("lite checkpoint", () => {
         10,
         9,
         block9Hash,
-        next,
+        customValidators,
         2,
         next.map((item) => item.address),
         []
@@ -501,7 +501,7 @@ describe("lite checkpoint", () => {
         10,
         9,
         block9Hash,
-        actualValidators,
+        customValidators,
         2,
         actualValidators.map((item) => item.address),
         []

@@ -128,7 +128,7 @@ describe("checkpoint", () => {
 
       const block2Hash = blockToHash(block2Encoded);
       const block3Hash = blockToHash(block3Encoded);
-      const block2Resp = await checkpoint.getHeader(block2Hash)
+      const block2Resp = await checkpoint.getHeader(block2Hash);
 
       expect(block2Resp[1]).to.eq(2);
       expect(block2Resp[2]).to.eq(4);
@@ -300,7 +300,7 @@ describe("checkpoint", () => {
         10,
         9,
         block9Hash,
-        next,
+        customValidators,
         2,
         next.map((item) => item.address),
         []
@@ -428,7 +428,7 @@ describe("checkpoint", () => {
         10,
         9,
         block9Hash,
-        actualValidators,
+        customValidators,
         2,
         actualValidators.map((item) => item.address),
         []
