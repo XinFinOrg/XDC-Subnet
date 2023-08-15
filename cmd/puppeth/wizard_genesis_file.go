@@ -461,6 +461,15 @@ func (w *wizard) makeGenesisFile() {
 	log.Info("Configured new genesis block")
 
 	w.conf.Genesis = genesis
-	w.conf.path = filepath.Join(os.Getenv("HOME"), ".puppeth", w.network)
+
+	binPath, err := os.Executable()
+	if err != nil {
+		fmt.Println("get binary path error ", err)
+		return
+	}
+	// w.conf.path = filepath.Join(os.Getenv("HOME"), ".puppeth", w.network)
+	fileName := w.network + ".json"
+	w.conf.path = filepath.Join(binPath, "..", fileName)
+	log.Info(w.conf.path)
 	w.conf.flush()
 }
