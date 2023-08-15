@@ -39,7 +39,7 @@ contract FullCheckpoint {
     bytes32 private latestFinalizedBlock;
 
     string public constant MODE = "full";
-    
+
     uint64 private epochNum;
     uint64 public immutable INIT_GAP;
     uint64 public immutable INIT_EPOCH;
@@ -153,7 +153,33 @@ contract FullCheckpoint {
             bytes32 blockHash = keccak256(headers[x]);
 
             // If block is the INIT_EPOCH block, prepared for validators switch
-            if (headerTree[blockHash].mix > 0) revert("Repeated Header");
+            if (headerTree[blockHash].mix > 0) {
+                revert("Repeated Header");
+            }
+
+            // Verify subnet header certificates
+            address[] memory signerList = new address[](
+                validationParams.sigs.length
+            );
+            for (uint256 i = 0; i < validationParams.sigs.length; i++) {
+                address signer = HeaderReader.recoverSigner(
+                    validationParams.signHash,
+                    validationParams.sigs[i]
+                );
+                if (lookup[signer] != true)
+                    revert("Verification Fail : lookup[signer] is not true");
+                signerList[i] = signer;
+            }
+            (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
+            if (!isUnique) {
+                revert("Verification Fail : isUnique is false");
+            }
+            if (uniqueCounter * 100 < currentValidators.threshold) {
+                revert(
+                    "Verification Fail : uniqueCounter lower currentValidators.threshold"
+                );
+            }
+
             if (current.length > 0 && next.length > 0)
                 revert("Malformed Block");
             else if (current.length > 0) {
@@ -206,25 +232,6 @@ contract FullCheckpoint {
                     });
                 } else revert("Invalid Next Block");
             }
-            // Verify subnet header certificates
-            address[] memory signerList = new address[](
-                validationParams.sigs.length
-            );
-            for (uint256 i = 0; i < validationParams.sigs.length; i++) {
-                address signer = HeaderReader.recoverSigner(
-                    validationParams.signHash,
-                    validationParams.sigs[i]
-                );
-                if (lookup[signer] != true)
-                    revert("Verification Fail : lookup[signer] is not true");
-                signerList[i] = signer;
-            }
-            (bool isUnique, int256 uniqueCounter) = checkUniqueness(signerList);
-            if (!isUnique) revert("Verification Fail : isUnique is false");
-            if (uniqueCounter * 100 < currentValidators.threshold)
-                revert(
-                    "Verification Fail : uniqueCounter lower currentValidators.threshold"
-                );
 
             // Store subnet header
             headerTree[blockHash] = Header({

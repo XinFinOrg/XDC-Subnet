@@ -175,7 +175,7 @@ contract LiteCheckpoint {
         if (current.length > 0 && next.length > 0) {
             revert("Malformed Block blockhash");
         }
-
+        checkSig(validationParams);
         if (current.length > 0) {
             if (
                 uint64(uint256(validationParams.number)) % INIT_EPOCH == 0 &&
@@ -234,7 +234,7 @@ contract LiteCheckpoint {
                 revert("Invalid Next Block");
             }
         }
-        checkSig(validationParams);
+
         uint256 epochInfo = (uint256(validationParams.number) << 128) |
             (uint256(validationParams.roundNumber) << 64) |
             uint256(uint64(int64(-1)));
