@@ -76,6 +76,7 @@ func NewGenesisInput() *GenesisInput {
 }
 
 func SetDefaultAfterInputRead(input *GenesisInput) {
+	input.Owner = input.Grandmasters[0]
 	input.FoudationWalletAddr = input.Grandmasters[0]
 	input.PreFundedAccounts = input.Grandmasters
 }
@@ -108,7 +109,7 @@ func (w *wizard) makeGenesisFile() {
 		return
 	}
 	SetDefaultAfterInputRead(input)
-	fmt.Println("Generationg genesis file with the below input  ", err)
+	fmt.Println("Generating genesis file with the below input  ", err)
 	fmt.Printf("%+v\n", input)
 
 	// Make sure we have a good network name to work with	fmt.Println()
