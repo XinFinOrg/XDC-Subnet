@@ -69,6 +69,7 @@ contract LiteCheckpoint {
      * 1. Verify subnet header meta information
      * 2. Verify subnet header certificates
      * 3. (Conditional) Update Committed Status for ancestor blocks
+     * 4. header0 always is gap/epoch and next headers is commit header0
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) external {
@@ -78,7 +79,7 @@ contract LiteCheckpoint {
         );
         bytes memory header0 = headers[0];
         saveEpoch(header0);
-        //for commit INIT_EPOCH
+        //for commit header0 util 
         if (headers.length > 1) {
             bytes32 blockHash = keccak256(header0);
             commitHeader(blockHash, sliceBytes(headers, 1));
