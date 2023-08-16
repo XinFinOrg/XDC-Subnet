@@ -96,7 +96,8 @@ contract LiteCheckpoint {
     /*
      * @description commit header
      * 1. (Conditional) Update Committed Status for ancestor blocks
-     * @param list of rlp-encoded block headers.
+     * @param epochHash the gap/epoch block hash that need to continue commit ，util gap/epoch block hash committed
+     * @param headers list of rlp-encoded block headers.
      */
     function commitHeader(bytes32 epochHash, bytes[] memory headers) public {
         require(
