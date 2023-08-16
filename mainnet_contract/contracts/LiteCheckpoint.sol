@@ -195,9 +195,16 @@ contract LiteCheckpoint {
                 }
 
                 if (validators[gapNumber].threshold > 0) {
-                    if (validators[gapNumber].set.length != current.length) {
+                    if (
+                        !HeaderReader.areListsEqual(
+                            validators[gapNumber].set,
+                            current
+                        )
+                    ) {
                         revert("Mismatched Validators");
                     }
+
+                    for (uint256 i = 0; i < current.length; i++) {}
                     setLookup(validators[gapNumber].set);
                     currentValidators = validators[gapNumber];
                     latestEpoch = blockHash;

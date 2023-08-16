@@ -203,8 +203,14 @@ contract FullCheckpoint {
                     }
 
                     if (validators[gapNumber].threshold > 0) {
-                        if (validators[gapNumber].set.length != current.length)
+                        if (
+                            !HeaderReader.areListsEqual(
+                                validators[gapNumber].set,
+                                current
+                            )
+                        ) {
                             revert("Mismatched Validators");
+                        }
                         setLookup(validators[gapNumber].set);
                         currentValidators = validators[gapNumber];
                     } else revert("Missing Current Validators");

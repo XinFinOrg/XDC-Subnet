@@ -630,4 +630,41 @@ library HeaderReader {
         }
         return tempBytes;
     }
+
+    function areListsEqual(
+        address[] memory list1,
+        address[] memory list2
+    ) public pure returns (bool) {
+        if (list1.length != list2.length) {
+            return false;
+        }
+
+        address[] memory sortedList1 = sortList(list1);
+        address[] memory sortedList2 = sortList(list2);
+
+        for (uint i = 0; i < sortedList1.length; i++) {
+            if (sortedList1[i] != sortedList2[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function sortList(
+        address[] memory arr
+    ) public pure returns (address[] memory) {
+        uint len = arr.length;
+        for (uint i = 0; i < len; i++) {
+            for (uint j = 0; j < len - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    // swap arr[j] and arr[j+1]
+                    address temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+        return arr;
+    }
 }
