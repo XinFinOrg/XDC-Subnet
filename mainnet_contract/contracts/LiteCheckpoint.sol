@@ -191,6 +191,7 @@ contract LiteCheckpoint {
                 }
                 unchecked {
                     epochNum++;
+                    //add 1 to find last gap block for example gap=450 gapNumber= 1 | 451 | 1351
                     gapNumber++;
                 }
 
