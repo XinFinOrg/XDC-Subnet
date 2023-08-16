@@ -7,188 +7,39 @@ import (
 	"math/big"
 	"strings"
 
-	ethereum "github.com/XinFinOrg/XDC-Subnet"
-	"github.com/XinFinOrg/XDC-Subnet/accounts/abi"
-	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
-	"github.com/XinFinOrg/XDC-Subnet/common"
-	"github.com/XinFinOrg/XDC-Subnet/core/types"
-	"github.com/XinFinOrg/XDC-Subnet/event"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 )
 
-// SafeMathABI is the input ABI used to generate the binding from.
-const SafeMathABI = "[]"
-
-// SafeMathBin is the compiled bytecode used for deploying new contracts.
-const SafeMathBin = `0x604c602c600b82828239805160001a60731460008114601c57601e565bfe5b5030600052607381538281f30073000000000000000000000000000000000000000030146060604052600080fd00a165627a7a72305820b9407d48ebc7efee5c9f08b3b3a957df2939281f5913225e8c1291f069b900490029`
-
-// DeploySafeMath deploys a new Ethereum contract, binding an instance of SafeMath to it.
-func DeploySafeMath(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *SafeMath, error) {
-	parsed, err := abi.JSON(strings.NewReader(SafeMathABI))
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(SafeMathBin), backend)
-	if err != nil {
-		return common.Address{}, nil, nil, err
-	}
-	return address, tx, &SafeMath{SafeMathCaller: SafeMathCaller{contract: contract}, SafeMathTransactor: SafeMathTransactor{contract: contract}, SafeMathFilterer: SafeMathFilterer{contract: contract}}, nil
-}
-
-// SafeMath is an auto generated Go binding around an Ethereum contract.
-type SafeMath struct {
-	SafeMathCaller     // Read-only binding to the contract
-	SafeMathTransactor // Write-only binding to the contract
-	SafeMathFilterer   // Log filterer for contract events
-}
-
-// SafeMathCaller is an auto generated read-only Go binding around an Ethereum contract.
-type SafeMathCaller struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// SafeMathTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type SafeMathTransactor struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// SafeMathFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type SafeMathFilterer struct {
-	contract *bind.BoundContract // Generic contract wrapper for the low level calls
-}
-
-// SafeMathSession is an auto generated Go binding around an Ethereum contract,
-// with pre-set call and transact options.
-type SafeMathSession struct {
-	Contract     *SafeMath         // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts     // Call options to use throughout this session
-	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
-}
-
-// SafeMathCallerSession is an auto generated read-only Go binding around an Ethereum contract,
-// with pre-set call options.
-type SafeMathCallerSession struct {
-	Contract *SafeMathCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts   // Call options to use throughout this session
-}
-
-// SafeMathTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
-// with pre-set transact options.
-type SafeMathTransactorSession struct {
-	Contract     *SafeMathTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
-}
-
-// SafeMathRaw is an auto generated low-level Go binding around an Ethereum contract.
-type SafeMathRaw struct {
-	Contract *SafeMath // Generic contract binding to access the raw methods on
-}
-
-// SafeMathCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type SafeMathCallerRaw struct {
-	Contract *SafeMathCaller // Generic read-only contract binding to access the raw methods on
-}
-
-// SafeMathTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type SafeMathTransactorRaw struct {
-	Contract *SafeMathTransactor // Generic write-only contract binding to access the raw methods on
-}
-
-// NewSafeMath creates a new instance of SafeMath, bound to a specific deployed contract.
-func NewSafeMath(address common.Address, backend bind.ContractBackend) (*SafeMath, error) {
-	contract, err := bindSafeMath(address, backend, backend, backend)
-	if err != nil {
-		return nil, err
-	}
-	return &SafeMath{SafeMathCaller: SafeMathCaller{contract: contract}, SafeMathTransactor: SafeMathTransactor{contract: contract}, SafeMathFilterer: SafeMathFilterer{contract: contract}}, nil
-}
-
-// NewSafeMathCaller creates a new read-only instance of SafeMath, bound to a specific deployed contract.
-func NewSafeMathCaller(address common.Address, caller bind.ContractCaller) (*SafeMathCaller, error) {
-	contract, err := bindSafeMath(address, caller, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &SafeMathCaller{contract: contract}, nil
-}
-
-// NewSafeMathTransactor creates a new write-only instance of SafeMath, bound to a specific deployed contract.
-func NewSafeMathTransactor(address common.Address, transactor bind.ContractTransactor) (*SafeMathTransactor, error) {
-	contract, err := bindSafeMath(address, nil, transactor, nil)
-	if err != nil {
-		return nil, err
-	}
-	return &SafeMathTransactor{contract: contract}, nil
-}
-
-// NewSafeMathFilterer creates a new log filterer instance of SafeMath, bound to a specific deployed contract.
-func NewSafeMathFilterer(address common.Address, filterer bind.ContractFilterer) (*SafeMathFilterer, error) {
-	contract, err := bindSafeMath(address, nil, nil, filterer)
-	if err != nil {
-		return nil, err
-	}
-	return &SafeMathFilterer{contract: contract}, nil
-}
-
-// bindSafeMath binds a generic wrapper to an already deployed contract.
-func bindSafeMath(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(SafeMathABI))
-	if err != nil {
-		return nil, err
-	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_SafeMath *SafeMathRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _SafeMath.Contract.SafeMathCaller.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_SafeMath *SafeMathRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _SafeMath.Contract.SafeMathTransactor.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_SafeMath *SafeMathRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _SafeMath.Contract.SafeMathTransactor.contract.Transact(opts, method, params...)
-}
-
-// Call invokes the (constant) contract method with params as input values and
-// sets the output to result. The result type might be a single field for simple
-// returns, a slice of interfaces for anonymous returns and a struct for named
-// returns.
-func (_SafeMath *SafeMathCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _SafeMath.Contract.contract.Call(opts, result, method, params...)
-}
-
-// Transfer initiates a plain transaction to move funds to the contract, calling
-// its default method if one is available.
-func (_SafeMath *SafeMathTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _SafeMath.Contract.contract.Transfer(opts)
-}
-
-// Transact invokes the (paid) contract method with params as input values.
-func (_SafeMath *SafeMathTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _SafeMath.Contract.contract.Transact(opts, method, params...)
-}
+// Reference imports to suppress errors if they are not otherwise used.
+var (
+	_ = big.NewInt
+	_ = strings.NewReader
+	_ = ethereum.NotFound
+	_ = bind.Bind
+	_ = common.Big1
+	_ = types.BloomLookup
+	_ = event.NewSubscription
+)
 
 // XDCValidatorABI is the input ABI used to generate the binding from.
-const XDCValidatorABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"owners\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"ownerCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"address\"}],\"name\":\"hasVotedInvalid\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ownerToCandidate\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"candidates\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"address\"}],\"name\":\"grandMasterMap\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"address\"},{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"KYCString\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"grandMasters\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"address\"}],\"name\":\"invalidKYCCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"candidateCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"voterWithdrawDelay\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxValidatorNumber\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"candidateWithdrawDelay\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"minCandidateCap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"minVoterCap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_candidates\",\"type\":\"address[]\"},{\"name\":\"_caps\",\"type\":\"uint256[]\"},{\"name\":\"_firstOwner\",\"type\":\"address\"},{\"name\":\"_minCandidateCap\",\"type\":\"uint256\"},{\"name\":\"_minVoterCap\",\"type\":\"uint256\"},{\"name\":\"_maxValidatorNumber\",\"type\":\"uint256\"},{\"name\":\"_candidateWithdrawDelay\",\"type\":\"uint256\"},{\"name\":\"_voterWithdrawDelay\",\"type\":\"uint256\"},{\"name\":\"_grandMasters\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_voter\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_candidate\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Vote\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_voter\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_candidate\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Unvote\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_candidate\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Propose\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"Resign\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Withdraw\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"kycHash\",\"type\":\"string\"}],\"name\":\"UploadedKYC\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_masternodeOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_masternodes\",\"type\":\"address[]\"}],\"name\":\"InvalidatedNode\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"name\":\"kychash\",\"type\":\"string\"}],\"name\":\"uploadKYC\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"propose\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"vote\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getCandidates\",\"outputs\":[{\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getGrandMasters\",\"outputs\":[{\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"getCandidateCap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"getCandidateOwner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"},{\"name\":\"_voter\",\"type\":\"address\"}],\"name\":\"getVoterCap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"getVoters\",\"outputs\":[{\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"isCandidate\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getWithdrawBlockNumbers\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_blockNumber\",\"type\":\"uint256\"}],\"name\":\"getWithdrawCap\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"},{\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"unvote\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"resign\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_invalidCandidate\",\"type\":\"address\"}],\"name\":\"voteInvalidKYC\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_invalidCandidate\",\"type\":\"address\"}],\"name\":\"invalidPercent\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getOwnerCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getLatestKYC\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getHashCount\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blockNumber\",\"type\":\"uint256\"},{\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const XDCValidatorABI = "[{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_candidates\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_caps\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"_firstOwner\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_minCandidateCap\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_minVoterCap\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_maxValidatorNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_candidateWithdrawDelay\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_voterWithdrawDelay\",\"type\":\"uint256\"},{\"internalType\":\"address[]\",\"name\":\"_grandMasters\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"_minCandidateNum\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_masternodeOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"_masternodes\",\"type\":\"address[]\"}],\"name\":\"InvalidatedNode\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Propose\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"Resign\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_voter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Unvote\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"kycHash\",\"type\":\"string\"}],\"name\":\"UploadedKYC\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_voter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Vote\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"Withdraw\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"KYCString\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"candidateCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"candidateWithdrawDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"candidates\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"getCandidateCap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"getCandidateOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getCandidates\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getGrandMasters\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getHashCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getLatestKYC\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getOwnerCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getOwnerToCandidateLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_voter\",\"type\":\"address\"}],\"name\":\"getVoterCap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"getVoters\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getWithdrawBlockNumbers\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_blockNumber\",\"type\":\"uint256\"}],\"name\":\"getWithdrawCap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"grandMasterMap\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"grandMasters\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"hasVotedInvalid\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"invalidKYCCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_invalidCandidate\",\"type\":\"address\"}],\"name\":\"invalidPercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"isCandidate\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"maxValidatorNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minCandidateCap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minCandidateNum\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minVoterCap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"ownerToCandidate\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"owners\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"propose\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"resign\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_cap\",\"type\":\"uint256\"}],\"name\":\"unvote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"kychash\",\"type\":\"string\"}],\"name\":\"uploadKYC\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"validatorsState\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"isCandidate\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"cap\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_candidate\",\"type\":\"address\"}],\"name\":\"vote\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_invalidCandidate\",\"type\":\"address\"}],\"name\":\"voteInvalidKYC\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"voterWithdrawDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"voters\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_index\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // XDCValidatorBin is the compiled bytecode used for deploying new contracts.
-const XDCValidatorBin = `0x606060405260006009556000600a5534156200001a57600080fd5b6040516200412e3803806200412e83398101604052808051820191906020018051820191906020018051906020019091908051906020019091908051906020019091908051906020019091908051906020019091908051906020019091908051820191905050600086600b8190555085600c8190555084600d8190555083600e8190555082600f81905550895160098190555060078054806001018281620000c3919062000602565b916000526020600020900160008a909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050600a60008154809291906001019190505550600090505b8951811015620004e8576008805480600101828162000149919062000602565b916000526020600020900160008c848151811015156200016557fe5b90602001906020020151909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550506060604051908101604052808973ffffffffffffffffffffffffffffffffffffffff1681526020016001151581526020018a83815181101515620001f057fe5b90602001906020020151815250600160008c848151811015156200021057fe5b9060200190602002015173ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008201518160000160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555060208201518160000160146101000a81548160ff02191690831515021790555060408201518160010155905050600260008b83815181101515620002db57fe5b9060200190602002015173ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805480600101828162000333919062000602565b916000526020600020900160008a909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050600660008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054806001018281620003d5919062000602565b916000526020600020900160008c84815181101515620003f157fe5b90602001906020020151909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050600b54600160008c848151811015156200045257fe5b9060200190602002015173ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160008a73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550808060010191505062000129565b600090505b8151811015620005f257601080548060010182816200050d919062000602565b9160005260206000209001600084848151811015156200052957fe5b90602001906020020151909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055505060016011600084848151811015156200058957fe5b9060200190602002015173ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff0219169083151502179055508080600101915050620004ed565b5050505050505050505062000659565b8154818355818115116200062c578183600052602060002091820191016200062b919062000631565b5b505050565b6200065691905b808211156200065257600081600090555060010162000638565b5090565b90565b613ac580620006696000396000f3006060604052600436106101b7576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806301267951146101bc578063025e7c27146101ea57806302aa9be21461024d57806306a49fce1461028f5780630db02622146102f95780630e3e4fb81461032257806315febd68146103925780632a3640b1146103c95780632d15cc041461044b5780632f9c4bba146104d9578063302b68721461054357806332658652146105af5780633477ee2e14610661578063441a3e70146106c457806352b3ed16146106f057806358e7525f1461075a5780635b6e3963146107a75780635b860d27146107f85780635b9cd8cc146108455780636132cd83146109005780636dd7d8ea1461096357806372e44a3814610991578063a9a981a3146109de578063a9ff959e14610a07578063ae6e43f514610a30578063b642facd14610a69578063c45607df14610ae2578063d09f1ab414610b2f578063d161c76714610b58578063d51b9e9314610b81578063d55b7dff14610bd2578063ef18374a14610bfb578063f2ee3c7d14610c24578063f5c9512514610c5d578063f8ac9dd514610c8b575b600080fd5b6101e8600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610cb4565b005b34156101f557600080fd5b61020b60048080359060200190919050506112fb565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b341561025857600080fd5b61028d600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190803590602001909190505061133a565b005b341561029a57600080fd5b6102a2611895565b6040518080602001828103825283818151815260200191508051906020019060200280838360005b838110156102e55780820151818401526020810190506102ca565b505050509050019250505060405180910390f35b341561030457600080fd5b61030c611929565b6040518082815260200191505060405180910390f35b341561032d57600080fd5b610378600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061192f565b604051808215151515815260200191505060405180910390f35b341561039d57600080fd5b6103b3600480803590602001909190505061195e565b6040518082815260200191505060405180910390f35b34156103d457600080fd5b610409600480803573ffffffffffffffffffffffffffffffffffffffff169060200190919080359060200190919050506119ba565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b341561045657600080fd5b610482600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050611a08565b6040518080602001828103825283818151815260200191508051906020019060200280838360005b838110156104c55780820151818401526020810190506104aa565b505050509050019250505060405180910390f35b34156104e457600080fd5b6104ec611adb565b6040518080602001828103825283818151815260200191508051906020019060200280838360005b8381101561052f578082015181840152602081019050610514565b505050509050019250505060405180910390f35b341561054e57600080fd5b610599600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050611b78565b6040518082815260200191505060405180910390f35b34156105ba57600080fd5b6105e6600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050611c02565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561062657808201518184015260208101905061060b565b50505050905090810190601f1680156106535780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b341561066c57600080fd5b6106826004808035906020019091905050611ea1565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b34156106cf57600080fd5b6106ee6004808035906020019091908035906020019091905050611ee0565b005b34156106fb57600080fd5b61070361218c565b6040518080602001828103825283818151815260200191508051906020019060200280838360005b8381101561074657808201518184015260208101905061072b565b505050509050019250505060405180910390f35b341561076557600080fd5b610791600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050612220565b6040518082815260200191505060405180910390f35b34156107b257600080fd5b6107de600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061226c565b604051808215151515815260200191505060405180910390f35b341561080357600080fd5b61082f600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061228c565b6040518082815260200191505060405180910390f35b341561085057600080fd5b610885600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091908035906020019091905050612354565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156108c55780820151818401526020810190506108aa565b50505050905090810190601f1680156108f25780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b341561090b57600080fd5b610921600480803590602001909190505061241d565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b61098f600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061245c565b005b341561099c57600080fd5b6109c8600480803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506128a4565b6040518082815260200191505060405180910390f35b34156109e957600080fd5b6109f16128bc565b6040518082815260200191505060405180910390f35b3415610a1257600080fd5b610a1a6128c2565b6040518082815260200191505060405180910390f35b3415610a3b57600080fd5b610a67600480803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506128c8565b005b3415610a7457600080fd5b610aa0600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050612e87565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b3415610aed57600080fd5b610b19600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050612ef3565b6040518082815260200191505060405180910390f35b3415610b3a57600080fd5b610b42612f3f565b6040518082815260200191505060405180910390f35b3415610b6357600080fd5b610b6b612f45565b6040518082815260200191505060405180910390f35b3415610b8c57600080fd5b610bb8600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050612f4b565b604051808215151515815260200191505060405180910390f35b3415610bdd57600080fd5b610be5612fa4565b6040518082815260200191505060405180910390f35b3415610c0657600080fd5b610c0e612faa565b6040518082815260200191505060405180910390f35b3415610c2f57600080fd5b610c5b600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050612fb4565b005b3415610c6857600080fd5b610c8960048080359060200190820180359060200191909192905050613742565b005b3415610c9657600080fd5b610c9e613841565b6040518082815260200191505060405180910390f35b6000600b543410151515610cc757600080fd5b81600160008273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff16151515610d2457600080fd5b60011515601160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff161515141515610d8357600080fd5b610dd834600160008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001015461384790919063ffffffff16565b915060088054806001018281610dee919061387e565b9160005260206000209001600085909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550506060604051908101604052803373ffffffffffffffffffffffffffffffffffffffff16815260200160011515815260200183815250600160008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008201518160000160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555060208201518160000160146101000a81548160ff02191690831515021790555060408201518160010155905050610fb734600160008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205461384790919063ffffffff16565b600160008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550611050600160095461384790919063ffffffff16565b6009819055506000600660003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002080549050141561111757600780548060010182816110b5919061387e565b9160005260206000209001600033909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050600a600081548092919060010191905055505b600660003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054806001018281611168919061387e565b9160005260206000209001600085909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555050600260008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054806001018281611208919061387e565b9160005260206000209001600033909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550507f7635f1d87b47fba9f2b09e56eb4be75cca030e0cb179c1602ac9261d39a8f5c1338434604051808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001828152602001935050505060405180910390a1505050565b60078181548110151561130a57fe5b90600052602060002090016000915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6000828280600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054101515156113cc57600080fd5b3373ffffffffffffffffffffffffffffffffffffffff16600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16141561150557600b546114f782600160008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205461386590919063ffffffff16565b1015151561150457600080fd5b5b61155a84600160008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001015461386590919063ffffffff16565b600160008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001018190555061163284600160008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205461386590919063ffffffff16565b600160008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055506116ca43600f5461384790919063ffffffff16565b9250611731846000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160008681526020019081526020016000205461384790919063ffffffff16565b6000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000016000858152602001908152602001600020819055506000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060010180548060010182816117da91906138aa565b9160005260206000209001600085909190915055507faa0e554f781c3c3b2be110a0557f260f11af9a8aa2c64bc1e7a31dbb21e32fa2338686604051808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001828152602001935050505060405180910390a15050505050565b61189d6138d6565b600880548060200260200160405190810160405280929190818152602001828054801561191f57602002820191906000526020600020905b8160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190600101908083116118d5575b5050505050905090565b600a5481565b60056020528160005260406000206020528060005260406000206000915091509054906101000a900460ff1681565b60008060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000016000838152602001908152602001600020549050919050565b6006602052816000526040600020818154811015156119d557fe5b90600052602060002090016000915091509054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b611a106138d6565b600260008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805480602002602001604051908101604052809291908181526020018280548015611acf57602002820191906000526020600020905b8160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019060010190808311611a85575b50505050509050919050565b611ae36138ea565b6000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101805480602002602001604051908101604052809291908181526020018280548015611b6e57602002820191906000526020600020905b815481526020019060010190808311611b5a575b5050505050905090565b6000600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054905092915050565b611c0a6138fe565b611c1382612f4b565b15611d645760036000611c2584612e87565b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600160036000611c6e86612e87565b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054905003815481101515611cb957fe5b90600052602060002090018054600181600116156101000203166002900480601f016020809104026020016040519081016040528092919081815260200182805460018160011615610100020316600290048015611d585780601f10611d2d57610100808354040283529160200191611d58565b820191906000526020600020905b815481529060010190602001808311611d3b57829003601f168201915b50505050509050611e9c565b600360008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001600360008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054905003815481101515611df557fe5b90600052602060002090018054600181600116156101000203166002900480601f016020809104026020016040519081016040528092919081815260200182805460018160011615610100020316600290048015611e945780601f10611e6957610100808354040283529160200191611e94565b820191906000526020600020905b815481529060010190602001808311611e7757829003601f168201915b505050505090505b919050565b600881815481101515611eb057fe5b90600052602060002090016000915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008282600082111515611ef357600080fd5b814310151515611f0257600080fd5b60008060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600001600084815260200190815260200160002054111515611f6357600080fd5b816000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060010182815481101515611fb257fe5b906000526020600020900154141515611fca57600080fd5b6000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160008681526020019081526020016000205492506000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000016000868152602001908152602001600020600090556000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101848154811015156120c357fe5b9060005260206000209001600090553373ffffffffffffffffffffffffffffffffffffffff166108fc849081150290604051600060405180830381858888f19350505050151561211257600080fd5b7ff279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568338685604051808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001838152602001828152602001935050505060405180910390a15050505050565b6121946138d6565b601080548060200260200160405190810160405280929190818152602001828054801561221657602002820191906000526020600020905b8160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190600101908083116121cc575b5050505050905090565b6000600160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101549050919050565b60116020528060005260406000206000915054906101000a900460ff1681565b60008082600160008273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff1615156122eb57600080fd5b6122f484612e87565b91506122fe612faa565b6064600460008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020540281151561234a57fe5b0492505050919050565b60036020528160005260406000208181548110151561236f57fe5b9060005260206000209001600091509150508054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156124155780601f106123ea57610100808354040283529160200191612415565b820191906000526020600020905b8154815290600101906020018083116123f857829003601f168201915b505050505081565b60108181548110151561242c57fe5b90600052602060002090016000915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600c54341015151561246d57600080fd5b80600160008273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff1615156124c957600080fd5b60011515601160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff16151514151561252857600080fd5b61257d34600160008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001015461384790919063ffffffff16565b600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101819055506000600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205414156126ec57600260008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805480600101828161269c919061387e565b9160005260206000209001600033909190916101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550505b61277e34600160008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205461384790919063ffffffff16565b600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055507f66a9138482c99e9baf08860110ef332cc0c23b4a199a53593d8db0fc8f96fbfc338334604051808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001828152602001935050505060405180910390a15050565b60046020528060005260406000206000915090505481565b60095481565b600f5481565b6000806000833373ffffffffffffffffffffffffffffffffffffffff16600160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561296a57600080fd5b84600160008273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff1615156129c657600080fd5b6000600160008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160146101000a81548160ff021916908315150217905550612a37600160095461386590919063ffffffff16565b600981905550600094505b600880549050851015612b0c578573ffffffffffffffffffffffffffffffffffffffff16600886815481101515612a7557fe5b906000526020600020900160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff161415612aff57600885815481101515612acc57fe5b906000526020600020900160006101000a81549073ffffffffffffffffffffffffffffffffffffffff0219169055612b0c565b8480600101955050612a42565b600160008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020549350612be384600160008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001015461386590919063ffffffff16565b600160008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101819055506000600160008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550612cc343600e5461384790919063ffffffff16565b9250612d2a846000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160008681526020019081526020016000205461384790919063ffffffff16565b6000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000016000858152602001908152602001600020819055506000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206001018054806001018281612dd391906138aa565b9160005260206000209001600085909190915055507f4edf3e325d0063213a39f9085522994a1c44bea5f39e7d63ef61260a1e58c6d33387604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020018273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019250505060405180910390a1505050505050565b6000600160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050919050565b6000600360008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805490509050919050565b600d5481565b600e5481565b6000600160008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff169050919050565b600b5481565b6000600a54905090565b600080612fbf6138d6565b600080600033600160008273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff16151561302057600080fd5b87600160008273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000160149054906101000a900460ff16151561307c57600080fd5b61308533612e87565b975061309089612e87565b9650600560008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060009054906101000a900460ff1615151561312857600080fd5b6001600560008a73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006101000a81548160ff0219169083151502179055506001600460008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008282540192505081905550604b613215612faa565b6064600460008b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020540281151561326157fe5b041015156137375760016008805490500360405180591061327f5750595b9080825280602002602001820160405250955060009450600093505b6008805490508410156135a8578673ffffffffffffffffffffffffffffffffffffffff166133026008868154811015156132d157fe5b906000526020600020900160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16612e87565b73ffffffffffffffffffffffffffffffffffffffff16141561359b57613334600160095461386590919063ffffffff16565b60098190555060088481548110151561334957fe5b906000526020600020900160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16868680600101975081518110151561338957fe5b9060200190602002019073ffffffffffffffffffffffffffffffffffffffff16908173ffffffffffffffffffffffffffffffffffffffff16815250506008848154811015156133d457fe5b906000526020600020900160006101000a81549073ffffffffffffffffffffffffffffffffffffffff02191690556001600060088681548110151561341557fe5b906000526020600020900160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600080820160006101000a81549073ffffffffffffffffffffffffffffffffffffffff02191690556000820160146101000a81549060ff021916905560018201600090555050600360008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600061350c9190613912565b600660008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060006135579190613933565b600460008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600090555b838060010194505061329b565b600092505b60078054905083101561368a578673ffffffffffffffffffffffffffffffffffffffff166007848154811015156135e057fe5b906000526020600020900160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16141561367d5760078381548110151561363757fe5b906000526020600020900160006101000a81549073ffffffffffffffffffffffffffffffffffffffff0219169055600a600081548092919060019003919050555061368a565b82806001019350506135ad565b7fe18d61a5bf4aa2ab40afc88aa9039d27ae17ff4ec1c65f5f414df6f02ce8b35e8787604051808373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200180602001828103825283818151815260200191508051906020019060200280838360005b83811015613722578082015181840152602081019050613707565b50505050905001935050505060405180910390a15b505050505050505050565b600360003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002080548060010182816137939190613954565b9160005260206000209001600084849091929091925091906137b6929190613980565b50507f949360d814b28a3b393a68909efe1fee120ee09cac30f360a0f80ab5415a611a338383604051808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001806020018281038252848482818152602001925080828437820191505094505050505060405180910390a15050565b600c5481565b600080828401905083811015151561385b57fe5b8091505092915050565b600082821115151561387357fe5b818303905092915050565b8154818355818115116138a5578183600052602060002091820191016138a49190613a00565b5b505050565b8154818355818115116138d1578183600052602060002091820191016138d09190613a00565b5b505050565b602060405190810160405280600081525090565b602060405190810160405280600081525090565b602060405190810160405280600081525090565b50805460008255906000526020600020908101906139309190613a25565b50565b50805460008255906000526020600020908101906139519190613a00565b50565b81548183558181151161397b5781836000526020600020918201910161397a9190613a25565b5b505050565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106139c157803560ff19168380011785556139ef565b828001600101855582156139ef579182015b828111156139ee5782358255916020019190600101906139d3565b5b5090506139fc9190613a00565b5090565b613a2291905b80821115613a1e576000816000905550600101613a06565b5090565b90565b613a4e91905b80821115613a4a5760008181613a419190613a51565b50600101613a2b565b5090565b90565b50805460018160011615610100020316600290046000825580601f10613a775750613a96565b601f016020900490600052602060002090810190613a959190613a00565b5b505600a165627a7a723058200f7c182c9d33b171ab6226b53741426cf4f94f3bea362b980fc50c2247ee051a0029`
+var XDCValidatorBin = "0x60806040523480156200001157600080fd5b5060405162002d2b38038062002d2b833981016040819052620000349162000502565b6009819055600a879055600b869055600c859055600d849055600e8390556007805460018101825560009182527fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c6880180546001600160a01b0319166001600160a01b038b161790555b8a51811015620002c45760088b8281518110620000be57620000be620005e2565b60209081029190910181015182546001808201855560009485529284200180546001600160a01b0319166001600160a01b039092169190911790558c5182908e9085908110620001125762000112620005e2565b6020908102919091018101516001600160a01b0390811683529082019290925260400160002080546001600160a81b031916918c1691909117600160a01b1781558b519091508b90839081106200016d576200016d620005e2565b60200260200101518160010181905550600260008d8481518110620001965762000196620005e2565b6020908102919091018101516001600160a01b039081168352828201939093526040918201600090812080546001810182559082528282200180546001600160a01b031916948f1694851790559283526006905290208c518d9084908110620002035762000203620005e2565b60209081029190910181015182546001808201855560009485529284200180546001600160a01b0319166001600160a01b03909216919091179055600a548e519092908f90869081106200025b576200025b620005e2565b60200260200101516001600160a01b03166001600160a01b0316815260200190815260200160002060020160008c6001600160a01b03166001600160a01b0316815260200190815260200160002081905550508080620002bb90620005f8565b9150506200009d565b5060005b82518110156200038757600f838281518110620002e957620002e9620005e2565b60209081029190910181015182546001808201855560009485529284200180546001600160a01b0319166001600160a01b0390921691909117905584519091601091869085908110620003405762000340620005e2565b6020908102919091018101516001600160a01b03168252810191909152604001600020805460ff1916911515919091179055806200037e81620005f8565b915050620002c8565b505050505050505050505062000620565b634e487b7160e01b600052604160045260246000fd5b604051601f8201601f191681016001600160401b0381118282101715620003d957620003d962000398565b604052919050565b60006001600160401b03821115620003fd57620003fd62000398565b5060051b60200190565b80516001600160a01b03811681146200041f57600080fd5b919050565b600082601f8301126200043657600080fd5b815160206200044f6200044983620003e1565b620003ae565b82815260059290921b840181019181810190868411156200046f57600080fd5b8286015b848110156200049557620004878162000407565b835291830191830162000473565b509695505050505050565b600082601f830112620004b257600080fd5b81516020620004c56200044983620003e1565b82815260059290921b84018101918181019086841115620004e557600080fd5b8286015b84811015620004955780518352918301918301620004e9565b6000806000806000806000806000806101408b8d0312156200052357600080fd5b8a516001600160401b03808211156200053b57600080fd5b620005498e838f0162000424565b9b5060208d01519150808211156200056057600080fd5b6200056e8e838f01620004a0565b9a506200057e60408e0162000407565b995060608d0151985060808d0151975060a08d0151965060c08d0151955060e08d015194506101008d0151915080821115620005b957600080fd5b50620005c88d828e0162000424565b9250506101208b015190509295989b9194979a5092959850565b634e487b7160e01b600052603260045260246000fd5b6000600182016200061957634e487b7160e01b600052601160045260246000fd5b5060010190565b6126fb80620006306000396000f3fe6080604052600436106102255760003560e01c80635b9cd8cc11610123578063b642facd116100ab578063d55b7dff1161006f578063d55b7dff14610743578063ef18374a14610759578063f2ee3c7d1461076e578063f5c951251461078e578063f8ac9dd5146107ae57600080fd5b8063b642facd14610681578063c45607df146106a1578063d09f1ab4146106d7578063d161c767146106ed578063d51b9e931461070357600080fd5b80636dd7d8ea116100f25780636dd7d8ea146105f657806372e44a3814610609578063a9a981a314610636578063a9ff959e1461064b578063ae6e43f51461066157600080fd5b80635b9cd8cc146105605780635c134d66146105805780636132cd83146105a057806367134e70146105c057600080fd5b8063302b6872116101b157806349e971be1161017557806349e971be146104ab57806352b3ed16146104c157806358e7525f146104d65780635b6e3963146105105780635b860d271461054057600080fd5b8063302b6872146103af57806332658652146103cf5780633477ee2e146103fc5780634110a4891461041c578063441a3e701461048b57600080fd5b80630e3e4fb8116101f85780630e3e4fb8146102be57806315febd68146103095780632a3640b11461034d5780632d15cc041461036d5780632f9c4bba1461038d57600080fd5b8063012679511461022a578063025e7c271461023f57806302aa9be21461027c57806306a49fce1461029c575b600080fd5b61023d6102383660046121ed565b6107c4565b005b34801561024b57600080fd5b5061025f61025a36600461220f565b610a9f565b6040516001600160a01b0390911681526020015b60405180910390f35b34801561028857600080fd5b5061023d610297366004612228565b610ac9565b3480156102a857600080fd5b506102b1610d73565b6040516102739190612296565b3480156102ca57600080fd5b506102f96102d93660046122a9565b600560209081526000928352604080842090915290825290205460ff1681565b6040519015158152602001610273565b34801561031557600080fd5b5061033f61032436600461220f565b33600090815260208181526040808320938352929052205490565b604051908152602001610273565b34801561035957600080fd5b5061025f610368366004612228565b610dd5565b34801561037957600080fd5b506102b16103883660046121ed565b610e0d565b34801561039957600080fd5b506103a2610e83565b60405161027391906122dc565b3480156103bb57600080fd5b5061033f6103ca3660046122a9565b610ee4565b3480156103db57600080fd5b506103ef6103ea3660046121ed565b610f15565b6040516102739190612366565b34801561040857600080fd5b5061025f61041736600461220f565b611070565b34801561042857600080fd5b506104666104373660046121ed565b600160208190526000918252604090912080549101546001600160a01b03821691600160a01b900460ff169083565b604080516001600160a01b039094168452911515602084015290820152606001610273565b34801561049757600080fd5b5061023d6104a6366004612379565b611080565b3480156104b757600080fd5b5061033f60095481565b3480156104cd57600080fd5b506102b1611323565b3480156104e257600080fd5b5061033f6104f13660046121ed565b6001600160a01b03166000908152600160208190526040909120015490565b34801561051c57600080fd5b506102f961052b3660046121ed565b60106020526000908152604090205460ff1681565b34801561054c57600080fd5b5061033f61055b3660046121ed565b611383565b34801561056c57600080fd5b506103ef61057b366004612228565b611412565b34801561058c57600080fd5b5061025f61059b366004612228565b6114cb565b3480156105ac57600080fd5b5061025f6105bb36600461220f565b6114e7565b3480156105cc57600080fd5b5061033f6105db3660046121ed565b6001600160a01b031660009081526006602052604090205490565b61023d6106043660046121ed565b6114f7565b34801561061557600080fd5b5061033f6106243660046121ed565b60046020526000908152604090205481565b34801561064257600080fd5b5060085461033f565b34801561065757600080fd5b5061033f600e5481565b34801561066d57600080fd5b5061023d61067c3660046121ed565b6116ef565b34801561068d57600080fd5b5061025f61069c3660046121ed565b6119e1565b3480156106ad57600080fd5b5061033f6106bc3660046121ed565b6001600160a01b031660009081526003602052604090205490565b3480156106e357600080fd5b5061033f600c5481565b3480156106f957600080fd5b5061033f600d5481565b34801561070f57600080fd5b506102f961071e3660046121ed565b6001600160a01b0316600090815260016020526040902054600160a01b900460ff1690565b34801561074f57600080fd5b5061033f600a5481565b34801561076557600080fd5b5060075461033f565b34801561077a57600080fd5b5061023d6107893660046121ed565b6119ff565b34801561079a57600080fd5b5061023d6107a93660046123b1565b611f03565b3480156107ba57600080fd5b5061033f600b5481565b600a543410156108135760405162461bcd60e51b815260206004820152601560248201527406f6e6c7956616c696443616e64696461746543617605c1b60448201526064015b60405180910390fd5b6001600160a01b0381166000908152600160205260409020548190600160a01b900460ff16156108785760405162461bcd60e51b815260206004820152601060248201526f6f6e6c794e6f7443616e64696461746560801b604482015260640161080a565b3360009081526010602052604090205460ff1615156001146108cd5760405162461bcd60e51b815260206004820152600e60248201526d26bab9ba1031329036b0b9ba32b960911b604482015260640161080a565b6001600160a01b0382166000908152600160208190526040822001546108f4903490612478565b6008805460018181019092557ff3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee30180546001600160a01b0387166001600160a01b03199091168117909155600090815260208281526040808320805460ff60a01b19339081166001600160a81b031990921691909117600160a01b178255948101869055938352600284019091528120805493945091923492919061099a908490612478565b90915550503360009081526006602052604081205490036109f857600780546001810182556000919091527fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c6880180546001600160a01b031916331790555b3360008181526006602090815260408083208054600180820183559185528385200180546001600160a01b038b166001600160a01b0319918216811790925581865260028552838620805493840181558652948490209091018054909416851790935580519384529083019190915234908201527f7635f1d87b47fba9f2b09e56eb4be75cca030e0cb179c1602ac9261d39a8f5c19060600160405180910390a150505050565b60078181548110610aaf57600080fd5b6000918252602090912001546001600160a01b0316905081565b6001600160a01b038216600090815260016020908152604080832033845260020190915290205482908290811115610b695760405162461bcd60e51b815260206004820152603f60248201527f76616c696461746f727353746174655b5f63616e6469646174655d2e766f746560448201527f72735b6d73672e73656e6465725d203e3d205f6361702069732066616c736500606482015260840161080a565b6001600160a01b0382811660009081526001602052604090205433911603610c5057600a546001600160a01b0383166000908152600160209081526040808320338452600201909152902054610bc090839061248b565b1015610c505760405162461bcd60e51b815260206004820152605360248201527f76616c696461746f727353746174655b5f63616e6469646174655d2e766f746560448201527f72735b6d73672e73656e6465725d202d20285f63617029203e3d206d696e43616064820152726e6469646174654361702069732066616c736560681b608482015260a40161080a565b6001600160a01b03841660009081526001602081905260408220018054859290610c7b90849061248b565b90915550506001600160a01b038416600090815260016020908152604080832033845260020190915281208054859290610cb690849061248b565b9091555050600e54600090610ccc904390612478565b33600090815260208181526040808320848452909152812080549293508692909190610cf9908490612478565b90915550503360008181526020818152604080832060019081018054918201815584529282902090920184905581519283526001600160a01b0388169083015281018590527faa0e554f781c3c3b2be110a0557f260f11af9a8aa2c64bc1e7a31dbb21e32fa2906060015b60405180910390a15050505050565b60606008805480602002602001604051908101604052809291908181526020018280548015610dcb57602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311610dad575b5050505050905090565b60066020528160005260406000208181548110610df157600080fd5b6000918252602090912001546001600160a01b03169150829050565b6001600160a01b038116600090815260026020908152604091829020805483518184028101840190945280845260609392830182828015610e7757602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311610e59575b50505050509050919050565b3360009081526020818152604091829020600101805483518184028101840190945280845260609392830182828015610dcb57602002820191906000526020600020905b815481526020019060010190808311610ec7575050505050905090565b6001600160a01b03808316600090815260016020908152604080832093851683526002909301905220545b92915050565b6060610f40826001600160a01b0316600090815260016020526040902054600160a01b900460ff1690565b156110455760036000610f52846119e1565b6001600160a01b03166001600160a01b03168152602001908152602001600020600160036000610f81866119e1565b6001600160a01b03168152602081019190915260400160002054610fa5919061248b565b81548110610fb557610fb561249e565b906000526020600020018054610fca906124b4565b80601f0160208091040260200160405190810160405280929190818152602001828054610ff6906124b4565b8015610e775780601f1061101857610100808354040283529160200191610e77565b820191906000526020600020905b8154815290600101906020018083116110265750939695505050505050565b6001600160a01b03821660009081526003602052604090208054610fa59060019061248b565b919050565b60088181548110610aaf57600080fd5b8181600082116110d25760405162461bcd60e51b815260206004820152601960248201527f5f626c6f636b4e756d626572203e20302069732066616c736500000000000000604482015260640161080a565b814310156111305760405162461bcd60e51b815260206004820152602560248201527f626c6f636b2e6e756d626572203e3d205f626c6f636b4e756d6265722069732060448201526466616c736560d81b606482015260840161080a565b336000908152602081815260408083208584529091529020546111bb5760405162461bcd60e51b815260206004820152603a60248201527f77697468647261777353746174655b6d73672e73656e6465725d2e636170735b60448201527f5f626c6f636b4e756d6265725d203e20302069732066616c7365000000000000606482015260840161080a565b3360009081526020819052604090206001018054839190839081106111e2576111e261249e565b9060005260206000200154146112725760405162461bcd60e51b815260206004820152604960248201527f2077697468647261777353746174655b6d73672e73656e6465725d2e626c6f6360448201527f6b4e756d626572735b5f696e6465785d203d3d205f626c6f636b4e756d6265726064820152682069732066616c736560b81b608482015260a40161080a565b336000818152602081815260408083208884528083529083208054908490559383529190526001018054859081106112ac576112ac61249e565b60009182526020822001819055604051339183156108fc02918491818181858888f193505050501580156112e4573d6000803e3d6000fd5b5060408051338152602081018790529081018290527ff279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b56890606001610d64565b6060600f805480602002602001604051908101604052809291908181526020018280548015610dcb576020028201919060005260206000209081546001600160a01b03168152600190910190602001808311610dad575050505050905090565b6001600160a01b0381166000908152600160205260408120548290600160a01b900460ff166113c45760405162461bcd60e51b815260040161080a906124e8565b60006113cf846119e1565b90506113da60075490565b6001600160a01b0382166000908152600460205260409020546113fe906064612514565b611408919061252b565b9250505b50919050565b6003602052816000526040600020818154811061142e57600080fd5b9060005260206000200160009150915050805461144a906124b4565b80601f0160208091040260200160405190810160405280929190818152602001828054611476906124b4565b80156114c35780601f10611498576101008083540402835291602001916114c3565b820191906000526020600020905b8154815290600101906020018083116114a657829003601f168201915b505050505081565b60026020528160005260406000208181548110610df157600080fd5b600f8181548110610aaf57600080fd5b600b5434101561153d5760405162461bcd60e51b815260206004820152601160248201527006f6e6c7956616c6964566f74657243617607c1b604482015260640161080a565b6001600160a01b0381166000908152600160205260409020548190600160a01b900460ff1661157e5760405162461bcd60e51b815260040161080a906124e8565b3360009081526010602052604090205460ff1615156001146115d35760405162461bcd60e51b815260206004820152600e60248201526d26bab9ba1031329036b0b9ba32b960911b604482015260640161080a565b6001600160a01b038216600090815260016020819052604082200180543492906115fe908490612478565b90915550506001600160a01b03821660009081526001602090815260408083203384526002019091528120549003611669576001600160a01b03821660009081526002602090815260408220805460018101825590835291200180546001600160a01b031916331790555b6001600160a01b03821660009081526001602090815260408083203384526002019091528120805434929061169f908490612478565b9091555050604080513381526001600160a01b0384166020820152348183015290517f66a9138482c99e9baf08860110ef332cc0c23b4a199a53593d8db0fc8f96fbfc9181900360600190a15050565b6001600160a01b0380821660009081526001602052604090205482911633146117465760405162461bcd60e51b815260206004820152600960248201526837b7363ca7bbb732b960b91b604482015260640161080a565b6001600160a01b0382166000908152600160205260409020548290600160a01b900460ff166117a75760405162461bcd60e51b815260206004820152600d60248201526c6f6e6c7943616e64696461746560981b604482015260640161080a565b6001600160a01b0383166000908152600160205260408120805460ff60a01b191690555b60085481101561184f57836001600160a01b0316600882815481106117f2576117f261249e565b6000918252602090912001546001600160a01b03160361183d576008818154811061181f5761181f61249e565b600091825260209091200180546001600160a01b031916905561184f565b806118478161254d565b9150506117cb565b506118b360088054806020026020016040519081016040528092919081815260200182805480156118a957602002820191906000526020600020905b81546001600160a01b0316815260019091019060200180831161188b575b5050505050611f69565b80516118c7916008916020909101906120ca565b506118d0612060565b6001600160a01b0383166000818152600160208181526040808420338552600281018352908420549484529082905201805483929061191090849061248b565b90915550506001600160a01b03841660009081526001602090815260408083203384526002019091528120819055600d5461194c904390612478565b33600090815260208181526040808320848452909152812080549293508492909190611979908490612478565b90915550503360008181526020818152604080832060019081018054918201815584529282902090920184905581519283526001600160a01b038816908301527f4edf3e325d0063213a39f9085522994a1c44bea5f39e7d63ef61260a1e58c6d39101610d64565b6001600160a01b039081166000908152600160205260409020541690565b33600081815260016020526040902054600160a01b900460ff16611a355760405162461bcd60e51b815260040161080a906124e8565b6001600160a01b0382166000908152600160205260409020548290600160a01b900460ff16611a765760405162461bcd60e51b815260040161080a906124e8565b6000611a81336119e1565b90506000611a8e856119e1565b6001600160a01b0380841660009081526005602090815260408083209385168352929052205490915060ff1615611ac457600080fd5b6001600160a01b0380831660009081526005602090815260408083209385168352928152828220805460ff1916600190811790915560049091529181208054909190611b11908490612478565b9091555050600754604b906001600160a01b038316600090815260046020526040902054611b40906064612514565b611b4a919061252b565b10611efc57600854600090611b619060019061248b565b67ffffffffffffffff811115611b7957611b7961239b565b604051908082528060200260200182016040528015611ba2578160200160208202803683370190505b5090506000805b600854811015611d4357836001600160a01b0316611bed60088381548110611bd357611bd361249e565b6000918252602090912001546001600160a01b03166119e1565b6001600160a01b031603611d315760088181548110611c0e57611c0e61249e565b6000918252602090912001546001600160a01b03168383611c2e8161254d565b945081518110611c4057611c4061249e565b60200260200101906001600160a01b031690816001600160a01b03168152505060088181548110611c7357611c7361249e565b6000918252602082200180546001600160a01b031916905560088054600192919084908110611ca457611ca461249e565b60009182526020808320909101546001600160a01b039081168452838201949094526040928301822080546001600160a81b0319168155600101829055928716815260039092528120611cf69161212f565b6001600160a01b0384166000908152600660205260408120611d1791612150565b6001600160a01b0384166000908152600460205260408120555b80611d3b8161254d565b915050611ba9565b50611da560088054806020026020016040519081016040528092919081815260200182805480156118a9576020028201919060005260206000209081546001600160a01b0316815260019091019060200180831161188b575050505050611f69565b8051611db9916008916020909101906120ca565b50611dc2612060565b60005b600754811015611e4957836001600160a01b031660078281548110611dec57611dec61249e565b6000918252602090912001546001600160a01b031603611e375760078181548110611e1957611e1961249e565b600091825260209091200180546001600160a01b0319169055611e49565b80611e418161254d565b915050611dc5565b50611eab60078054806020026020016040519081016040528092919081815260200182805480156118a9576020028201919060005260206000209081546001600160a01b0316815260019091019060200180831161188b575050505050611f69565b8051611ebf916007916020909101906120ca565b507fe18d61a5bf4aa2ab40afc88aa9039d27ae17ff4ec1c65f5f414df6f02ce8b35e8383604051611ef1929190612566565b60405180910390a150505b5050505050565b33600090815260036020908152604082208054600181018255908352912001611f2c82826125e1565b507f949360d814b28a3b393a68909efe1fee120ee09cac30f360a0f80ab5415a611a3382604051611f5e9291906126a1565b60405180910390a150565b60606000825167ffffffffffffffff811115611f8757611f8761239b565b604051908082528060200260200182016040528015611fb0578160200160208202803683370190505b5090506000805b84518110156120575760006001600160a01b0316858281518110611fdd57611fdd61249e565b60200260200101516001600160a01b031614612045578481815181106120055761200561249e565b602002602001015183838151811061201f5761201f61249e565b6001600160a01b0390921660209283029190910190910152816120418161254d565b9250505b8061204f8161254d565b915050611fb7565b50815292915050565b60095460085410156120c85760405162461bcd60e51b815260206004820152602b60248201527f636164696461746573206d7573742067726561746572207468616e206d696e4360448201526a616e6469646174654e756d60a81b606482015260840161080a565b565b82805482825590600052602060002090810192821561211f579160200282015b8281111561211f57825182546001600160a01b0319166001600160a01b039091161782556020909201916001909101906120ea565b5061212b92915061216a565b5090565b508054600082559060005260206000209081019061214d919061217f565b50565b508054600082559060005260206000209081019061214d91905b5b8082111561212b576000815560010161216b565b8082111561212b576000612193828261219c565b5060010161217f565b5080546121a8906124b4565b6000825580601f106121b8575050565b601f01602090049060005260206000209081019061214d919061216a565b80356001600160a01b038116811461106b57600080fd5b6000602082840312156121ff57600080fd5b612208826121d6565b9392505050565b60006020828403121561222157600080fd5b5035919050565b6000806040838503121561223b57600080fd5b612244836121d6565b946020939093013593505050565b600081518084526020808501945080840160005b8381101561228b5781516001600160a01b031687529582019590820190600101612266565b509495945050505050565b6020815260006122086020830184612252565b600080604083850312156122bc57600080fd5b6122c5836121d6565b91506122d3602084016121d6565b90509250929050565b6020808252825182820181905260009190848201906040850190845b81811015612314578351835292840192918401916001016122f8565b50909695505050505050565b6000815180845260005b818110156123465760208185018101518683018201520161232a565b506000602082860101526020601f19601f83011685010191505092915050565b6020815260006122086020830184612320565b6000806040838503121561238c57600080fd5b50508035926020909101359150565b634e487b7160e01b600052604160045260246000fd5b6000602082840312156123c357600080fd5b813567ffffffffffffffff808211156123db57600080fd5b818401915084601f8301126123ef57600080fd5b8135818111156124015761240161239b565b604051601f8201601f19908116603f011681019083821181831017156124295761242961239b565b8160405282815287602084870101111561244257600080fd5b826020860160208301376000928101602001929092525095945050505050565b634e487b7160e01b600052601160045260246000fd5b80820180821115610f0f57610f0f612462565b81810381811115610f0f57610f0f612462565b634e487b7160e01b600052603260045260246000fd5b600181811c908216806124c857607f821691505b60208210810361140c57634e487b7160e01b600052602260045260246000fd5b6020808252601290820152716f6e6c7956616c696443616e64696461746560701b604082015260600190565b8082028115828204841417610f0f57610f0f612462565b60008261254857634e487b7160e01b600052601260045260246000fd5b500490565b60006001820161255f5761255f612462565b5060010190565b6001600160a01b038316815260406020820181905260009061258a90830184612252565b949350505050565b601f8211156125dc57600081815260208120601f850160051c810160208610156125b95750805b601f850160051c820191505b818110156125d8578281556001016125c5565b5050505b505050565b815167ffffffffffffffff8111156125fb576125fb61239b565b61260f8161260984546124b4565b84612592565b602080601f831160018114612644576000841561262c5750858301515b600019600386901b1c1916600185901b1785556125d8565b600085815260208120601f198616915b8281101561267357888601518255948401946001909101908401612654565b50858210156126915787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b6001600160a01b038316815260406020820181905260009061258a9083018461232056fea264697066735822122084be36ad6fc6ee180eeea58f8e273b26ecc35ed7b89ab1f8e4b4f13977c215e364736f6c63430008130033"
 
 // DeployXDCValidator deploys a new Ethereum contract, binding an instance of XDCValidator to it.
-func DeployXDCValidator(auth *bind.TransactOpts, backend bind.ContractBackend, _candidates []common.Address, _caps []*big.Int, _firstOwner common.Address, _minCandidateCap *big.Int, _minVoterCap *big.Int, _maxValidatorNumber *big.Int, _candidateWithdrawDelay *big.Int, _voterWithdrawDelay *big.Int, _grandMasters []common.Address) (common.Address, *types.Transaction, *XDCValidator, error) {
+func DeployXDCValidator(auth *bind.TransactOpts, backend bind.ContractBackend, _candidates []common.Address, _caps []*big.Int, _firstOwner common.Address, _minCandidateCap *big.Int, _minVoterCap *big.Int, _maxValidatorNumber *big.Int, _candidateWithdrawDelay *big.Int, _voterWithdrawDelay *big.Int, _grandMasters []common.Address, _minCandidateNum *big.Int) (common.Address, *types.Transaction, *XDCValidator, error) {
 	parsed, err := abi.JSON(strings.NewReader(XDCValidatorABI))
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(XDCValidatorBin), backend, _candidates, _caps, _firstOwner, _minCandidateCap, _minVoterCap, _maxValidatorNumber, _candidateWithdrawDelay, _voterWithdrawDelay, _grandMasters)
+
+	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(XDCValidatorBin), backend, _candidates, _caps, _firstOwner, _minCandidateCap, _minVoterCap, _maxValidatorNumber, _candidateWithdrawDelay, _voterWithdrawDelay, _grandMasters, _minCandidateNum)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
@@ -303,7 +154,7 @@ func bindXDCValidator(address common.Address, caller bind.ContractCaller, transa
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_XDCValidator *XDCValidatorRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_XDCValidator *XDCValidatorRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _XDCValidator.Contract.XDCValidatorCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -322,7 +173,7 @@ func (_XDCValidator *XDCValidatorRaw) Transact(opts *bind.TransactOpts, method s
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_XDCValidator *XDCValidatorCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+func (_XDCValidator *XDCValidatorCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
 	return _XDCValidator.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -339,875 +190,1124 @@ func (_XDCValidator *XDCValidatorTransactorRaw) Transact(opts *bind.TransactOpts
 
 // KYCString is a free data retrieval call binding the contract method 0x5b9cd8cc.
 //
-// Solidity: function KYCString( address,  uint256) constant returns(string)
+// Solidity: function KYCString(address , uint256 ) view returns(string)
 func (_XDCValidator *XDCValidatorCaller) KYCString(opts *bind.CallOpts, arg0 common.Address, arg1 *big.Int) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "KYCString", arg0, arg1)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "KYCString", arg0, arg1)
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // KYCString is a free data retrieval call binding the contract method 0x5b9cd8cc.
 //
-// Solidity: function KYCString( address,  uint256) constant returns(string)
+// Solidity: function KYCString(address , uint256 ) view returns(string)
 func (_XDCValidator *XDCValidatorSession) KYCString(arg0 common.Address, arg1 *big.Int) (string, error) {
 	return _XDCValidator.Contract.KYCString(&_XDCValidator.CallOpts, arg0, arg1)
 }
 
 // KYCString is a free data retrieval call binding the contract method 0x5b9cd8cc.
 //
-// Solidity: function KYCString( address,  uint256) constant returns(string)
+// Solidity: function KYCString(address , uint256 ) view returns(string)
 func (_XDCValidator *XDCValidatorCallerSession) KYCString(arg0 common.Address, arg1 *big.Int) (string, error) {
 	return _XDCValidator.Contract.KYCString(&_XDCValidator.CallOpts, arg0, arg1)
 }
 
 // CandidateCount is a free data retrieval call binding the contract method 0xa9a981a3.
 //
-// Solidity: function candidateCount() constant returns(uint256)
+// Solidity: function candidateCount() view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) CandidateCount(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "candidateCount")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "candidateCount")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // CandidateCount is a free data retrieval call binding the contract method 0xa9a981a3.
 //
-// Solidity: function candidateCount() constant returns(uint256)
+// Solidity: function candidateCount() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) CandidateCount() (*big.Int, error) {
 	return _XDCValidator.Contract.CandidateCount(&_XDCValidator.CallOpts)
 }
 
 // CandidateCount is a free data retrieval call binding the contract method 0xa9a981a3.
 //
-// Solidity: function candidateCount() constant returns(uint256)
+// Solidity: function candidateCount() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) CandidateCount() (*big.Int, error) {
 	return _XDCValidator.Contract.CandidateCount(&_XDCValidator.CallOpts)
 }
 
 // CandidateWithdrawDelay is a free data retrieval call binding the contract method 0xd161c767.
 //
-// Solidity: function candidateWithdrawDelay() constant returns(uint256)
+// Solidity: function candidateWithdrawDelay() view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) CandidateWithdrawDelay(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "candidateWithdrawDelay")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "candidateWithdrawDelay")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // CandidateWithdrawDelay is a free data retrieval call binding the contract method 0xd161c767.
 //
-// Solidity: function candidateWithdrawDelay() constant returns(uint256)
+// Solidity: function candidateWithdrawDelay() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) CandidateWithdrawDelay() (*big.Int, error) {
 	return _XDCValidator.Contract.CandidateWithdrawDelay(&_XDCValidator.CallOpts)
 }
 
 // CandidateWithdrawDelay is a free data retrieval call binding the contract method 0xd161c767.
 //
-// Solidity: function candidateWithdrawDelay() constant returns(uint256)
+// Solidity: function candidateWithdrawDelay() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) CandidateWithdrawDelay() (*big.Int, error) {
 	return _XDCValidator.Contract.CandidateWithdrawDelay(&_XDCValidator.CallOpts)
 }
 
 // Candidates is a free data retrieval call binding the contract method 0x3477ee2e.
 //
-// Solidity: function candidates( uint256) constant returns(address)
+// Solidity: function candidates(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCaller) Candidates(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "candidates", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "candidates", arg0)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Candidates is a free data retrieval call binding the contract method 0x3477ee2e.
 //
-// Solidity: function candidates( uint256) constant returns(address)
+// Solidity: function candidates(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorSession) Candidates(arg0 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.Candidates(&_XDCValidator.CallOpts, arg0)
 }
 
 // Candidates is a free data retrieval call binding the contract method 0x3477ee2e.
 //
-// Solidity: function candidates( uint256) constant returns(address)
+// Solidity: function candidates(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCallerSession) Candidates(arg0 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.Candidates(&_XDCValidator.CallOpts, arg0)
 }
 
 // GetCandidateCap is a free data retrieval call binding the contract method 0x58e7525f.
 //
-// Solidity: function getCandidateCap(_candidate address) constant returns(uint256)
+// Solidity: function getCandidateCap(address _candidate) view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) GetCandidateCap(opts *bind.CallOpts, _candidate common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getCandidateCap", _candidate)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getCandidateCap", _candidate)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // GetCandidateCap is a free data retrieval call binding the contract method 0x58e7525f.
 //
-// Solidity: function getCandidateCap(_candidate address) constant returns(uint256)
+// Solidity: function getCandidateCap(address _candidate) view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) GetCandidateCap(_candidate common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.GetCandidateCap(&_XDCValidator.CallOpts, _candidate)
 }
 
 // GetCandidateCap is a free data retrieval call binding the contract method 0x58e7525f.
 //
-// Solidity: function getCandidateCap(_candidate address) constant returns(uint256)
+// Solidity: function getCandidateCap(address _candidate) view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) GetCandidateCap(_candidate common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.GetCandidateCap(&_XDCValidator.CallOpts, _candidate)
 }
 
 // GetCandidateOwner is a free data retrieval call binding the contract method 0xb642facd.
 //
-// Solidity: function getCandidateOwner(_candidate address) constant returns(address)
+// Solidity: function getCandidateOwner(address _candidate) view returns(address)
 func (_XDCValidator *XDCValidatorCaller) GetCandidateOwner(opts *bind.CallOpts, _candidate common.Address) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getCandidateOwner", _candidate)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getCandidateOwner", _candidate)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // GetCandidateOwner is a free data retrieval call binding the contract method 0xb642facd.
 //
-// Solidity: function getCandidateOwner(_candidate address) constant returns(address)
+// Solidity: function getCandidateOwner(address _candidate) view returns(address)
 func (_XDCValidator *XDCValidatorSession) GetCandidateOwner(_candidate common.Address) (common.Address, error) {
 	return _XDCValidator.Contract.GetCandidateOwner(&_XDCValidator.CallOpts, _candidate)
 }
 
 // GetCandidateOwner is a free data retrieval call binding the contract method 0xb642facd.
 //
-// Solidity: function getCandidateOwner(_candidate address) constant returns(address)
+// Solidity: function getCandidateOwner(address _candidate) view returns(address)
 func (_XDCValidator *XDCValidatorCallerSession) GetCandidateOwner(_candidate common.Address) (common.Address, error) {
 	return _XDCValidator.Contract.GetCandidateOwner(&_XDCValidator.CallOpts, _candidate)
 }
 
 // GetCandidates is a free data retrieval call binding the contract method 0x06a49fce.
 //
-// Solidity: function getCandidates() constant returns(address[])
+// Solidity: function getCandidates() view returns(address[])
 func (_XDCValidator *XDCValidatorCaller) GetCandidates(opts *bind.CallOpts) ([]common.Address, error) {
-	var (
-		ret0 = new([]common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getCandidates")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getCandidates")
+
+	if err != nil {
+		return *new([]common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+
+	return out0, err
+
 }
 
 // GetCandidates is a free data retrieval call binding the contract method 0x06a49fce.
 //
-// Solidity: function getCandidates() constant returns(address[])
+// Solidity: function getCandidates() view returns(address[])
 func (_XDCValidator *XDCValidatorSession) GetCandidates() ([]common.Address, error) {
 	return _XDCValidator.Contract.GetCandidates(&_XDCValidator.CallOpts)
 }
 
 // GetCandidates is a free data retrieval call binding the contract method 0x06a49fce.
 //
-// Solidity: function getCandidates() constant returns(address[])
+// Solidity: function getCandidates() view returns(address[])
 func (_XDCValidator *XDCValidatorCallerSession) GetCandidates() ([]common.Address, error) {
 	return _XDCValidator.Contract.GetCandidates(&_XDCValidator.CallOpts)
 }
 
 // GetGrandMasters is a free data retrieval call binding the contract method 0x52b3ed16.
 //
-// Solidity: function getGrandMasters() constant returns(address[])
+// Solidity: function getGrandMasters() view returns(address[])
 func (_XDCValidator *XDCValidatorCaller) GetGrandMasters(opts *bind.CallOpts) ([]common.Address, error) {
-	var (
-		ret0 = new([]common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getGrandMasters")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getGrandMasters")
+
+	if err != nil {
+		return *new([]common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+
+	return out0, err
+
 }
 
 // GetGrandMasters is a free data retrieval call binding the contract method 0x52b3ed16.
 //
-// Solidity: function getGrandMasters() constant returns(address[])
+// Solidity: function getGrandMasters() view returns(address[])
 func (_XDCValidator *XDCValidatorSession) GetGrandMasters() ([]common.Address, error) {
 	return _XDCValidator.Contract.GetGrandMasters(&_XDCValidator.CallOpts)
 }
 
 // GetGrandMasters is a free data retrieval call binding the contract method 0x52b3ed16.
 //
-// Solidity: function getGrandMasters() constant returns(address[])
+// Solidity: function getGrandMasters() view returns(address[])
 func (_XDCValidator *XDCValidatorCallerSession) GetGrandMasters() ([]common.Address, error) {
 	return _XDCValidator.Contract.GetGrandMasters(&_XDCValidator.CallOpts)
 }
 
 // GetHashCount is a free data retrieval call binding the contract method 0xc45607df.
 //
-// Solidity: function getHashCount(_address address) constant returns(uint256)
+// Solidity: function getHashCount(address _address) view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) GetHashCount(opts *bind.CallOpts, _address common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getHashCount", _address)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getHashCount", _address)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // GetHashCount is a free data retrieval call binding the contract method 0xc45607df.
 //
-// Solidity: function getHashCount(_address address) constant returns(uint256)
+// Solidity: function getHashCount(address _address) view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) GetHashCount(_address common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.GetHashCount(&_XDCValidator.CallOpts, _address)
 }
 
 // GetHashCount is a free data retrieval call binding the contract method 0xc45607df.
 //
-// Solidity: function getHashCount(_address address) constant returns(uint256)
+// Solidity: function getHashCount(address _address) view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) GetHashCount(_address common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.GetHashCount(&_XDCValidator.CallOpts, _address)
 }
 
 // GetLatestKYC is a free data retrieval call binding the contract method 0x32658652.
 //
-// Solidity: function getLatestKYC(_address address) constant returns(string)
+// Solidity: function getLatestKYC(address _address) view returns(string)
 func (_XDCValidator *XDCValidatorCaller) GetLatestKYC(opts *bind.CallOpts, _address common.Address) (string, error) {
-	var (
-		ret0 = new(string)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getLatestKYC", _address)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getLatestKYC", _address)
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
 }
 
 // GetLatestKYC is a free data retrieval call binding the contract method 0x32658652.
 //
-// Solidity: function getLatestKYC(_address address) constant returns(string)
+// Solidity: function getLatestKYC(address _address) view returns(string)
 func (_XDCValidator *XDCValidatorSession) GetLatestKYC(_address common.Address) (string, error) {
 	return _XDCValidator.Contract.GetLatestKYC(&_XDCValidator.CallOpts, _address)
 }
 
 // GetLatestKYC is a free data retrieval call binding the contract method 0x32658652.
 //
-// Solidity: function getLatestKYC(_address address) constant returns(string)
+// Solidity: function getLatestKYC(address _address) view returns(string)
 func (_XDCValidator *XDCValidatorCallerSession) GetLatestKYC(_address common.Address) (string, error) {
 	return _XDCValidator.Contract.GetLatestKYC(&_XDCValidator.CallOpts, _address)
 }
 
 // GetOwnerCount is a free data retrieval call binding the contract method 0xef18374a.
 //
-// Solidity: function getOwnerCount() constant returns(uint256)
+// Solidity: function getOwnerCount() view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) GetOwnerCount(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getOwnerCount")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getOwnerCount")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // GetOwnerCount is a free data retrieval call binding the contract method 0xef18374a.
 //
-// Solidity: function getOwnerCount() constant returns(uint256)
+// Solidity: function getOwnerCount() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) GetOwnerCount() (*big.Int, error) {
 	return _XDCValidator.Contract.GetOwnerCount(&_XDCValidator.CallOpts)
 }
 
 // GetOwnerCount is a free data retrieval call binding the contract method 0xef18374a.
 //
-// Solidity: function getOwnerCount() constant returns(uint256)
+// Solidity: function getOwnerCount() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) GetOwnerCount() (*big.Int, error) {
 	return _XDCValidator.Contract.GetOwnerCount(&_XDCValidator.CallOpts)
 }
 
-// GetVoterCap is a free data retrieval call binding the contract method 0x302b6872.
+// GetOwnerToCandidateLength is a free data retrieval call binding the contract method 0x67134e70.
 //
-// Solidity: function getVoterCap(_candidate address, _voter address) constant returns(uint256)
-func (_XDCValidator *XDCValidatorCaller) GetVoterCap(opts *bind.CallOpts, _candidate common.Address, _voter common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getVoterCap", _candidate, _voter)
-	return *ret0, err
+// Solidity: function getOwnerToCandidateLength(address _address) view returns(uint256)
+func (_XDCValidator *XDCValidatorCaller) GetOwnerToCandidateLength(opts *bind.CallOpts, _address common.Address) (*big.Int, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getOwnerToCandidateLength", _address)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetOwnerToCandidateLength is a free data retrieval call binding the contract method 0x67134e70.
+//
+// Solidity: function getOwnerToCandidateLength(address _address) view returns(uint256)
+func (_XDCValidator *XDCValidatorSession) GetOwnerToCandidateLength(_address common.Address) (*big.Int, error) {
+	return _XDCValidator.Contract.GetOwnerToCandidateLength(&_XDCValidator.CallOpts, _address)
+}
+
+// GetOwnerToCandidateLength is a free data retrieval call binding the contract method 0x67134e70.
+//
+// Solidity: function getOwnerToCandidateLength(address _address) view returns(uint256)
+func (_XDCValidator *XDCValidatorCallerSession) GetOwnerToCandidateLength(_address common.Address) (*big.Int, error) {
+	return _XDCValidator.Contract.GetOwnerToCandidateLength(&_XDCValidator.CallOpts, _address)
 }
 
 // GetVoterCap is a free data retrieval call binding the contract method 0x302b6872.
 //
-// Solidity: function getVoterCap(_candidate address, _voter address) constant returns(uint256)
+// Solidity: function getVoterCap(address _candidate, address _voter) view returns(uint256)
+func (_XDCValidator *XDCValidatorCaller) GetVoterCap(opts *bind.CallOpts, _candidate common.Address, _voter common.Address) (*big.Int, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getVoterCap", _candidate, _voter)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetVoterCap is a free data retrieval call binding the contract method 0x302b6872.
+//
+// Solidity: function getVoterCap(address _candidate, address _voter) view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) GetVoterCap(_candidate common.Address, _voter common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.GetVoterCap(&_XDCValidator.CallOpts, _candidate, _voter)
 }
 
 // GetVoterCap is a free data retrieval call binding the contract method 0x302b6872.
 //
-// Solidity: function getVoterCap(_candidate address, _voter address) constant returns(uint256)
+// Solidity: function getVoterCap(address _candidate, address _voter) view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) GetVoterCap(_candidate common.Address, _voter common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.GetVoterCap(&_XDCValidator.CallOpts, _candidate, _voter)
 }
 
 // GetVoters is a free data retrieval call binding the contract method 0x2d15cc04.
 //
-// Solidity: function getVoters(_candidate address) constant returns(address[])
+// Solidity: function getVoters(address _candidate) view returns(address[])
 func (_XDCValidator *XDCValidatorCaller) GetVoters(opts *bind.CallOpts, _candidate common.Address) ([]common.Address, error) {
-	var (
-		ret0 = new([]common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getVoters", _candidate)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getVoters", _candidate)
+
+	if err != nil {
+		return *new([]common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+
+	return out0, err
+
 }
 
 // GetVoters is a free data retrieval call binding the contract method 0x2d15cc04.
 //
-// Solidity: function getVoters(_candidate address) constant returns(address[])
+// Solidity: function getVoters(address _candidate) view returns(address[])
 func (_XDCValidator *XDCValidatorSession) GetVoters(_candidate common.Address) ([]common.Address, error) {
 	return _XDCValidator.Contract.GetVoters(&_XDCValidator.CallOpts, _candidate)
 }
 
 // GetVoters is a free data retrieval call binding the contract method 0x2d15cc04.
 //
-// Solidity: function getVoters(_candidate address) constant returns(address[])
+// Solidity: function getVoters(address _candidate) view returns(address[])
 func (_XDCValidator *XDCValidatorCallerSession) GetVoters(_candidate common.Address) ([]common.Address, error) {
 	return _XDCValidator.Contract.GetVoters(&_XDCValidator.CallOpts, _candidate)
 }
 
 // GetWithdrawBlockNumbers is a free data retrieval call binding the contract method 0x2f9c4bba.
 //
-// Solidity: function getWithdrawBlockNumbers() constant returns(uint256[])
+// Solidity: function getWithdrawBlockNumbers() view returns(uint256[])
 func (_XDCValidator *XDCValidatorCaller) GetWithdrawBlockNumbers(opts *bind.CallOpts) ([]*big.Int, error) {
-	var (
-		ret0 = new([]*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getWithdrawBlockNumbers")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getWithdrawBlockNumbers")
+
+	if err != nil {
+		return *new([]*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([]*big.Int)).(*[]*big.Int)
+
+	return out0, err
+
 }
 
 // GetWithdrawBlockNumbers is a free data retrieval call binding the contract method 0x2f9c4bba.
 //
-// Solidity: function getWithdrawBlockNumbers() constant returns(uint256[])
+// Solidity: function getWithdrawBlockNumbers() view returns(uint256[])
 func (_XDCValidator *XDCValidatorSession) GetWithdrawBlockNumbers() ([]*big.Int, error) {
 	return _XDCValidator.Contract.GetWithdrawBlockNumbers(&_XDCValidator.CallOpts)
 }
 
 // GetWithdrawBlockNumbers is a free data retrieval call binding the contract method 0x2f9c4bba.
 //
-// Solidity: function getWithdrawBlockNumbers() constant returns(uint256[])
+// Solidity: function getWithdrawBlockNumbers() view returns(uint256[])
 func (_XDCValidator *XDCValidatorCallerSession) GetWithdrawBlockNumbers() ([]*big.Int, error) {
 	return _XDCValidator.Contract.GetWithdrawBlockNumbers(&_XDCValidator.CallOpts)
 }
 
 // GetWithdrawCap is a free data retrieval call binding the contract method 0x15febd68.
 //
-// Solidity: function getWithdrawCap(_blockNumber uint256) constant returns(uint256)
+// Solidity: function getWithdrawCap(uint256 _blockNumber) view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) GetWithdrawCap(opts *bind.CallOpts, _blockNumber *big.Int) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "getWithdrawCap", _blockNumber)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "getWithdrawCap", _blockNumber)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // GetWithdrawCap is a free data retrieval call binding the contract method 0x15febd68.
 //
-// Solidity: function getWithdrawCap(_blockNumber uint256) constant returns(uint256)
+// Solidity: function getWithdrawCap(uint256 _blockNumber) view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) GetWithdrawCap(_blockNumber *big.Int) (*big.Int, error) {
 	return _XDCValidator.Contract.GetWithdrawCap(&_XDCValidator.CallOpts, _blockNumber)
 }
 
 // GetWithdrawCap is a free data retrieval call binding the contract method 0x15febd68.
 //
-// Solidity: function getWithdrawCap(_blockNumber uint256) constant returns(uint256)
+// Solidity: function getWithdrawCap(uint256 _blockNumber) view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) GetWithdrawCap(_blockNumber *big.Int) (*big.Int, error) {
 	return _XDCValidator.Contract.GetWithdrawCap(&_XDCValidator.CallOpts, _blockNumber)
 }
 
 // GrandMasterMap is a free data retrieval call binding the contract method 0x5b6e3963.
 //
-// Solidity: function grandMasterMap( address) constant returns(bool)
+// Solidity: function grandMasterMap(address ) view returns(bool)
 func (_XDCValidator *XDCValidatorCaller) GrandMasterMap(opts *bind.CallOpts, arg0 common.Address) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "grandMasterMap", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "grandMasterMap", arg0)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // GrandMasterMap is a free data retrieval call binding the contract method 0x5b6e3963.
 //
-// Solidity: function grandMasterMap( address) constant returns(bool)
+// Solidity: function grandMasterMap(address ) view returns(bool)
 func (_XDCValidator *XDCValidatorSession) GrandMasterMap(arg0 common.Address) (bool, error) {
 	return _XDCValidator.Contract.GrandMasterMap(&_XDCValidator.CallOpts, arg0)
 }
 
 // GrandMasterMap is a free data retrieval call binding the contract method 0x5b6e3963.
 //
-// Solidity: function grandMasterMap( address) constant returns(bool)
+// Solidity: function grandMasterMap(address ) view returns(bool)
 func (_XDCValidator *XDCValidatorCallerSession) GrandMasterMap(arg0 common.Address) (bool, error) {
 	return _XDCValidator.Contract.GrandMasterMap(&_XDCValidator.CallOpts, arg0)
 }
 
 // GrandMasters is a free data retrieval call binding the contract method 0x6132cd83.
 //
-// Solidity: function grandMasters( uint256) constant returns(address)
+// Solidity: function grandMasters(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCaller) GrandMasters(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "grandMasters", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "grandMasters", arg0)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // GrandMasters is a free data retrieval call binding the contract method 0x6132cd83.
 //
-// Solidity: function grandMasters( uint256) constant returns(address)
+// Solidity: function grandMasters(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorSession) GrandMasters(arg0 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.GrandMasters(&_XDCValidator.CallOpts, arg0)
 }
 
 // GrandMasters is a free data retrieval call binding the contract method 0x6132cd83.
 //
-// Solidity: function grandMasters( uint256) constant returns(address)
+// Solidity: function grandMasters(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCallerSession) GrandMasters(arg0 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.GrandMasters(&_XDCValidator.CallOpts, arg0)
 }
 
 // HasVotedInvalid is a free data retrieval call binding the contract method 0x0e3e4fb8.
 //
-// Solidity: function hasVotedInvalid( address,  address) constant returns(bool)
+// Solidity: function hasVotedInvalid(address , address ) view returns(bool)
 func (_XDCValidator *XDCValidatorCaller) HasVotedInvalid(opts *bind.CallOpts, arg0 common.Address, arg1 common.Address) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "hasVotedInvalid", arg0, arg1)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "hasVotedInvalid", arg0, arg1)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // HasVotedInvalid is a free data retrieval call binding the contract method 0x0e3e4fb8.
 //
-// Solidity: function hasVotedInvalid( address,  address) constant returns(bool)
+// Solidity: function hasVotedInvalid(address , address ) view returns(bool)
 func (_XDCValidator *XDCValidatorSession) HasVotedInvalid(arg0 common.Address, arg1 common.Address) (bool, error) {
 	return _XDCValidator.Contract.HasVotedInvalid(&_XDCValidator.CallOpts, arg0, arg1)
 }
 
 // HasVotedInvalid is a free data retrieval call binding the contract method 0x0e3e4fb8.
 //
-// Solidity: function hasVotedInvalid( address,  address) constant returns(bool)
+// Solidity: function hasVotedInvalid(address , address ) view returns(bool)
 func (_XDCValidator *XDCValidatorCallerSession) HasVotedInvalid(arg0 common.Address, arg1 common.Address) (bool, error) {
 	return _XDCValidator.Contract.HasVotedInvalid(&_XDCValidator.CallOpts, arg0, arg1)
 }
 
 // InvalidKYCCount is a free data retrieval call binding the contract method 0x72e44a38.
 //
-// Solidity: function invalidKYCCount( address) constant returns(uint256)
+// Solidity: function invalidKYCCount(address ) view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) InvalidKYCCount(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "invalidKYCCount", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "invalidKYCCount", arg0)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // InvalidKYCCount is a free data retrieval call binding the contract method 0x72e44a38.
 //
-// Solidity: function invalidKYCCount( address) constant returns(uint256)
+// Solidity: function invalidKYCCount(address ) view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) InvalidKYCCount(arg0 common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.InvalidKYCCount(&_XDCValidator.CallOpts, arg0)
 }
 
 // InvalidKYCCount is a free data retrieval call binding the contract method 0x72e44a38.
 //
-// Solidity: function invalidKYCCount( address) constant returns(uint256)
+// Solidity: function invalidKYCCount(address ) view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) InvalidKYCCount(arg0 common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.InvalidKYCCount(&_XDCValidator.CallOpts, arg0)
 }
 
 // InvalidPercent is a free data retrieval call binding the contract method 0x5b860d27.
 //
-// Solidity: function invalidPercent(_invalidCandidate address) constant returns(uint256)
+// Solidity: function invalidPercent(address _invalidCandidate) view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) InvalidPercent(opts *bind.CallOpts, _invalidCandidate common.Address) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "invalidPercent", _invalidCandidate)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "invalidPercent", _invalidCandidate)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // InvalidPercent is a free data retrieval call binding the contract method 0x5b860d27.
 //
-// Solidity: function invalidPercent(_invalidCandidate address) constant returns(uint256)
+// Solidity: function invalidPercent(address _invalidCandidate) view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) InvalidPercent(_invalidCandidate common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.InvalidPercent(&_XDCValidator.CallOpts, _invalidCandidate)
 }
 
 // InvalidPercent is a free data retrieval call binding the contract method 0x5b860d27.
 //
-// Solidity: function invalidPercent(_invalidCandidate address) constant returns(uint256)
+// Solidity: function invalidPercent(address _invalidCandidate) view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) InvalidPercent(_invalidCandidate common.Address) (*big.Int, error) {
 	return _XDCValidator.Contract.InvalidPercent(&_XDCValidator.CallOpts, _invalidCandidate)
 }
 
 // IsCandidate is a free data retrieval call binding the contract method 0xd51b9e93.
 //
-// Solidity: function isCandidate(_candidate address) constant returns(bool)
+// Solidity: function isCandidate(address _candidate) view returns(bool)
 func (_XDCValidator *XDCValidatorCaller) IsCandidate(opts *bind.CallOpts, _candidate common.Address) (bool, error) {
-	var (
-		ret0 = new(bool)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "isCandidate", _candidate)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "isCandidate", _candidate)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
 }
 
 // IsCandidate is a free data retrieval call binding the contract method 0xd51b9e93.
 //
-// Solidity: function isCandidate(_candidate address) constant returns(bool)
+// Solidity: function isCandidate(address _candidate) view returns(bool)
 func (_XDCValidator *XDCValidatorSession) IsCandidate(_candidate common.Address) (bool, error) {
 	return _XDCValidator.Contract.IsCandidate(&_XDCValidator.CallOpts, _candidate)
 }
 
 // IsCandidate is a free data retrieval call binding the contract method 0xd51b9e93.
 //
-// Solidity: function isCandidate(_candidate address) constant returns(bool)
+// Solidity: function isCandidate(address _candidate) view returns(bool)
 func (_XDCValidator *XDCValidatorCallerSession) IsCandidate(_candidate common.Address) (bool, error) {
 	return _XDCValidator.Contract.IsCandidate(&_XDCValidator.CallOpts, _candidate)
 }
 
 // MaxValidatorNumber is a free data retrieval call binding the contract method 0xd09f1ab4.
 //
-// Solidity: function maxValidatorNumber() constant returns(uint256)
+// Solidity: function maxValidatorNumber() view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) MaxValidatorNumber(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "maxValidatorNumber")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "maxValidatorNumber")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // MaxValidatorNumber is a free data retrieval call binding the contract method 0xd09f1ab4.
 //
-// Solidity: function maxValidatorNumber() constant returns(uint256)
+// Solidity: function maxValidatorNumber() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) MaxValidatorNumber() (*big.Int, error) {
 	return _XDCValidator.Contract.MaxValidatorNumber(&_XDCValidator.CallOpts)
 }
 
 // MaxValidatorNumber is a free data retrieval call binding the contract method 0xd09f1ab4.
 //
-// Solidity: function maxValidatorNumber() constant returns(uint256)
+// Solidity: function maxValidatorNumber() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) MaxValidatorNumber() (*big.Int, error) {
 	return _XDCValidator.Contract.MaxValidatorNumber(&_XDCValidator.CallOpts)
 }
 
 // MinCandidateCap is a free data retrieval call binding the contract method 0xd55b7dff.
 //
-// Solidity: function minCandidateCap() constant returns(uint256)
+// Solidity: function minCandidateCap() view returns(uint256)
 func (_XDCValidator *XDCValidatorCaller) MinCandidateCap(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "minCandidateCap")
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "minCandidateCap")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
 }
 
 // MinCandidateCap is a free data retrieval call binding the contract method 0xd55b7dff.
 //
-// Solidity: function minCandidateCap() constant returns(uint256)
+// Solidity: function minCandidateCap() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) MinCandidateCap() (*big.Int, error) {
 	return _XDCValidator.Contract.MinCandidateCap(&_XDCValidator.CallOpts)
 }
 
 // MinCandidateCap is a free data retrieval call binding the contract method 0xd55b7dff.
 //
-// Solidity: function minCandidateCap() constant returns(uint256)
+// Solidity: function minCandidateCap() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) MinCandidateCap() (*big.Int, error) {
 	return _XDCValidator.Contract.MinCandidateCap(&_XDCValidator.CallOpts)
 }
 
-// MinVoterCap is a free data retrieval call binding the contract method 0xf8ac9dd5.
+// MinCandidateNum is a free data retrieval call binding the contract method 0x49e971be.
 //
-// Solidity: function minVoterCap() constant returns(uint256)
-func (_XDCValidator *XDCValidatorCaller) MinVoterCap(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "minVoterCap")
-	return *ret0, err
+// Solidity: function minCandidateNum() view returns(uint256)
+func (_XDCValidator *XDCValidatorCaller) MinCandidateNum(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "minCandidateNum")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// MinCandidateNum is a free data retrieval call binding the contract method 0x49e971be.
+//
+// Solidity: function minCandidateNum() view returns(uint256)
+func (_XDCValidator *XDCValidatorSession) MinCandidateNum() (*big.Int, error) {
+	return _XDCValidator.Contract.MinCandidateNum(&_XDCValidator.CallOpts)
+}
+
+// MinCandidateNum is a free data retrieval call binding the contract method 0x49e971be.
+//
+// Solidity: function minCandidateNum() view returns(uint256)
+func (_XDCValidator *XDCValidatorCallerSession) MinCandidateNum() (*big.Int, error) {
+	return _XDCValidator.Contract.MinCandidateNum(&_XDCValidator.CallOpts)
 }
 
 // MinVoterCap is a free data retrieval call binding the contract method 0xf8ac9dd5.
 //
-// Solidity: function minVoterCap() constant returns(uint256)
+// Solidity: function minVoterCap() view returns(uint256)
+func (_XDCValidator *XDCValidatorCaller) MinVoterCap(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "minVoterCap")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// MinVoterCap is a free data retrieval call binding the contract method 0xf8ac9dd5.
+//
+// Solidity: function minVoterCap() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) MinVoterCap() (*big.Int, error) {
 	return _XDCValidator.Contract.MinVoterCap(&_XDCValidator.CallOpts)
 }
 
 // MinVoterCap is a free data retrieval call binding the contract method 0xf8ac9dd5.
 //
-// Solidity: function minVoterCap() constant returns(uint256)
+// Solidity: function minVoterCap() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) MinVoterCap() (*big.Int, error) {
 	return _XDCValidator.Contract.MinVoterCap(&_XDCValidator.CallOpts)
 }
 
-// OwnerCount is a free data retrieval call binding the contract method 0x0db02622.
-//
-// Solidity: function ownerCount() constant returns(uint256)
-func (_XDCValidator *XDCValidatorCaller) OwnerCount(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "ownerCount")
-	return *ret0, err
-}
-
-// OwnerCount is a free data retrieval call binding the contract method 0x0db02622.
-//
-// Solidity: function ownerCount() constant returns(uint256)
-func (_XDCValidator *XDCValidatorSession) OwnerCount() (*big.Int, error) {
-	return _XDCValidator.Contract.OwnerCount(&_XDCValidator.CallOpts)
-}
-
-// OwnerCount is a free data retrieval call binding the contract method 0x0db02622.
-//
-// Solidity: function ownerCount() constant returns(uint256)
-func (_XDCValidator *XDCValidatorCallerSession) OwnerCount() (*big.Int, error) {
-	return _XDCValidator.Contract.OwnerCount(&_XDCValidator.CallOpts)
-}
-
 // OwnerToCandidate is a free data retrieval call binding the contract method 0x2a3640b1.
 //
-// Solidity: function ownerToCandidate( address,  uint256) constant returns(address)
+// Solidity: function ownerToCandidate(address , uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCaller) OwnerToCandidate(opts *bind.CallOpts, arg0 common.Address, arg1 *big.Int) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "ownerToCandidate", arg0, arg1)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "ownerToCandidate", arg0, arg1)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // OwnerToCandidate is a free data retrieval call binding the contract method 0x2a3640b1.
 //
-// Solidity: function ownerToCandidate( address,  uint256) constant returns(address)
+// Solidity: function ownerToCandidate(address , uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorSession) OwnerToCandidate(arg0 common.Address, arg1 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.OwnerToCandidate(&_XDCValidator.CallOpts, arg0, arg1)
 }
 
 // OwnerToCandidate is a free data retrieval call binding the contract method 0x2a3640b1.
 //
-// Solidity: function ownerToCandidate( address,  uint256) constant returns(address)
+// Solidity: function ownerToCandidate(address , uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCallerSession) OwnerToCandidate(arg0 common.Address, arg1 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.OwnerToCandidate(&_XDCValidator.CallOpts, arg0, arg1)
 }
 
 // Owners is a free data retrieval call binding the contract method 0x025e7c27.
 //
-// Solidity: function owners( uint256) constant returns(address)
+// Solidity: function owners(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCaller) Owners(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "owners", arg0)
-	return *ret0, err
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "owners", arg0)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
 // Owners is a free data retrieval call binding the contract method 0x025e7c27.
 //
-// Solidity: function owners( uint256) constant returns(address)
+// Solidity: function owners(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorSession) Owners(arg0 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.Owners(&_XDCValidator.CallOpts, arg0)
 }
 
 // Owners is a free data retrieval call binding the contract method 0x025e7c27.
 //
-// Solidity: function owners( uint256) constant returns(address)
+// Solidity: function owners(uint256 ) view returns(address)
 func (_XDCValidator *XDCValidatorCallerSession) Owners(arg0 *big.Int) (common.Address, error) {
 	return _XDCValidator.Contract.Owners(&_XDCValidator.CallOpts, arg0)
 }
 
-// VoterWithdrawDelay is a free data retrieval call binding the contract method 0xa9ff959e.
+// ValidatorsState is a free data retrieval call binding the contract method 0x4110a489.
 //
-// Solidity: function voterWithdrawDelay() constant returns(uint256)
-func (_XDCValidator *XDCValidatorCaller) VoterWithdrawDelay(opts *bind.CallOpts) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _XDCValidator.contract.Call(opts, out, "voterWithdrawDelay")
-	return *ret0, err
+// Solidity: function validatorsState(address ) view returns(address owner, bool isCandidate, uint256 cap)
+func (_XDCValidator *XDCValidatorCaller) ValidatorsState(opts *bind.CallOpts, arg0 common.Address) (struct {
+	Owner       common.Address
+	IsCandidate bool
+	Cap         *big.Int
+}, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "validatorsState", arg0)
+
+	outstruct := new(struct {
+		Owner       common.Address
+		IsCandidate bool
+		Cap         *big.Int
+	})
+
+	outstruct.Owner = out[0].(common.Address)
+	outstruct.IsCandidate = out[1].(bool)
+	outstruct.Cap = out[2].(*big.Int)
+
+	return *outstruct, err
+
+}
+
+// ValidatorsState is a free data retrieval call binding the contract method 0x4110a489.
+//
+// Solidity: function validatorsState(address ) view returns(address owner, bool isCandidate, uint256 cap)
+func (_XDCValidator *XDCValidatorSession) ValidatorsState(arg0 common.Address) (struct {
+	Owner       common.Address
+	IsCandidate bool
+	Cap         *big.Int
+}, error) {
+	return _XDCValidator.Contract.ValidatorsState(&_XDCValidator.CallOpts, arg0)
+}
+
+// ValidatorsState is a free data retrieval call binding the contract method 0x4110a489.
+//
+// Solidity: function validatorsState(address ) view returns(address owner, bool isCandidate, uint256 cap)
+func (_XDCValidator *XDCValidatorCallerSession) ValidatorsState(arg0 common.Address) (struct {
+	Owner       common.Address
+	IsCandidate bool
+	Cap         *big.Int
+}, error) {
+	return _XDCValidator.Contract.ValidatorsState(&_XDCValidator.CallOpts, arg0)
 }
 
 // VoterWithdrawDelay is a free data retrieval call binding the contract method 0xa9ff959e.
 //
-// Solidity: function voterWithdrawDelay() constant returns(uint256)
+// Solidity: function voterWithdrawDelay() view returns(uint256)
+func (_XDCValidator *XDCValidatorCaller) VoterWithdrawDelay(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "voterWithdrawDelay")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// VoterWithdrawDelay is a free data retrieval call binding the contract method 0xa9ff959e.
+//
+// Solidity: function voterWithdrawDelay() view returns(uint256)
 func (_XDCValidator *XDCValidatorSession) VoterWithdrawDelay() (*big.Int, error) {
 	return _XDCValidator.Contract.VoterWithdrawDelay(&_XDCValidator.CallOpts)
 }
 
 // VoterWithdrawDelay is a free data retrieval call binding the contract method 0xa9ff959e.
 //
-// Solidity: function voterWithdrawDelay() constant returns(uint256)
+// Solidity: function voterWithdrawDelay() view returns(uint256)
 func (_XDCValidator *XDCValidatorCallerSession) VoterWithdrawDelay() (*big.Int, error) {
 	return _XDCValidator.Contract.VoterWithdrawDelay(&_XDCValidator.CallOpts)
 }
 
+// Voters is a free data retrieval call binding the contract method 0x5c134d66.
+//
+// Solidity: function voters(address , uint256 ) view returns(address)
+func (_XDCValidator *XDCValidatorCaller) Voters(opts *bind.CallOpts, arg0 common.Address, arg1 *big.Int) (common.Address, error) {
+	var out []interface{}
+	err := _XDCValidator.contract.Call(opts, &out, "voters", arg0, arg1)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Voters is a free data retrieval call binding the contract method 0x5c134d66.
+//
+// Solidity: function voters(address , uint256 ) view returns(address)
+func (_XDCValidator *XDCValidatorSession) Voters(arg0 common.Address, arg1 *big.Int) (common.Address, error) {
+	return _XDCValidator.Contract.Voters(&_XDCValidator.CallOpts, arg0, arg1)
+}
+
+// Voters is a free data retrieval call binding the contract method 0x5c134d66.
+//
+// Solidity: function voters(address , uint256 ) view returns(address)
+func (_XDCValidator *XDCValidatorCallerSession) Voters(arg0 common.Address, arg1 *big.Int) (common.Address, error) {
+	return _XDCValidator.Contract.Voters(&_XDCValidator.CallOpts, arg0, arg1)
+}
+
 // Propose is a paid mutator transaction binding the contract method 0x01267951.
 //
-// Solidity: function propose(_candidate address) returns()
+// Solidity: function propose(address _candidate) payable returns()
 func (_XDCValidator *XDCValidatorTransactor) Propose(opts *bind.TransactOpts, _candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "propose", _candidate)
 }
 
 // Propose is a paid mutator transaction binding the contract method 0x01267951.
 //
-// Solidity: function propose(_candidate address) returns()
+// Solidity: function propose(address _candidate) payable returns()
 func (_XDCValidator *XDCValidatorSession) Propose(_candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Propose(&_XDCValidator.TransactOpts, _candidate)
 }
 
 // Propose is a paid mutator transaction binding the contract method 0x01267951.
 //
-// Solidity: function propose(_candidate address) returns()
+// Solidity: function propose(address _candidate) payable returns()
 func (_XDCValidator *XDCValidatorTransactorSession) Propose(_candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Propose(&_XDCValidator.TransactOpts, _candidate)
 }
 
 // Resign is a paid mutator transaction binding the contract method 0xae6e43f5.
 //
-// Solidity: function resign(_candidate address) returns()
+// Solidity: function resign(address _candidate) returns()
 func (_XDCValidator *XDCValidatorTransactor) Resign(opts *bind.TransactOpts, _candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "resign", _candidate)
 }
 
 // Resign is a paid mutator transaction binding the contract method 0xae6e43f5.
 //
-// Solidity: function resign(_candidate address) returns()
+// Solidity: function resign(address _candidate) returns()
 func (_XDCValidator *XDCValidatorSession) Resign(_candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Resign(&_XDCValidator.TransactOpts, _candidate)
 }
 
 // Resign is a paid mutator transaction binding the contract method 0xae6e43f5.
 //
-// Solidity: function resign(_candidate address) returns()
+// Solidity: function resign(address _candidate) returns()
 func (_XDCValidator *XDCValidatorTransactorSession) Resign(_candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Resign(&_XDCValidator.TransactOpts, _candidate)
 }
 
 // Unvote is a paid mutator transaction binding the contract method 0x02aa9be2.
 //
-// Solidity: function unvote(_candidate address, _cap uint256) returns()
+// Solidity: function unvote(address _candidate, uint256 _cap) returns()
 func (_XDCValidator *XDCValidatorTransactor) Unvote(opts *bind.TransactOpts, _candidate common.Address, _cap *big.Int) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "unvote", _candidate, _cap)
 }
 
 // Unvote is a paid mutator transaction binding the contract method 0x02aa9be2.
 //
-// Solidity: function unvote(_candidate address, _cap uint256) returns()
+// Solidity: function unvote(address _candidate, uint256 _cap) returns()
 func (_XDCValidator *XDCValidatorSession) Unvote(_candidate common.Address, _cap *big.Int) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Unvote(&_XDCValidator.TransactOpts, _candidate, _cap)
 }
 
 // Unvote is a paid mutator transaction binding the contract method 0x02aa9be2.
 //
-// Solidity: function unvote(_candidate address, _cap uint256) returns()
+// Solidity: function unvote(address _candidate, uint256 _cap) returns()
 func (_XDCValidator *XDCValidatorTransactorSession) Unvote(_candidate common.Address, _cap *big.Int) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Unvote(&_XDCValidator.TransactOpts, _candidate, _cap)
 }
 
 // UploadKYC is a paid mutator transaction binding the contract method 0xf5c95125.
 //
-// Solidity: function uploadKYC(kychash string) returns()
+// Solidity: function uploadKYC(string kychash) returns()
 func (_XDCValidator *XDCValidatorTransactor) UploadKYC(opts *bind.TransactOpts, kychash string) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "uploadKYC", kychash)
 }
 
 // UploadKYC is a paid mutator transaction binding the contract method 0xf5c95125.
 //
-// Solidity: function uploadKYC(kychash string) returns()
+// Solidity: function uploadKYC(string kychash) returns()
 func (_XDCValidator *XDCValidatorSession) UploadKYC(kychash string) (*types.Transaction, error) {
 	return _XDCValidator.Contract.UploadKYC(&_XDCValidator.TransactOpts, kychash)
 }
 
 // UploadKYC is a paid mutator transaction binding the contract method 0xf5c95125.
 //
-// Solidity: function uploadKYC(kychash string) returns()
+// Solidity: function uploadKYC(string kychash) returns()
 func (_XDCValidator *XDCValidatorTransactorSession) UploadKYC(kychash string) (*types.Transaction, error) {
 	return _XDCValidator.Contract.UploadKYC(&_XDCValidator.TransactOpts, kychash)
 }
 
 // Vote is a paid mutator transaction binding the contract method 0x6dd7d8ea.
 //
-// Solidity: function vote(_candidate address) returns()
+// Solidity: function vote(address _candidate) payable returns()
 func (_XDCValidator *XDCValidatorTransactor) Vote(opts *bind.TransactOpts, _candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "vote", _candidate)
 }
 
 // Vote is a paid mutator transaction binding the contract method 0x6dd7d8ea.
 //
-// Solidity: function vote(_candidate address) returns()
+// Solidity: function vote(address _candidate) payable returns()
 func (_XDCValidator *XDCValidatorSession) Vote(_candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Vote(&_XDCValidator.TransactOpts, _candidate)
 }
 
 // Vote is a paid mutator transaction binding the contract method 0x6dd7d8ea.
 //
-// Solidity: function vote(_candidate address) returns()
+// Solidity: function vote(address _candidate) payable returns()
 func (_XDCValidator *XDCValidatorTransactorSession) Vote(_candidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Vote(&_XDCValidator.TransactOpts, _candidate)
 }
 
 // VoteInvalidKYC is a paid mutator transaction binding the contract method 0xf2ee3c7d.
 //
-// Solidity: function voteInvalidKYC(_invalidCandidate address) returns()
+// Solidity: function voteInvalidKYC(address _invalidCandidate) returns()
 func (_XDCValidator *XDCValidatorTransactor) VoteInvalidKYC(opts *bind.TransactOpts, _invalidCandidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "voteInvalidKYC", _invalidCandidate)
 }
 
 // VoteInvalidKYC is a paid mutator transaction binding the contract method 0xf2ee3c7d.
 //
-// Solidity: function voteInvalidKYC(_invalidCandidate address) returns()
+// Solidity: function voteInvalidKYC(address _invalidCandidate) returns()
 func (_XDCValidator *XDCValidatorSession) VoteInvalidKYC(_invalidCandidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.VoteInvalidKYC(&_XDCValidator.TransactOpts, _invalidCandidate)
 }
 
 // VoteInvalidKYC is a paid mutator transaction binding the contract method 0xf2ee3c7d.
 //
-// Solidity: function voteInvalidKYC(_invalidCandidate address) returns()
+// Solidity: function voteInvalidKYC(address _invalidCandidate) returns()
 func (_XDCValidator *XDCValidatorTransactorSession) VoteInvalidKYC(_invalidCandidate common.Address) (*types.Transaction, error) {
 	return _XDCValidator.Contract.VoteInvalidKYC(&_XDCValidator.TransactOpts, _invalidCandidate)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x441a3e70.
 //
-// Solidity: function withdraw(_blockNumber uint256, _index uint256) returns()
+// Solidity: function withdraw(uint256 _blockNumber, uint256 _index) returns()
 func (_XDCValidator *XDCValidatorTransactor) Withdraw(opts *bind.TransactOpts, _blockNumber *big.Int, _index *big.Int) (*types.Transaction, error) {
 	return _XDCValidator.contract.Transact(opts, "withdraw", _blockNumber, _index)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x441a3e70.
 //
-// Solidity: function withdraw(_blockNumber uint256, _index uint256) returns()
+// Solidity: function withdraw(uint256 _blockNumber, uint256 _index) returns()
 func (_XDCValidator *XDCValidatorSession) Withdraw(_blockNumber *big.Int, _index *big.Int) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Withdraw(&_XDCValidator.TransactOpts, _blockNumber, _index)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x441a3e70.
 //
-// Solidity: function withdraw(_blockNumber uint256, _index uint256) returns()
+// Solidity: function withdraw(uint256 _blockNumber, uint256 _index) returns()
 func (_XDCValidator *XDCValidatorTransactorSession) Withdraw(_blockNumber *big.Int, _index *big.Int) (*types.Transaction, error) {
 	return _XDCValidator.Contract.Withdraw(&_XDCValidator.TransactOpts, _blockNumber, _index)
 }
@@ -1288,7 +1388,7 @@ type XDCValidatorInvalidatedNode struct {
 
 // FilterInvalidatedNode is a free log retrieval operation binding the contract event 0xe18d61a5bf4aa2ab40afc88aa9039d27ae17ff4ec1c65f5f414df6f02ce8b35e.
 //
-// Solidity: event InvalidatedNode(_masternodeOwner address, _masternodes address[])
+// Solidity: event InvalidatedNode(address _masternodeOwner, address[] _masternodes)
 func (_XDCValidator *XDCValidatorFilterer) FilterInvalidatedNode(opts *bind.FilterOpts) (*XDCValidatorInvalidatedNodeIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "InvalidatedNode")
@@ -1300,7 +1400,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterInvalidatedNode(opts *bind.Filt
 
 // WatchInvalidatedNode is a free log subscription operation binding the contract event 0xe18d61a5bf4aa2ab40afc88aa9039d27ae17ff4ec1c65f5f414df6f02ce8b35e.
 //
-// Solidity: event InvalidatedNode(_masternodeOwner address, _masternodes address[])
+// Solidity: event InvalidatedNode(address _masternodeOwner, address[] _masternodes)
 func (_XDCValidator *XDCValidatorFilterer) WatchInvalidatedNode(opts *bind.WatchOpts, sink chan<- *XDCValidatorInvalidatedNode) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "InvalidatedNode")
@@ -1333,6 +1433,18 @@ func (_XDCValidator *XDCValidatorFilterer) WatchInvalidatedNode(opts *bind.Watch
 			}
 		}
 	}), nil
+}
+
+// ParseInvalidatedNode is a log parse operation binding the contract event 0xe18d61a5bf4aa2ab40afc88aa9039d27ae17ff4ec1c65f5f414df6f02ce8b35e.
+//
+// Solidity: event InvalidatedNode(address _masternodeOwner, address[] _masternodes)
+func (_XDCValidator *XDCValidatorFilterer) ParseInvalidatedNode(log types.Log) (*XDCValidatorInvalidatedNode, error) {
+	event := new(XDCValidatorInvalidatedNode)
+	if err := _XDCValidator.contract.UnpackLog(event, "InvalidatedNode", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // XDCValidatorProposeIterator is returned from FilterPropose and is used to iterate over the raw logs and unpacked data for Propose events raised by the XDCValidator contract.
@@ -1412,7 +1524,7 @@ type XDCValidatorPropose struct {
 
 // FilterPropose is a free log retrieval operation binding the contract event 0x7635f1d87b47fba9f2b09e56eb4be75cca030e0cb179c1602ac9261d39a8f5c1.
 //
-// Solidity: event Propose(_owner address, _candidate address, _cap uint256)
+// Solidity: event Propose(address _owner, address _candidate, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) FilterPropose(opts *bind.FilterOpts) (*XDCValidatorProposeIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "Propose")
@@ -1424,7 +1536,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterPropose(opts *bind.FilterOpts) 
 
 // WatchPropose is a free log subscription operation binding the contract event 0x7635f1d87b47fba9f2b09e56eb4be75cca030e0cb179c1602ac9261d39a8f5c1.
 //
-// Solidity: event Propose(_owner address, _candidate address, _cap uint256)
+// Solidity: event Propose(address _owner, address _candidate, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) WatchPropose(opts *bind.WatchOpts, sink chan<- *XDCValidatorPropose) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "Propose")
@@ -1457,6 +1569,18 @@ func (_XDCValidator *XDCValidatorFilterer) WatchPropose(opts *bind.WatchOpts, si
 			}
 		}
 	}), nil
+}
+
+// ParsePropose is a log parse operation binding the contract event 0x7635f1d87b47fba9f2b09e56eb4be75cca030e0cb179c1602ac9261d39a8f5c1.
+//
+// Solidity: event Propose(address _owner, address _candidate, uint256 _cap)
+func (_XDCValidator *XDCValidatorFilterer) ParsePropose(log types.Log) (*XDCValidatorPropose, error) {
+	event := new(XDCValidatorPropose)
+	if err := _XDCValidator.contract.UnpackLog(event, "Propose", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // XDCValidatorResignIterator is returned from FilterResign and is used to iterate over the raw logs and unpacked data for Resign events raised by the XDCValidator contract.
@@ -1535,7 +1659,7 @@ type XDCValidatorResign struct {
 
 // FilterResign is a free log retrieval operation binding the contract event 0x4edf3e325d0063213a39f9085522994a1c44bea5f39e7d63ef61260a1e58c6d3.
 //
-// Solidity: event Resign(_owner address, _candidate address)
+// Solidity: event Resign(address _owner, address _candidate)
 func (_XDCValidator *XDCValidatorFilterer) FilterResign(opts *bind.FilterOpts) (*XDCValidatorResignIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "Resign")
@@ -1547,7 +1671,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterResign(opts *bind.FilterOpts) (
 
 // WatchResign is a free log subscription operation binding the contract event 0x4edf3e325d0063213a39f9085522994a1c44bea5f39e7d63ef61260a1e58c6d3.
 //
-// Solidity: event Resign(_owner address, _candidate address)
+// Solidity: event Resign(address _owner, address _candidate)
 func (_XDCValidator *XDCValidatorFilterer) WatchResign(opts *bind.WatchOpts, sink chan<- *XDCValidatorResign) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "Resign")
@@ -1580,6 +1704,18 @@ func (_XDCValidator *XDCValidatorFilterer) WatchResign(opts *bind.WatchOpts, sin
 			}
 		}
 	}), nil
+}
+
+// ParseResign is a log parse operation binding the contract event 0x4edf3e325d0063213a39f9085522994a1c44bea5f39e7d63ef61260a1e58c6d3.
+//
+// Solidity: event Resign(address _owner, address _candidate)
+func (_XDCValidator *XDCValidatorFilterer) ParseResign(log types.Log) (*XDCValidatorResign, error) {
+	event := new(XDCValidatorResign)
+	if err := _XDCValidator.contract.UnpackLog(event, "Resign", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // XDCValidatorUnvoteIterator is returned from FilterUnvote and is used to iterate over the raw logs and unpacked data for Unvote events raised by the XDCValidator contract.
@@ -1659,7 +1795,7 @@ type XDCValidatorUnvote struct {
 
 // FilterUnvote is a free log retrieval operation binding the contract event 0xaa0e554f781c3c3b2be110a0557f260f11af9a8aa2c64bc1e7a31dbb21e32fa2.
 //
-// Solidity: event Unvote(_voter address, _candidate address, _cap uint256)
+// Solidity: event Unvote(address _voter, address _candidate, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) FilterUnvote(opts *bind.FilterOpts) (*XDCValidatorUnvoteIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "Unvote")
@@ -1671,7 +1807,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterUnvote(opts *bind.FilterOpts) (
 
 // WatchUnvote is a free log subscription operation binding the contract event 0xaa0e554f781c3c3b2be110a0557f260f11af9a8aa2c64bc1e7a31dbb21e32fa2.
 //
-// Solidity: event Unvote(_voter address, _candidate address, _cap uint256)
+// Solidity: event Unvote(address _voter, address _candidate, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) WatchUnvote(opts *bind.WatchOpts, sink chan<- *XDCValidatorUnvote) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "Unvote")
@@ -1704,6 +1840,18 @@ func (_XDCValidator *XDCValidatorFilterer) WatchUnvote(opts *bind.WatchOpts, sin
 			}
 		}
 	}), nil
+}
+
+// ParseUnvote is a log parse operation binding the contract event 0xaa0e554f781c3c3b2be110a0557f260f11af9a8aa2c64bc1e7a31dbb21e32fa2.
+//
+// Solidity: event Unvote(address _voter, address _candidate, uint256 _cap)
+func (_XDCValidator *XDCValidatorFilterer) ParseUnvote(log types.Log) (*XDCValidatorUnvote, error) {
+	event := new(XDCValidatorUnvote)
+	if err := _XDCValidator.contract.UnpackLog(event, "Unvote", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // XDCValidatorUploadedKYCIterator is returned from FilterUploadedKYC and is used to iterate over the raw logs and unpacked data for UploadedKYC events raised by the XDCValidator contract.
@@ -1782,7 +1930,7 @@ type XDCValidatorUploadedKYC struct {
 
 // FilterUploadedKYC is a free log retrieval operation binding the contract event 0x949360d814b28a3b393a68909efe1fee120ee09cac30f360a0f80ab5415a611a.
 //
-// Solidity: event UploadedKYC(_owner address, kycHash string)
+// Solidity: event UploadedKYC(address _owner, string kycHash)
 func (_XDCValidator *XDCValidatorFilterer) FilterUploadedKYC(opts *bind.FilterOpts) (*XDCValidatorUploadedKYCIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "UploadedKYC")
@@ -1794,7 +1942,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterUploadedKYC(opts *bind.FilterOp
 
 // WatchUploadedKYC is a free log subscription operation binding the contract event 0x949360d814b28a3b393a68909efe1fee120ee09cac30f360a0f80ab5415a611a.
 //
-// Solidity: event UploadedKYC(_owner address, kycHash string)
+// Solidity: event UploadedKYC(address _owner, string kycHash)
 func (_XDCValidator *XDCValidatorFilterer) WatchUploadedKYC(opts *bind.WatchOpts, sink chan<- *XDCValidatorUploadedKYC) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "UploadedKYC")
@@ -1827,6 +1975,18 @@ func (_XDCValidator *XDCValidatorFilterer) WatchUploadedKYC(opts *bind.WatchOpts
 			}
 		}
 	}), nil
+}
+
+// ParseUploadedKYC is a log parse operation binding the contract event 0x949360d814b28a3b393a68909efe1fee120ee09cac30f360a0f80ab5415a611a.
+//
+// Solidity: event UploadedKYC(address _owner, string kycHash)
+func (_XDCValidator *XDCValidatorFilterer) ParseUploadedKYC(log types.Log) (*XDCValidatorUploadedKYC, error) {
+	event := new(XDCValidatorUploadedKYC)
+	if err := _XDCValidator.contract.UnpackLog(event, "UploadedKYC", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // XDCValidatorVoteIterator is returned from FilterVote and is used to iterate over the raw logs and unpacked data for Vote events raised by the XDCValidator contract.
@@ -1906,7 +2066,7 @@ type XDCValidatorVote struct {
 
 // FilterVote is a free log retrieval operation binding the contract event 0x66a9138482c99e9baf08860110ef332cc0c23b4a199a53593d8db0fc8f96fbfc.
 //
-// Solidity: event Vote(_voter address, _candidate address, _cap uint256)
+// Solidity: event Vote(address _voter, address _candidate, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) FilterVote(opts *bind.FilterOpts) (*XDCValidatorVoteIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "Vote")
@@ -1918,7 +2078,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterVote(opts *bind.FilterOpts) (*X
 
 // WatchVote is a free log subscription operation binding the contract event 0x66a9138482c99e9baf08860110ef332cc0c23b4a199a53593d8db0fc8f96fbfc.
 //
-// Solidity: event Vote(_voter address, _candidate address, _cap uint256)
+// Solidity: event Vote(address _voter, address _candidate, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) WatchVote(opts *bind.WatchOpts, sink chan<- *XDCValidatorVote) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "Vote")
@@ -1951,6 +2111,18 @@ func (_XDCValidator *XDCValidatorFilterer) WatchVote(opts *bind.WatchOpts, sink 
 			}
 		}
 	}), nil
+}
+
+// ParseVote is a log parse operation binding the contract event 0x66a9138482c99e9baf08860110ef332cc0c23b4a199a53593d8db0fc8f96fbfc.
+//
+// Solidity: event Vote(address _voter, address _candidate, uint256 _cap)
+func (_XDCValidator *XDCValidatorFilterer) ParseVote(log types.Log) (*XDCValidatorVote, error) {
+	event := new(XDCValidatorVote)
+	if err := _XDCValidator.contract.UnpackLog(event, "Vote", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // XDCValidatorWithdrawIterator is returned from FilterWithdraw and is used to iterate over the raw logs and unpacked data for Withdraw events raised by the XDCValidator contract.
@@ -2030,7 +2202,7 @@ type XDCValidatorWithdraw struct {
 
 // FilterWithdraw is a free log retrieval operation binding the contract event 0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568.
 //
-// Solidity: event Withdraw(_owner address, _blockNumber uint256, _cap uint256)
+// Solidity: event Withdraw(address _owner, uint256 _blockNumber, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) FilterWithdraw(opts *bind.FilterOpts) (*XDCValidatorWithdrawIterator, error) {
 
 	logs, sub, err := _XDCValidator.contract.FilterLogs(opts, "Withdraw")
@@ -2042,7 +2214,7 @@ func (_XDCValidator *XDCValidatorFilterer) FilterWithdraw(opts *bind.FilterOpts)
 
 // WatchWithdraw is a free log subscription operation binding the contract event 0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568.
 //
-// Solidity: event Withdraw(_owner address, _blockNumber uint256, _cap uint256)
+// Solidity: event Withdraw(address _owner, uint256 _blockNumber, uint256 _cap)
 func (_XDCValidator *XDCValidatorFilterer) WatchWithdraw(opts *bind.WatchOpts, sink chan<- *XDCValidatorWithdraw) (event.Subscription, error) {
 
 	logs, sub, err := _XDCValidator.contract.WatchLogs(opts, "Withdraw")
@@ -2075,4 +2247,16 @@ func (_XDCValidator *XDCValidatorFilterer) WatchWithdraw(opts *bind.WatchOpts, s
 			}
 		}
 	}), nil
+}
+
+// ParseWithdraw is a log parse operation binding the contract event 0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568.
+//
+// Solidity: event Withdraw(address _owner, uint256 _blockNumber, uint256 _cap)
+func (_XDCValidator *XDCValidatorFilterer) ParseWithdraw(log types.Log) (*XDCValidatorWithdraw, error) {
+	event := new(XDCValidatorWithdraw)
+	if err := _XDCValidator.contract.UnpackLog(event, "Withdraw", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
