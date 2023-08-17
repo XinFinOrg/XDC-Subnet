@@ -13,29 +13,34 @@ Environmental preparation
 
 Install dependencies
 
-```
+```shell
 yarn
 ```
 
 Test
 
-    npx hardhat compile
-    npx hardhat test
+```shell
+npx hardhat compile
+npx hardhat test
+```
 
 ## Deploy contract to node genesis block
 
-1.run generate script to genera
+1. run generate script to genera
 
-    node scripts/deployToGenesis.js
+```shell
+node scripts/deployToGenesis.js
+```
 
-2, run
+2. run
 
-     ./abigen --abi abi --bin bytecode --pkg contract --type XDCValidator --out ../contract/validator.go
+```shell
+./abigen --abi abi --bin bytecode --pkg contract --type XDCValidator --out ../contract/validator.go
+```
 
 If you don't have `abigen`, compile it. It's in `cmd/abigen/main.go` in XDC main repo (or Geth repo).
 
-3.Go `../contract/validator.go` change `github.com/ethereum/go-ethereum` to `ethereum "github.com/XinFinOrg/XDC-Subnet"`
-
+3. Go `../contract/validator.go` change `github.com/ethereum/go-ethereum` to `ethereum "github.com/XinFinOrg/XDC-Subnet"`
 
 ## Deploy contract to node any block
 
@@ -64,6 +69,6 @@ This step is recommended to complete in python virtual environment because it is
 
 And get the deployed contract address
 
-```
+```shell
 npx hardhat run scripts/deployment.js --network xdcdevnet
 ```
