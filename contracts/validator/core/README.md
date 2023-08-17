@@ -32,7 +32,7 @@ Test
 
     ./abigen --abi abi --bin bytecode --pkg contract --type XDCValidator --out ../contract/validator.go
 
-If you don't have `abigen`, compile it. It's in `cmd/abigen/main.go` in `github.com/ethereum/go-ethereum` main repo and run `go build` to gen abigen.
+If you don't have `abigen`, compile it. It's in `cmd/abigen/main.go` in `github.com/ethereum/go-ethereum@v1.9.9` main repo and run `go build` to gen abigen.
 
 ## Deploy contract to node any block
 

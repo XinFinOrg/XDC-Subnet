@@ -15,7 +15,7 @@ require (
 	github.com/docker/docker v1.4.2-0.20180625184442-8e610b2b55bf
 	github.com/edsrzf/mmap-go v1.0.0
 	github.com/elastic/gosigar v0.10.5
-	github.com/ethereum/go-ethereum v1.12.2
+	github.com/ethereum/go-ethereum v1.9.9
 	github.com/fatih/color v1.6.0
 	github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c // indirect
 	github.com/gizak/termui v2.2.0+incompatible
