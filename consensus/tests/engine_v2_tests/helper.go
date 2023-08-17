@@ -160,6 +160,7 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 		big.NewInt(100),
 		big.NewInt(100),
 		candidates, //use candidates as grandMasters too
+		big.NewInt(2),
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)
@@ -251,6 +252,7 @@ func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n 
 		big.NewInt(100),
 		big.NewInt(100),
 		candidates, //use candidates as grandMasters too
+		big.NewInt(2),
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)
