@@ -44,7 +44,11 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "file",
-			Usage: "Uses file input instead of wizard, please include input path",
+			Usage: "Uses file input instead of wizard, please include input file path",
+		},
+		cli.StringFlag{
+			Name:  "output",
+			Usage: "Output path of the resulting genesis file, not including the file name",
 		},
 	}
 	app.Action = func(c *cli.Context) error {
@@ -58,10 +62,12 @@ func main() {
 		}
 
 		filePath := c.String("file")
+		outputPath := c.String("output")
 		// Start the wizard and relinquish control
 		options := flagOptions{
-			network:  network,
-			filePath: filePath,
+			network:    network,
+			filePath:   filePath,
+			outputPath: outputPath,
 		}
 		makeWizard(options).run()
 		return nil

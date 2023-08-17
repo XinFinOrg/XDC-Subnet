@@ -97,7 +97,7 @@ func (w *wizard) makeGenesisFile() {
 			ByzantiumBlock: big.NewInt(4),
 		},
 	}
-	configFile, err := ioutil.ReadFile(w.filePath)
+	configFile, err := ioutil.ReadFile(w.options.filePath)
 	if err != nil {
 		fmt.Println("read file error ", err)
 		return
@@ -469,7 +469,11 @@ func (w *wizard) makeGenesisFile() {
 	}
 	// w.conf.path = filepath.Join(os.Getenv("HOME"), ".puppeth", w.network)
 	fileName := w.network + ".json"
-	w.conf.path = filepath.Join(binPath, "..", fileName)
-	log.Info(w.conf.path)
+	if w.options.outputPath != "" {
+		w.conf.path = filepath.Join(w.options.outputPath, fileName)
+	} else {
+		w.conf.path = filepath.Join(binPath, "..", fileName)
+	}
+	log.Info("writing output genesis to", w.conf.path)
 	w.conf.flush()
 }

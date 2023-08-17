@@ -70,9 +70,9 @@ func (c config) flush() {
 }
 
 type wizard struct {
-	filePath string
-	network  string // Network name to manage
-	conf     config // Configurations from previous runs
+	options flagOptions
+	network string // Network name to manage
+	conf    config // Configurations from previous runs
 
 	servers  map[string]*sshClient // SSH connections to servers to administer
 	services map[string][]string   // Ethereum services known to be running on servers

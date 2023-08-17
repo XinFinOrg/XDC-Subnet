@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -471,6 +473,7 @@ func (w *wizard) manageGenesis() {
 		log.Info("Genesis block destroyed")
 
 		w.conf.Genesis = nil
+		w.conf.path = filepath.Join(os.Getenv("HOME"), ".puppeth", w.network)
 		w.conf.flush()
 
 	default:

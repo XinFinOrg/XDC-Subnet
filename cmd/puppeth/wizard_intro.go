@@ -24,15 +24,16 @@ import (
 
 // makeWizard creates and returns a new puppeth wizard.
 type flagOptions struct {
-	network  string
-	filePath string
+	network    string
+	filePath   string
+	outputPath string
 }
 
 // func makeWizard(network string) *wizard {
 func makeWizard(options flagOptions) *wizard {
 	return &wizard{
-		network:  options.network,
-		filePath: options.filePath,
+		network: options.network,
+		options: options,
 		conf: config{
 			Servers: make(map[string][]byte),
 		},
@@ -52,11 +53,11 @@ func (w *wizard) run() {
 	fmt.Println("+-----------------------------------------------------------+")
 	fmt.Println()
 
-	fmt.Println(w.filePath)
-	if w.filePath == "" {
-		fmt.Println("no file input")
+	fmt.Println(w.options.filePath)
+	if w.options.filePath == "" {
 		w.makeGenesis()
 	} else {
+		fmt.Println("file input option selected, running non-interactive mode")
 		w.makeGenesisFile()
 	}
 }
