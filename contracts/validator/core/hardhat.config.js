@@ -6,7 +6,7 @@ const deploy = require("./deployment.json");
  */
 module.exports = {
   solidity: {
-    version: "0.8.19",
+    version: "0.4.26",
     settings: {
       optimizer: {
         enabled: true,

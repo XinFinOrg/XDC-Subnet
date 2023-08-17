@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.19;
+pragma solidity =0.4.26;
+
+import "./libraries/SafeMath.sol";
 
 contract XDCValidator {
+    using SafeMath for uint256;
+
     event Vote(address _voter, address _candidate, uint256 _cap);
     event Unvote(address _voter, address _candidate, uint256 _cap);
     event Propose(address _owner, address _candidate, uint256 _cap);
@@ -93,7 +97,7 @@ contract XDCValidator {
         );
         if (validatorsState[_candidate].owner == msg.sender) {
             require(
-                validatorsState[_candidate].voters[msg.sender] - (_cap) >=
+                validatorsState[_candidate].voters[msg.sender].sub(_cap) >=
                     minCandidateCap,
                 "onlyValidVote validatorsState[_candidate].voters[msg.sender] - (_cap) >= minCandidateCap is false"
             );
@@ -137,7 +141,7 @@ contract XDCValidator {
         uint256 _voterWithdrawDelay,
         address[] memory _grandMasters,
         uint256 _minCandidateNum
-    ) {
+    ) public {
         minCandidateNum = _minCandidateNum;
         minCandidateCap = _minCandidateCap;
         minVoterCap = _minVoterCap;
@@ -157,14 +161,14 @@ contract XDCValidator {
                 _firstOwner
             ] = minCandidateCap;
         }
-        for (uint256 i = 0; i < _grandMasters.length; i++) {
+        for (i = 0; i < _grandMasters.length; i++) {
             grandMasters.push(_grandMasters[i]);
             grandMasterMap[_grandMasters[i]] = true;
         }
     }
 
     // uploadKYC : anyone can upload a KYC; its not equivalent to becoming an owner.
-    function uploadKYC(string memory kychash) external {
+    function uploadKYC(string kychash) external {
         KYCString[msg.sender].push(kychash);
         emit UploadedKYC(msg.sender, kychash);
     }
@@ -179,13 +183,15 @@ contract XDCValidator {
         onlyNotCandidate(_candidate)
         onlyGrandMaster
     {
-        uint256 cap = validatorsState[_candidate].cap + msg.value;
+        uint256 cap = validatorsState[_candidate].cap.add(msg.value);
         candidates.push(_candidate);
         ValidatorState storage vs = validatorsState[_candidate];
         vs.owner = msg.sender;
         vs.isCandidate = true;
         vs.cap = cap;
-        validatorsState[_candidate].voters[msg.sender] += (msg.value);
+        validatorsState[_candidate].voters[msg.sender] = validatorsState[
+            _candidate
+        ].voters[msg.sender].add(msg.value);
 
         if (ownerToCandidate[msg.sender].length == 0) {
             owners.push(msg.sender);
@@ -204,11 +210,15 @@ contract XDCValidator {
         onlyValidCandidate(_candidate)
         onlyGrandMaster
     {
-        validatorsState[_candidate].cap += (msg.value);
+        validatorsState[_candidate].cap = validatorsState[_candidate].cap.add(
+            msg.value
+        );
         if (validatorsState[_candidate].voters[msg.sender] == 0) {
             voters[_candidate].push(msg.sender);
         }
-        validatorsState[_candidate].voters[msg.sender] += (msg.value);
+        validatorsState[_candidate].voters[msg.sender] = validatorsState[
+            _candidate
+        ].voters[msg.sender].add(msg.value);
         emit Vote(msg.sender, _candidate, msg.value);
     }
 
@@ -261,12 +271,18 @@ contract XDCValidator {
         address _candidate,
         uint256 _cap
     ) public onlyValidVote(_candidate, _cap) {
-        validatorsState[_candidate].cap -= (_cap);
-        validatorsState[_candidate].voters[msg.sender] -= (_cap);
+        validatorsState[_candidate].cap = validatorsState[_candidate].cap.sub(
+            _cap
+        );
+        validatorsState[_candidate].voters[msg.sender] = validatorsState[
+            _candidate
+        ].voters[msg.sender].sub(_cap);
 
         // refund after delay X blocks
-        uint256 withdrawBlockNumber = voterWithdrawDelay + (block.number);
-        withdrawsState[msg.sender].caps[withdrawBlockNumber] += (_cap);
+        uint256 withdrawBlockNumber = voterWithdrawDelay.add(block.number);
+        withdrawsState[msg.sender].caps[withdrawBlockNumber] = withdrawsState[
+            msg.sender
+        ].caps[withdrawBlockNumber].add(_cap);
         withdrawsState[msg.sender].blockNumbers.push(withdrawBlockNumber);
 
         emit Unvote(msg.sender, _candidate, _cap);
@@ -285,11 +301,15 @@ contract XDCValidator {
         candidates = removeZeroAddresses(candidates);
         checkMinCandidateNum();
         uint256 cap = validatorsState[_candidate].voters[msg.sender];
-        validatorsState[_candidate].cap -= cap;
+        validatorsState[_candidate].cap = validatorsState[_candidate].cap.sub(
+            cap
+        );
         validatorsState[_candidate].voters[msg.sender] = 0;
         // refunding after resigning X blocks
-        uint256 withdrawBlockNumber = candidateWithdrawDelay + (block.number);
-        withdrawsState[msg.sender].caps[withdrawBlockNumber] += cap;
+        uint256 withdrawBlockNumber = candidateWithdrawDelay.add(block.number);
+        withdrawsState[msg.sender].caps[withdrawBlockNumber] = withdrawsState[
+            msg.sender
+        ].caps[withdrawBlockNumber].add(cap);
         withdrawsState[msg.sender].blockNumbers.push(withdrawBlockNumber);
         emit Resign(msg.sender, _candidate);
     }
@@ -314,7 +334,7 @@ contract XDCValidator {
         address _invalidMasternode = getCandidateOwner(_invalidCandidate);
         require(!hasVotedInvalid[candidateOwner][_invalidMasternode]);
         hasVotedInvalid[candidateOwner][_invalidMasternode] = true;
-        invalidKYCCount[_invalidMasternode] += 1;
+        invalidKYCCount[_invalidMasternode]++;
         if (
             (invalidKYCCount[_invalidMasternode] * 100) / getOwnerCount() >= 75
         ) {
@@ -388,7 +408,7 @@ contract XDCValidator {
         uint256 cap = withdrawsState[msg.sender].caps[_blockNumber];
         delete withdrawsState[msg.sender].caps[_blockNumber];
         delete withdrawsState[msg.sender].blockNumbers[_index];
-        payable(msg.sender).transfer(cap);
+        (msg.sender).transfer(cap);
         emit Withdraw(msg.sender, _blockNumber, cap);
     }
 
