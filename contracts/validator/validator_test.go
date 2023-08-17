@@ -114,6 +114,7 @@ func TestRewardBalance(t *testing.T) {
 		big.NewInt(100),
 		big.NewInt(100),
 		[]common.Address{addr},
+		big.NewInt(2),
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)
