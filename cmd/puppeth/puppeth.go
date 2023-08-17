@@ -47,7 +47,7 @@ func main() {
 			Usage: "Uses file input instead of wizard, please include input file path",
 		},
 		cli.StringFlag{
-			Name:  "output",
+			Name:  "out",
 			Usage: "Output path of the resulting genesis file, not including the file name",
 		},
 	}
@@ -62,7 +62,7 @@ func main() {
 		}
 
 		filePath := c.String("file")
-		outputPath := c.String("output")
+		outputPath := c.String("out")
 		// Start the wizard and relinquish control
 		options := flagOptions{
 			network:    network,
