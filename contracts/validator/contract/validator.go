@@ -12,7 +12,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/event"
-	ethereum "github.com/XinFinOrg/XDC-Subnet"
+	 ethereum "github.com/XinFinOrg/XDC-Subnet"
 )
 
 // XDCValidatorABI is the input ABI used to generate the binding from.

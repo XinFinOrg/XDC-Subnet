@@ -34,9 +34,8 @@ Test
 
 If you don't have `abigen`, compile it. It's in `cmd/abigen/main.go` in XDC main repo (or Geth repo).
 
-3.Use the new `validator.go` to replace XDC main repo's `contracts/validator/contract/validator.go`
+3.Go `../contract/validator.go` change `github.com/ethereum/go-ethereum` to `ethereum "github.com/XinFinOrg/XDC-Subnet"`
 
-4.Optional: replace `contracts/validator/contract/*.sol` file with sol file in this repo, too.
 
 ## Deploy contract to node any block
 
