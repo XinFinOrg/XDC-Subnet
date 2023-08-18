@@ -17,7 +17,7 @@ require (
 	github.com/elastic/gosigar v0.10.5
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/fatih/color v1.6.0
-	github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c // indirect
+	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e // indirect
 	github.com/gizak/termui v2.2.0+incompatible
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-stack/stack v1.8.0

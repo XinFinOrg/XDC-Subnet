@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,12 +64,13 @@ type GenesisInput struct {
 
 func NewGenesisInput() *GenesisInput {
 	return &GenesisInput{
+		Name:                 "subnet",
 		Period:               2,
 		Reward:               2,
 		SwitchBlock:          *big.NewInt(0),
 		TimeoutPeriod:        10,
 		TimeoutSyncThreshold: 3,
-		CertThreshold:        common.MaxMasternodes/3*2 + 1,
+		CertThreshold:        common.MaxMasternodes*2/3 + 1,
 		Epoch:                900,
 		Gap:                  450,
 		ChainId:              112,
@@ -79,6 +81,10 @@ func SetDefaultAfterInputRead(input *GenesisInput) {
 	input.Owner = input.Grandmasters[0]
 	input.FoudationWalletAddr = input.Grandmasters[0]
 	input.PreFundedAccounts = input.Grandmasters
+	//if no cert threshold provided, use 2/3 of masternode len
+	if input.CertThreshold == common.MaxMasternodes*2/3+1 {
+		input.CertThreshold = int(math.Ceil(float64(len(input.Masternodes)) * 2.0 / 3.0))
+	}
 }
 
 // makeGenesis creates a new genesis struct based on some user input.
@@ -128,7 +134,8 @@ func (w *wizard) makeGenesisFile() {
 		}
 	}
 	log.Info("Administering Ethereum network", "name", w.network)
-
+	w.network = input.Name
+	genesis.Name = w.network
 	genesis.Difficulty = big.NewInt(1)
 	genesis.Config.XDPoS = &params.XDPoSConfig{
 		Period: 15,
@@ -468,12 +475,14 @@ func (w *wizard) makeGenesisFile() {
 		return
 	}
 	// w.conf.path = filepath.Join(os.Getenv("HOME"), ".puppeth", w.network)
-	fileName := w.network + ".json"
+	// fileName := w.network + ".json"
+	fileName := "genesis.json"
 	if w.options.outputPath != "" {
 		w.conf.path = filepath.Join(w.options.outputPath, fileName)
 	} else {
 		w.conf.path = filepath.Join(binPath, "..", fileName)
 	}
-	log.Info("writing output genesis to", w.conf.path)
+	log.Info("writing output genesis to", "file", w.conf.path)
 	w.conf.flush()
+
 }
