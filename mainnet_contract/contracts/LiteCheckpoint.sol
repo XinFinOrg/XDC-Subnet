@@ -79,7 +79,7 @@ contract LiteCheckpoint {
         );
         bytes memory header0 = headers[0];
         saveEpoch(header0);
-        //for commit header0 util 
+        //for commit header0 util
         if (headers.length > 1) {
             bytes32 blockHash = keccak256(header0);
             commitHeader(blockHash, sliceBytes(headers, 1));

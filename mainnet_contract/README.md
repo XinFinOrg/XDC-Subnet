@@ -64,12 +64,12 @@ npx hardhat test
 npx hardhat node
 npx hardhat help
 REPORT_GAS=true npx hardhat test
-npx prettier '**/*.{json,sol,md}' --check
-npx prettier '**/*.{json,sol,md}' --write
+npx prettier '**/*.{js,json,sol,md}' --check
+npx prettier '**/*.{js,json,sol,md}' --write
 npx solhint 'contracts/**/*.sol'
 npx solhint 'contracts/**/*.sol' --fix
 ```
 
 ## Gas report
 
-![Alt text](image-1.png)
+![Alt text](image.png)

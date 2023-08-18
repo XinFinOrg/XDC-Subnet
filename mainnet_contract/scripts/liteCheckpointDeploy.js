@@ -27,22 +27,9 @@ async function main() {
 
   const data1Encoded = "0x" + data1["result"]["HexRLP"];
 
-  const headerReaderFactory = await hre.ethers.getContractFactory(
-    "HeaderReader"
-  );
-
-  const headerReader = await headerReaderFactory.deploy();
-  await headerReader.deployed();
-
-  console.log("headerReader deployed to:", headerReader.address);
   // We get the contract to deploy
   const checkpointFactory = await hre.ethers.getContractFactory(
-    "LiteCheckpoint",
-    {
-      libraries: {
-        HeaderReader: headerReader.address,
-      },
-    }
+    "LiteCheckpoint"
   );
 
   const checkpoint = await checkpointFactory.deploy(

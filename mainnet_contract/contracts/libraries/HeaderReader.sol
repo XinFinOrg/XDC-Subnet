@@ -32,7 +32,7 @@ library HeaderReader {
      */
     function getParentHashAndNumber(
         bytes memory header
-    ) public pure returns (bytes32, int256) {
+    ) internal pure returns (bytes32, int256) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         return (toBytes32(toBytes(ls[0])), int256(toUint(ls[8])));
     }
@@ -43,7 +43,7 @@ library HeaderReader {
      */
     function getBlock1Params(
         bytes memory header
-    ) public pure returns (bytes32, int256, uint64) {
+    ) internal pure returns (bytes32, int256, uint64) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
@@ -54,7 +54,7 @@ library HeaderReader {
 
     function getSignerList(
         bytes memory header
-    ) public pure returns (address[] memory) {
+    ) internal pure returns (address[] memory) {
         ValidationParams memory validationParams = getValidationParams(header);
         address[] memory signerList = new address[](
             validationParams.sigs.length
@@ -102,7 +102,7 @@ library HeaderReader {
      */
     function getValidationParams(
         bytes memory header
-    ) public pure returns (ValidationParams memory) {
+    ) internal pure returns (ValidationParams memory) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
@@ -143,7 +143,7 @@ library HeaderReader {
      */
     function getEpoch(
         bytes memory header
-    ) public pure returns (address[] memory current, address[] memory next) {
+    ) internal pure returns (address[] memory current, address[] memory next) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory list0 = toList(ls[16]);
         if (list0.length > 0) {
@@ -181,7 +181,7 @@ library HeaderReader {
     function addressExist(
         address[] memory list,
         address addr
-    ) public pure returns (bool) {
+    ) internal pure returns (bool) {
         for (uint256 i = 0; i < list.length; i++) {
             if (list[i] == addr) return true;
         }
@@ -194,7 +194,7 @@ library HeaderReader {
      */
     function getExtraData(
         bytes memory extra
-    ) public pure returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         bytes memory extraData = new bytes(extra.length - 1);
         uint256 extraDataPtr;
         uint256 extraPtr;
@@ -634,7 +634,7 @@ library HeaderReader {
     function areListsEqual(
         address[] memory list1,
         address[] memory list2
-    ) public pure returns (bool) {
+    ) internal pure returns (bool) {
         if (list1.length != list2.length) {
             return false;
         }
@@ -653,7 +653,7 @@ library HeaderReader {
 
     function sortList(
         address[] memory arr
-    ) public pure returns (address[] memory) {
+    ) internal pure returns (address[] memory) {
         uint len = arr.length;
         for (uint i = 0; i < len; i++) {
             for (uint j = 0; j < len - i - 1; j++) {

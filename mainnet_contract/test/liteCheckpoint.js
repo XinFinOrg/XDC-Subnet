@@ -36,15 +36,7 @@ describe("lite checkpoint", () => {
   let customeBlock1;
 
   const fixture = async () => {
-    const headerReaderFactory = await ethers.getContractFactory("HeaderReader");
-
-    const headerReader = await headerReaderFactory.deploy();
-
-    const factory = await ethers.getContractFactory("LiteCheckpoint", {
-      libraries: {
-        HeaderReader: headerReader.address,
-      },
-    });
+    const factory = await ethers.getContractFactory("LiteCheckpoint");
     const liteCheckpoint = await factory.deploy(
       [
         "0x10982668af23d3e4b8d26805543618412ac724d4",
