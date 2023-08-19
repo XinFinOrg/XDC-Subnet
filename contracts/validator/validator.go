@@ -23,6 +23,11 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/contracts/validator/contract"
 )
 
+const (
+	MinCandidateCap = "10000000000000000000000000"
+	MinVoterCap     = "25000000000000000000000"
+)
+
 type Validator struct {
 	*contract.XDCValidatorSession
 	contractBackend bind.ContractBackend
@@ -43,18 +48,17 @@ func NewValidator(transactOpts *bind.TransactOpts, contractAddr common.Address, 
 	}, nil
 }
 
-func DeployValidator(transactOpts *bind.TransactOpts, contractBackend bind.ContractBackend, validatorAddress []common.Address, caps []*big.Int, ownerAddress common.Address, grandMasterAddress []common.Address) (common.Address, *Validator, error) {
+func DeployValidator(transactOpts *bind.TransactOpts, contractBackend bind.ContractBackend, validatorAddress []common.Address, caps []*big.Int, ownerAddress common.Address, grandMasterAddress []common.Address, minCandidateThreshold int64) (common.Address, *Validator, error) {
 	minDeposit := new(big.Int)
-	minDeposit.SetString("10000000000000000000000000", 10)
+	minDeposit.SetString(MinCandidateCap, 10)
 	minVoterCap := new(big.Int)
-	minVoterCap.SetString("25000000000000000000000", 10)
+	minVoterCap.SetString(MinVoterCap, 10)
 	// Deposit 50K XDC
 	// Min Voter Cap 10 XDC
 	// 150 masternodes
 	// Candidate Delay Withdraw 30 days = 1296000 blocks
 	// Voter Delay Withdraw 10 days = 432000 blocks
-	// Min Candidate = 2
-	validatorAddr, _, _, err := contract.DeployXDCValidator(transactOpts, contractBackend, validatorAddress, caps, ownerAddress, minDeposit, minVoterCap, big.NewInt(18), big.NewInt(1296000), big.NewInt(432000), grandMasterAddress, big.NewInt(2))
+	validatorAddr, _, _, err := contract.DeployXDCValidator(transactOpts, contractBackend, validatorAddress, caps, ownerAddress, minDeposit, minVoterCap, big.NewInt(18), big.NewInt(1296000), big.NewInt(432000), grandMasterAddress, big.NewInt(minCandidateThreshold))
 	if err != nil {
 		return validatorAddr, nil, err
 	}
