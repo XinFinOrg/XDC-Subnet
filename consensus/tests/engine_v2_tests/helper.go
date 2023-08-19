@@ -567,7 +567,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 			blockCoinBase = signer.Hex()
 		}
 		roundNumber := int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
-		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "5f6a0ed6ac6ae850b98fc00fab523a129a25dc64eb2a9bc475073d264989b876")
+		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "906015092612b4cb1e13179ac81b08cf4c6b2280236c08a0139455afa0af7879")
 		err = blockchain.InsertBlock(block)
 		if err != nil {
 			t.Fatal(err)
