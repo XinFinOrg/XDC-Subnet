@@ -381,4 +381,15 @@ func TestStatedbUtils(t *testing.T) {
 			t.Fatalf("cap should not be zero")
 		}
 	}
+	grandMasters, err := validator.GetGrandMasters()
+	if err != nil {
+		t.Fatalf("can't get grandMasters: %v", err)
+	}
+	grandMasters_statedb := state.GetGrandMasters(statedb)
+	if len(grandMasters) != 2 {
+		t.Fatalf("get grand master wrong result")
+	}
+	if !reflect.DeepEqual(grandMasters, grandMasters_statedb) {
+		t.Fatalf("voters not equal, statedb utils is wrong,\nbind calling result\n%v\nstatedb result\n%v", voters, voters_statedb)
+	}
 }
