@@ -214,7 +214,7 @@ func (w *wizard) makeGenesis() {
 		genesis.NextValidators = signers
 
 		validatorCap := new(big.Int)
-		validatorCap.SetString("50000000000000000000000", 10)
+		validatorCap.SetString(validatorContract.MinCandidateCap, 10)
 		var validatorCaps []*big.Int
 		genesis.ExtraData = make([]byte, 32+len(signers)*common.AddressLength+65)
 		for i, signer := range signers {
