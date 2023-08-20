@@ -160,6 +160,7 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 		big.NewInt(100),
 		big.NewInt(100),
 		candidates, //use candidates as grandMasters too
+		big.NewInt(2),
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)
@@ -251,6 +252,7 @@ func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n 
 		big.NewInt(100),
 		big.NewInt(100),
 		candidates, //use candidates as grandMasters too
+		big.NewInt(2),
 	)
 	if err != nil {
 		t.Fatalf("can't deploy root registry: %v", err)
@@ -565,7 +567,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 			blockCoinBase = signer.Hex()
 		}
 		roundNumber := int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
-		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "5f6a0ed6ac6ae850b98fc00fab523a129a25dc64eb2a9bc475073d264989b876")
+		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "906015092612b4cb1e13179ac81b08cf4c6b2280236c08a0139455afa0af7879")
 		err = blockchain.InsertBlock(block)
 		if err != nil {
 			t.Fatal(err)
@@ -607,7 +609,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "3724f6d5255a40342e2d6299fc874e39ae440f6c739584ca0a96b776849c90c5"
+		merkleRoot = "3711bab9f33dd5a8e8ad970d11bb58f55c61c6deb9070cc0d7a972d439837639"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()

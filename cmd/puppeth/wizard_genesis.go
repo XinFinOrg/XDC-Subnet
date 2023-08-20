@@ -146,7 +146,8 @@ func (w *wizard) makeGenesis() {
 
 		fmt.Println()
 		fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodes/3*2+1)
-		genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = w.readDefaultInt(common.MaxMasternodes/3*2 + 1)
+		minCandidateThreshold := w.readDefaultInt(common.MaxMasternodes/3*2 + 1)
+		genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = minCandidateThreshold
 
 		genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
 
@@ -171,7 +172,7 @@ func (w *wizard) makeGenesis() {
 
 		// We also need the initial list of signers
 		fmt.Println()
-		fmt.Println("Which accounts are masternodes? (mandatory at least one)")
+		fmt.Printf("Which accounts are masternodes? (mandatory at least %d)\n", minCandidateThreshold)
 
 		var signers []common.Address
 		for {
@@ -179,7 +180,7 @@ func (w *wizard) makeGenesis() {
 				signers = append(signers, *address)
 				continue
 			}
-			if len(signers) > 0 {
+			if len(signers) >= minCandidateThreshold {
 				break
 			}
 		}
@@ -189,6 +190,12 @@ func (w *wizard) makeGenesis() {
 				if bytes.Compare(signers[i][:], signers[j][:]) > 0 {
 					signers[i], signers[j] = signers[j], signers[i]
 				}
+			}
+		}
+		// De-duplicate signers
+		for i := 0; i < len(signers)-1; i++ {
+			if bytes.Equal(signers[i][:], signers[i+1][:]) {
+				log.Crit("masternodes contain duplicate address")
 			}
 		}
 
@@ -224,7 +231,7 @@ func (w *wizard) makeGenesis() {
 		contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig, nil)
 		transactOpts := bind.NewKeyedTransactor(pKey)
 
-		validatorAddress, _, err := validatorContract.DeployValidator(transactOpts, contractBackend, signers, validatorCaps, owner, grandMasters)
+		validatorAddress, _, err := validatorContract.DeployValidator(transactOpts, contractBackend, signers, validatorCaps, owner, grandMasters, int64(minCandidateThreshold))
 		if err != nil {
 			fmt.Println("Can't deploy root registry")
 		}

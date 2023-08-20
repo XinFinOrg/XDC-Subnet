@@ -30,7 +30,7 @@ func TestAdaptorShouldGetAuthorForDifferentConsensusVersion(t *testing.T) {
 	// Insert one more block to make it above 10, which means now we are on v2 of consensus engine
 	// Insert block 901
 
-	merkleRoot := "3724f6d5255a40342e2d6299fc874e39ae440f6c739584ca0a96b776849c90c5"
+	merkleRoot := "3711bab9f33dd5a8e8ad970d11bb58f55c61c6deb9070cc0d7a972d439837639"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(901)),
