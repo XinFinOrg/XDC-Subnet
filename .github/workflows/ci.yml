@@ -37,6 +37,9 @@ jobs:
           cd mainnet_contract
           yarn
           npx hardhat test
+          cd ../contracts/validator/src
+          yarn 
+          npx hardhat test
       - name: Run tests
         run: |
           make test
