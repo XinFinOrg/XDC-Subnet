@@ -13,14 +13,16 @@ Environmental preparation
 
 Install dependencies
 
-```
+```shell
 yarn
 ```
 
 Test
 
-    npx hardhat compile
-    npx hardhat test
+```shell
+npx hardhat compile
+npx hardhat test
+```
 
 ## Contract Setup:
 
@@ -40,6 +42,34 @@ This step is recommended to complete in python virtual environment because it is
 
 And get the deployed contract address
 
+FullCheckpoint
+
+```shell
+npx hardhat run scripts/fullCheckpointDeploy.js --network xdcparentnet
 ```
-npx hardhat run scripts/deployment.js --network xdcparentnet
+
+Lite checkpoint
+
+```shell
+npx hardhat run scripts/liteCheckpointDeploy.js --network xdcparentnet
 ```
+
+## Other command
+
+```shell
+npx hardhat accounts
+npx hardhat compile
+npx hardhat clean
+npx hardhat test
+npx hardhat node
+npx hardhat help
+REPORT_GAS=true npx hardhat test
+npx prettier '**/*.{js,json,sol,md}' --check
+npx prettier '**/*.{js,json,sol,md}' --write
+npx solhint 'contracts/**/*.sol'
+npx solhint 'contracts/**/*.sol' --fix
+```
+
+## Gas report
+
+![Alt text](image.png)
