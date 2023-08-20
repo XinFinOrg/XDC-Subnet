@@ -71,7 +71,7 @@ contract LiteCheckpoint {
      * 1. Verify subnet header meta information
      * 2. Verify subnet header certificates
      * 3. (Conditional) Update Committed Status for ancestor blocks
-     * 4. header0 always gap/epoch and next headers is commit header0
+     * 4. header0 always gap/epoch and next headers commit header0
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) external {
