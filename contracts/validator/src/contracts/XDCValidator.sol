@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.4.26;
 
-import "./libraries/SafeMath.sol";
+import {SafeMath} from "./libraries/SafeMath.sol";
 
 contract XDCValidator {
     using SafeMath for uint256;
@@ -26,13 +26,13 @@ contract XDCValidator {
         uint256[] blockNumbers;
     }
 
-    mapping(address => WithdrawState) withdrawsState;
+    mapping(address => WithdrawState) private withdrawsState;
 
     mapping(address => ValidatorState) public validatorsState;
     mapping(address => address[]) public voters;
 
     // Mapping structures added for KYC feature.
-    mapping(address => string[]) public KYCString;
+    mapping(address => string[]) public kycString;
     mapping(address => uint256) public invalidKYCCount;
     mapping(address => mapping(address => bool)) public hasVotedInvalid;
     mapping(address => address[]) public ownerToCandidate;
@@ -63,7 +63,7 @@ contract XDCValidator {
 
     modifier onlyKYCWhitelisted() {
         require(
-            KYCString[msg.sender].length != 0 ||
+            kycString[msg.sender].length != 0 ||
                 ownerToCandidate[msg.sender].length > 0,
             "onlyKYCWhitelisted"
         );
@@ -105,7 +105,7 @@ contract XDCValidator {
         _;
     }
 
-    modifier onlyValidWithdraw(uint256 _blockNumber, uint _index) {
+    modifier onlyValidWithdraw(uint256 _blockNumber, uint256 _index) {
         require(
             _blockNumber > 0,
             "onlyValidWithdraw _blockNumber > 0 is false"
@@ -169,7 +169,7 @@ contract XDCValidator {
 
     // uploadKYC : anyone can upload a KYC; its not equivalent to becoming an owner.
     function uploadKYC(string kychash) external {
-        KYCString[msg.sender].push(kychash);
+        kycString[msg.sender].push(kychash);
         emit UploadedKYC(msg.sender, kychash);
     }
 
@@ -332,7 +332,10 @@ contract XDCValidator {
     {
         address candidateOwner = getCandidateOwner(msg.sender);
         address _invalidMasternode = getCandidateOwner(_invalidCandidate);
-        require(!hasVotedInvalid[candidateOwner][_invalidMasternode]);
+        require(
+            !hasVotedInvalid[candidateOwner][_invalidMasternode],
+            "!hasVotedInvalid[candidateOwner][_invalidMasternode]"
+        );
         hasVotedInvalid[candidateOwner][_invalidMasternode] = true;
         invalidKYCCount[_invalidMasternode]++;
         if (
@@ -351,7 +354,7 @@ contract XDCValidator {
                     delete candidates[i];
 
                     delete validatorsState[candidates[i]];
-                    delete KYCString[_invalidMasternode];
+                    delete kycString[_invalidMasternode];
                     delete ownerToCandidate[_invalidMasternode];
                     delete invalidKYCCount[_invalidMasternode];
                 }
@@ -389,16 +392,16 @@ contract XDCValidator {
     ) public view returns (string memory) {
         if (isCandidate(_address)) {
             return
-                KYCString[getCandidateOwner(_address)][
-                    KYCString[getCandidateOwner(_address)].length - 1
+                kycString[getCandidateOwner(_address)][
+                    kycString[getCandidateOwner(_address)].length - 1
                 ];
         } else {
-            return KYCString[_address][KYCString[_address].length - 1];
+            return kycString[_address][kycString[_address].length - 1];
         }
     }
 
     function getHashCount(address _address) public view returns (uint256) {
-        return KYCString[_address].length;
+        return kycString[_address].length;
     }
 
     function withdraw(
