@@ -69,7 +69,7 @@ contract LiteCheckpoint {
      * 1. Verify subnet header meta information
      * 2. Verify subnet header certificates
      * 3. (Conditional) Update Committed Status for ancestor blocks
-     * 4. header0 always is gap/epoch and next headers is commit header0
+     * 4. header0 always gap/epoch and next headers is commit header0
      * @param list of rlp-encoded block headers.
      */
     function receiveHeader(bytes[] calldata headers) external {
@@ -78,7 +78,7 @@ contract LiteCheckpoint {
             "receiveHeader : Headers length must be greater than 0"
         );
         bytes memory header0 = headers[0];
-        saveEpoch(header0);
+        saveEpochOrGap(header0);
         //for commit header0 util
         if (headers.length > 1) {
             bytes32 blockHash = keccak256(header0);
@@ -100,17 +100,17 @@ contract LiteCheckpoint {
      * @param epochHash the gap/epoch block hash that need to continue commit ，util gap/epoch block hash committed
      * @param headers list of rlp-encoded block headers.
      */
-    function commitHeader(bytes32 epochHash, bytes[] memory headers) public {
+    function commitHeader(bytes32 hashToCommit, bytes[] memory headers) public {
         require(
             headers.length > 0,
             "commitHeader : Headers length must be greater than 0"
         );
 
-        require(epochHash != 0, "Error epoch hash");
-        bytes32 parenHash = unCommittedLastHash[epochHash];
+        require(hashToCommit != 0, "Error epoch hash");
+        bytes32 parenHash = unCommittedLastHash[hashToCommit];
         require(parenHash != 0, "EpochHash not found, may not have been saved");
 
-        UnCommittedHeaderInfo memory uc = getUnCommittedHeader(epochHash);
+        UnCommittedHeaderInfo memory uc = getUnCommittedHeader(hashToCommit);
 
         uint64 sequence = uc.sequence;
         uint64 lastRoundNum = uc.lastRoundNum;
@@ -143,22 +143,22 @@ contract LiteCheckpoint {
         }
 
         if (sequence >= 3) {
-            headerTree[epochHash] = clearLowest(headerTree[epochHash], 64);
-            headerTree[epochHash] |= block.number;
-            latestFinalizedBlock = epochHash;
-            delete unCommittedTree[epochHash];
-            delete unCommittedLastHash[epochHash];
+            headerTree[hashToCommit] = clearLowest(headerTree[hashToCommit], 64);
+            headerTree[hashToCommit] |= block.number;
+            latestFinalizedBlock = hashToCommit;
+            delete unCommittedTree[hashToCommit];
+            delete unCommittedLastHash[hashToCommit];
         } else {
-            unCommittedTree[epochHash] =
+            unCommittedTree[hashToCommit] =
                 (uint256(sequence) << 128) |
                 (uint256(lastRoundNum) << 64) |
                 uint256(lastNum);
             bytes32 blockHash = keccak256(headers[headers.length - 1]);
-            unCommittedLastHash[epochHash] = blockHash;
+            unCommittedLastHash[hashToCommit] = blockHash;
         }
     }
 
-    function saveEpoch(bytes memory header) private {
+    function saveEpochOrGap(bytes memory header) private {
         HeaderReader.ValidationParams memory validationParams = HeaderReader
             .getValidationParams(header);
 
