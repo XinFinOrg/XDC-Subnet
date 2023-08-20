@@ -642,7 +642,7 @@ library HeaderReader {
         address[] memory sortedList1 = sortList(list1);
         address[] memory sortedList2 = sortList(list2);
 
-        for (uint i = 0; i < sortedList1.length; i++) {
+        for (uint256 i = 0; i < sortedList1.length; i++) {
             if (sortedList1[i] != sortedList2[i]) {
                 return false;
             }
@@ -654,9 +654,9 @@ library HeaderReader {
     function sortList(
         address[] memory arr
     ) internal pure returns (address[] memory) {
-        uint len = arr.length;
-        for (uint i = 0; i < len; i++) {
-            for (uint j = 0; j < len - i - 1; j++) {
+        uint256 len = arr.length;
+        for (uint256 i = 0; i < len; i++) {
+            for (uint256 j = 0; j < len - i - 1; j++) {
                 if (arr[j] > arr[j + 1]) {
                     // swap arr[j] and arr[j+1]
                     address temp = arr[j];

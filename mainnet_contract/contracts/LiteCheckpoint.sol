@@ -25,9 +25,9 @@ contract LiteCheckpoint {
         address[] set;
         int256 threshold;
     }
-    //record uncommit gapPlusOne/epoch block commit last hash 
+    //record uncommit gapPlusOne/epoch block commit last hash
     //for example received 451 452 453 , the map is 451 hash => 453 hash
-    mapping(bytes32 => bytes32) private unCommittedLastHash; 
+    mapping(bytes32 => bytes32) private unCommittedLastHash;
     mapping(bytes32 => uint256) private unCommittedTree; // padding uint64 | uint64 sequence | uint64 lastRoundNum | uint64 lastNum
     mapping(bytes32 => uint256) private headerTree; // padding uint64 | uint64 number | uint64 roundNum | int64 mainnetNum
     mapping(uint64 => bytes32) private heightTree;
@@ -212,7 +212,6 @@ contract LiteCheckpoint {
                         revert("Mismatched Validators");
                     }
 
-                    for (uint256 i = 0; i < current.length; i++) {}
                     setLookup(validators[gapNumber].set);
                     currentValidators = validators[gapNumber];
                     latestEpoch = blockHash;
