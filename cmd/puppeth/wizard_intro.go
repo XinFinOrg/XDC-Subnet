@@ -106,7 +106,7 @@ func (w *wizard) run() {
 	// Basics done, loop ad infinitum about what to do
 	for {
 		fmt.Println()
-		fmt.Println("What would you like to do? (default = stats)")
+		fmt.Println("What would you like to do? (default = 2)")
 		fmt.Println(" 1. Show network stats")
 		if w.conf.Genesis == nil {
 			fmt.Println(" 2. Configure new genesis")
@@ -126,10 +126,10 @@ func (w *wizard) run() {
 
 		choice := w.read()
 		switch {
-		case choice == "" || choice == "1":
+		case choice == "1":
 			w.networkStats()
 
-		case choice == "2":
+		case choice == "" || choice == "2":
 			if w.conf.Genesis == nil {
 				w.makeGenesis()
 			} else {
