@@ -32,6 +32,13 @@ async function main() {
     "LiteCheckpoint"
   );
 
+  await sleep(10000)
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
   const checkpoint = await checkpointFactory.deploy(
     deploy["validators"],
     data1Encoded,

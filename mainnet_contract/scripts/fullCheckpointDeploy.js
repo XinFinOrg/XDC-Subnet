@@ -42,6 +42,13 @@ async function main() {
   const checkpointFactory = await hre.ethers.getContractFactory(
     "FullCheckpoint"
   );
+  
+  await sleep(10000)
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
   const checkpoint = await checkpointFactory.deploy(
     deploy["validators"],
