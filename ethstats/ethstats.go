@@ -480,7 +480,7 @@ func (s *Service) reportLatency(conn *websocket.Conn) error {
 		// Pong delivered, report the latency
 	case <-time.After(5 * time.Second):
 		// Ping timeout, abort
-		return errors.New("ping timed out")
+		// return errors.New("ping timed out") //temp-fix
 	}
 	latency := strconv.Itoa(int((time.Since(start) / time.Duration(2)).Nanoseconds() / 1000000))
 
