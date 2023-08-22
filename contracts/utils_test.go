@@ -48,7 +48,7 @@ var (
 
 func getCommonBackend() *backends.SimulatedBackend {
 	genesis := core.GenesisAlloc{acc1Addr: {Balance: big.NewInt(1000000000000)}}
-	backend := backends.NewXDCSimulatedBackend(genesis, 10000000, params.TestXDPoSMockChainConfig)
+	backend := backends.NewXDCSimulatedBackend(genesis, 10000000, params.TestXDPoSMockChainConfig, nil)
 	backend.Commit()
 
 	return backend

@@ -6,11 +6,11 @@ pragma solidity =0.8.19;
 // solidity-rlp-encode(https://github.com/bakaoh/solidity-rlp-encode)
 library HeaderReader {
     // Solidity-RLP defined constants and struct
-    uint8 constant STRING_SHORT_START = 0x80;
-    uint8 constant STRING_LONG_START = 0xb8;
-    uint8 constant LIST_SHORT_START = 0xc0;
-    uint8 constant LIST_LONG_START = 0xf8;
-    uint8 constant WORD_SIZE = 32;
+    uint8 private constant STRING_SHORT_START = 0x80;
+    uint8 private constant STRING_LONG_START = 0xb8;
+    uint8 private constant LIST_SHORT_START = 0xc0;
+    uint8 private constant LIST_LONG_START = 0xf8;
+    uint8 private constant WORD_SIZE = 32;
 
     struct RLPItem {
         uint256 len;
@@ -19,7 +19,7 @@ library HeaderReader {
 
     struct ValidationParams {
         bytes32 parentHash;
-        int number;
+        int256 number;
         uint64 roundNumber;
         uint64 prevRoundNumber;
         bytes32 signHash;
@@ -32,9 +32,9 @@ library HeaderReader {
      */
     function getParentHashAndNumber(
         bytes memory header
-    ) public pure returns (bytes32, int) {
+    ) internal pure returns (bytes32, int256) {
         RLPItem[] memory ls = toList(toRlpItem(header));
-        return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])));
+        return (toBytes32(toBytes(ls[0])), int256(toUint(ls[8])));
     }
 
     /*
@@ -43,13 +43,57 @@ library HeaderReader {
      */
     function getBlock1Params(
         bytes memory header
-    ) public pure returns (bytes32, int, uint64) {
+    ) internal pure returns (bytes32, int256, uint64) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
         );
-        uint64 round_number = uint64(toUint(extra[0]));
-        return (toBytes32(toBytes(ls[0])), int(toUint(ls[8])), round_number);
+        uint64 roundNumber = uint64(toUint(extra[0]));
+        return (toBytes32(toBytes(ls[0])), int256(toUint(ls[8])), roundNumber);
+    }
+
+    function getSignerList(
+        bytes memory header
+    ) internal pure returns (address[] memory) {
+        ValidationParams memory validationParams = getValidationParams(header);
+        address[] memory signerList = new address[](
+            validationParams.sigs.length
+        );
+        for (uint256 i = 0; i < validationParams.sigs.length; i++) {
+            address signer = recoverSigner(
+                validationParams.signHash,
+                validationParams.sigs[i]
+            );
+            signerList[i] = signer;
+        }
+        return signerList;
+    }
+
+    /// signature methods.
+    function splitSignature(
+        bytes memory sig
+    ) internal pure returns (uint8 v, bytes32 r, bytes32 s) {
+        require(sig.length == 65, "Invalid Signature : sig.length != 65");
+        assembly {
+            // first 32 bytes, after the length prefix.
+            r := mload(add(sig, 32))
+            // second 32 bytes.
+            s := mload(add(sig, 64))
+            // final byte (first byte of the next 32 bytes).
+            v := byte(0, mload(add(sig, 96)))
+        }
+        // TOCHECK: v needs 27 more, may related with EIP1559
+        return (v + 27, r, s);
+    }
+
+    function recoverSigner(
+        bytes32 message,
+        bytes memory sig
+    ) internal pure returns (address) {
+        (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
+        address signer = ecrecover(message, v, r, s);
+        require(signer != address(0), "ECDSA: invalid signature");
+        return signer;
     }
 
     /*
@@ -58,36 +102,36 @@ library HeaderReader {
      */
     function getValidationParams(
         bytes memory header
-    ) public pure returns (ValidationParams memory) {
+    ) internal pure returns (ValidationParams memory) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory extra = toList(
             toRlpItem(getExtraData(toBytes(ls[12])))
         );
-        uint64 round_number = uint64(toUint(extra[0]));
-        RLPItem[] memory proposed_block = toList(toList(extra[1])[0]);
-        bytes32 parent_hash = toBytes32(toBytes(proposed_block[0]));
-        uint64 parent_round_number = uint64(toUint(proposed_block[1]));
-        int parent_number = int(toUint(proposed_block[2]));
-        if (parent_hash != toBytes32(toBytes(ls[0]))) {
+        uint64 roundNumber = uint64(toUint(extra[0]));
+        RLPItem[] memory proposedBlock = toList(toList(extra[1])[0]);
+        bytes32 parentHash = toBytes32(toBytes(proposedBlock[0]));
+        uint64 parentRoundNumber = uint64(toUint(proposedBlock[1]));
+        int256 parentNumber = int256(toUint(proposedBlock[2]));
+        if (parentHash != toBytes32(toBytes(ls[0]))) {
             revert("Verification Failed");
         }
-        RLPItem[] memory raw_sigs = toList(toList(extra[1])[1]);
-        bytes[] memory sigs = new bytes[](raw_sigs.length);
-        for (uint i = 0; i < raw_sigs.length; i++) {
-            sigs[i] = toBytes(raw_sigs[i]);
+        RLPItem[] memory rawSigs = toList(toList(extra[1])[1]);
+        bytes[] memory sigs = new bytes[](rawSigs.length);
+        for (uint256 i = 0; i < rawSigs.length; i++) {
+            sigs[i] = toBytes(rawSigs[i]);
         }
         bytes32 signHash = createSignHash(
-            parent_hash,
-            parent_round_number,
-            parent_number,
+            parentHash,
+            parentRoundNumber,
+            parentNumber,
             uint64(toUint(toList(extra[1])[2]))
         );
         return
             ValidationParams(
                 toBytes32(toBytes(ls[0])),
-                int(toUint(ls[8])),
-                round_number,
-                parent_round_number,
+                int256(toUint(ls[8])),
+                roundNumber,
+                parentRoundNumber,
                 signHash,
                 sigs
             );
@@ -99,12 +143,12 @@ library HeaderReader {
      */
     function getEpoch(
         bytes memory header
-    ) public pure returns (address[] memory current, address[] memory next) {
+    ) internal pure returns (address[] memory current, address[] memory next) {
         RLPItem[] memory ls = toList(toRlpItem(header));
         RLPItem[] memory list0 = toList(ls[16]);
         if (list0.length > 0) {
             current = new address[](list0.length);
-            for (uint i = 0; i < list0.length; i++) {
+            for (uint256 i = 0; i < list0.length; i++) {
                 current[i] = toAddress(list0[i]);
             }
         }
@@ -112,17 +156,17 @@ library HeaderReader {
 
         if (list1.length > 0) {
             RLPItem[] memory list2 = toList(ls[18]);
-            address[] memory unique_addr = new address[](list2.length);
+            address[] memory uniqueAddr = new address[](list2.length);
             address[] memory penalty = new address[](list2.length);
-            uint counter = 0;
-            for (uint i = 0; i < list2.length; i++) {
+            uint256 counter = 0;
+            for (uint256 i = 0; i < list2.length; i++) {
                 penalty[i] = toAddress(list2[i]);
-                unique_addr[i] = penalty[i];
+                uniqueAddr[i] = penalty[i];
             }
             next = new address[](list1.length - list2.length);
-            for (uint i = 0; i < list1.length; i++) {
+            for (uint256 i = 0; i < list1.length; i++) {
                 address temp = toAddress(list1[i]);
-                if (!addressExist(unique_addr, temp)) {
+                if (!addressExist(uniqueAddr, temp)) {
                     next[counter] = temp;
                     counter++;
                 }
@@ -137,7 +181,7 @@ library HeaderReader {
     function addressExist(
         address[] memory list,
         address addr
-    ) public pure returns (bool) {
+    ) internal pure returns (bool) {
         for (uint256 i = 0; i < list.length; i++) {
             if (list[i] == addr) return true;
         }
@@ -150,10 +194,10 @@ library HeaderReader {
      */
     function getExtraData(
         bytes memory extra
-    ) public pure returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         bytes memory extraData = new bytes(extra.length - 1);
-        uint extraDataPtr;
-        uint extraPtr;
+        uint256 extraDataPtr;
+        uint256 extraPtr;
         assembly {
             extraDataPtr := add(extraData, 0x20)
         }
@@ -169,19 +213,19 @@ library HeaderReader {
      * @return hash of rlp-encoded of [[parentHash, parentRoundNum, parentNum], gapNum].
      */
     function createSignHash(
-        bytes32 block_hash,
-        uint64 round_num,
-        int number,
-        uint64 gap_num
+        bytes32 blockHash,
+        uint64 roundNum,
+        int256 number,
+        uint64 gapNum
     ) internal pure returns (bytes32 signHash) {
         bytes[] memory x = new bytes[](3);
-        x[0] = encodeBytes(abi.encodePacked(block_hash));
-        x[1] = encodeUint(round_num);
-        x[2] = encodeUint(uint(number));
+        x[0] = encodeBytes(abi.encodePacked(blockHash));
+        x[1] = encodeUint(roundNum);
+        x[2] = encodeUint(uint256(number));
 
         bytes[] memory y = new bytes[](2);
         y[0] = encodeList(x);
-        y[1] = encodeUint(gap_num);
+        y[1] = encodeUint(gapNum);
         signHash = keccak256(encodeList(y));
     }
 
@@ -254,7 +298,10 @@ library HeaderReader {
     }
 
     function toUint(RLPItem memory item) internal pure returns (uint256) {
-        require(item.len > 0 && item.len <= 33);
+        require(
+            item.len > 0 && item.len <= 33,
+            "item.len > 0 && item.len <= 33"
+        );
         uint256 memPtr;
         uint256 len;
         (memPtr, len) = payloadLocation(item);
@@ -274,7 +321,7 @@ library HeaderReader {
 
     function toAddress(RLPItem memory item) internal pure returns (address) {
         // 1 byte for the length prefix
-        require(item.len == 21);
+        require(item.len == 21, "item.len == 21");
 
         return address(uint160(toUint(item)));
     }
@@ -352,7 +399,7 @@ library HeaderReader {
     }
 
     function toBytes(RLPItem memory item) internal pure returns (bytes memory) {
-        require(item.len > 0);
+        require(item.len > 0, "item.len > 0");
         uint256 memPtr;
         uint256 len;
         (memPtr, len) = payloadLocation(item);
@@ -430,7 +477,7 @@ library HeaderReader {
      * @param self The uint to encode.
      * @return The RLP encoded uint in bytes.
      */
-    function encodeUint(uint self) internal pure returns (bytes memory) {
+    function encodeUint(uint256 self) internal pure returns (bytes memory) {
         return encodeBytes(toBinary(self));
     }
 
@@ -441,16 +488,16 @@ library HeaderReader {
      * @return RLP encoded bytes.
      */
     function encodeLength(
-        uint len,
-        uint offset
+        uint256 len,
+        uint256 offset
     ) internal pure returns (bytes memory) {
         bytes memory encoded;
         if (len < 56) {
             encoded = new bytes(1);
             encoded[0] = bytes32(len + offset)[31];
         } else {
-            uint lenLen;
-            uint i = 1;
+            uint256 lenLen;
+            uint256 i = 1;
             while (len / i != 0) {
                 lenLen++;
                 i *= 256;
@@ -470,19 +517,19 @@ library HeaderReader {
      * @param _x The integer to encode.
      * @return RLP encoded bytes.
      */
-    function toBinary(uint _x) internal pure returns (bytes memory) {
+    function toBinary(uint256 _x) internal pure returns (bytes memory) {
         bytes memory b = new bytes(32);
         assembly {
             mstore(add(b, 32), _x)
         }
-        uint i;
+        uint256 i;
         for (i = 0; i < 32; i++) {
             if (b[i] != 0) {
                 break;
             }
         }
         bytes memory res = new bytes(32 - i);
-        for (uint j = 0; j < res.length; j++) {
+        for (uint256 j = 0; j < res.length; j++) {
             res[j] = b[i++];
         }
         return res;
@@ -501,14 +548,14 @@ library HeaderReader {
             return new bytes(0);
         }
 
-        uint len;
-        uint i;
+        uint256 len;
+        uint256 i;
         for (i = 0; i < _list.length; i++) {
             len += _list[i].length;
         }
 
         bytes memory flattened = new bytes(len);
-        uint flattenedPtr;
+        uint256 flattenedPtr;
         assembly {
             flattenedPtr := add(flattened, 0x20)
         }
@@ -516,7 +563,7 @@ library HeaderReader {
         for (i = 0; i < _list.length; i++) {
             bytes memory item = _list[i];
 
-            uint listPtr;
+            uint256 listPtr;
             assembly {
                 listPtr := add(item, 0x20)
             }
@@ -582,5 +629,42 @@ library HeaderReader {
             )
         }
         return tempBytes;
+    }
+
+    function areListsEqual(
+        address[] memory list1,
+        address[] memory list2
+    ) internal pure returns (bool) {
+        if (list1.length != list2.length) {
+            return false;
+        }
+
+        address[] memory sortedList1 = sortList(list1);
+        address[] memory sortedList2 = sortList(list2);
+
+        for (uint256 i = 0; i < sortedList1.length; i++) {
+            if (sortedList1[i] != sortedList2[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function sortList(
+        address[] memory arr
+    ) internal pure returns (address[] memory) {
+        uint256 len = arr.length;
+        for (uint256 i = 0; i < len; i++) {
+            for (uint256 j = 0; j < len - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    // swap arr[j] and arr[j+1]
+                    address temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+        return arr;
     }
 }
