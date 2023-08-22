@@ -37,8 +37,6 @@ import (
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
-	blockSignerContract "github.com/XinFinOrg/XDC-Subnet/contracts/blocksigner"
-	randomizeContract "github.com/XinFinOrg/XDC-Subnet/contracts/randomize"
 	validatorContract "github.com/XinFinOrg/XDC-Subnet/contracts/validator"
 	"github.com/XinFinOrg/XDC-Subnet/crypto"
 	"github.com/XinFinOrg/XDC-Subnet/rlp"
@@ -48,16 +46,13 @@ type GenesisInput struct {
 	Name                 string
 	Period               uint64
 	Reward               uint64
-	SwitchBlock          big.Int
 	TimeoutPeriod        int
 	TimeoutSyncThreshold int
 	CertThreshold        int
-	Owner                common.Address
 	Grandmasters         []common.Address
 	Masternodes          []common.Address
 	Epoch                uint64
 	Gap                  uint64
-	FoudationWalletAddr  common.Address // use Grandmaster[0]
 	PreFundedAccounts    []common.Address
 	ChainId              uint64
 }
@@ -67,7 +62,6 @@ func NewGenesisInput() *GenesisInput {
 		Name:                 "subnet",
 		Period:               2,
 		Reward:               2,
-		SwitchBlock:          *big.NewInt(0),
 		TimeoutPeriod:        10,
 		TimeoutSyncThreshold: 3,
 		CertThreshold:        common.MaxMasternodes*2/3 + 1,
@@ -78,9 +72,6 @@ func NewGenesisInput() *GenesisInput {
 }
 
 func SetDefaultAfterInputRead(input *GenesisInput) {
-	input.Owner = input.Grandmasters[0]
-	input.FoudationWalletAddr = input.Grandmasters[0]
-	input.PreFundedAccounts = input.Grandmasters
 	//if no cert threshold provided, use 2/3 of masternode len
 	if input.CertThreshold == common.MaxMasternodes*2/3+1 {
 		input.CertThreshold = int(math.Ceil(float64(len(input.Masternodes)) * 2.0 / 3.0))
@@ -142,9 +133,11 @@ func (w *wizard) makeGenesisFile() {
 		Epoch:  30000,
 		Reward: 0,
 		V2: &params.V2{
-			SwitchBlock:   big.NewInt(0),
-			CurrentConfig: &params.V2Config{},
-			AllConfigs:    make(map[uint64]*params.V2Config),
+			SwitchBlock: big.NewInt(0),
+			CurrentConfig: &params.V2Config{
+				SwitchRound: 0,
+			},
+			AllConfigs: make(map[uint64]*params.V2Config),
 		},
 	}
 	fmt.Println()
@@ -159,13 +152,6 @@ func (w *wizard) makeGenesisFile() {
 	// genesis.Config.XDPoS.Reward = uint64(w.readDefaultInt(10))
 	fmt.Println(input.Reward)
 	genesis.Config.XDPoS.Reward = input.Reward
-
-	fmt.Println()
-	fmt.Println("Which block number start v2 consesus? (default = 0)")
-	// genesis.Config.XDPoS.V2.SwitchBlock = w.readDefaultBigInt(genesis.Config.XDPoS.V2.SwitchBlock)
-	fmt.Println(input.SwitchBlock)
-	genesis.Config.XDPoS.V2.SwitchBlock = &input.SwitchBlock
-	genesis.Config.XDPoS.V2.CurrentConfig.SwitchRound = 0
 
 	fmt.Println()
 	fmt.Println("How long is the v2 timeout period? (default = 10)")
@@ -183,65 +169,48 @@ func (w *wizard) makeGenesisFile() {
 	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodes/3*2+1)
 	// genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = w.readDefaultInt(common.MaxMasternodes/3*2 + 1)
 	fmt.Println(input.CertThreshold)
-	genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = input.CertThreshold
+	minCandidateThreshold := input.CertThreshold
+	genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = minCandidateThreshold
 
 	genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
-
-	fmt.Println()
-	fmt.Println("Who own the first masternodes? (mandatory)")
-	// owner := *w.readAddress()
-	fmt.Println(input.Owner)
-	owner := input.Owner
 
 	// We also need the grand master address
 	fmt.Println()
 	fmt.Println("Which accounts are allowed to regulate masternodes (grand master nodes)? (mandatory at least one)")
-
-	// var grandMasters []common.Address
-	// for {
-	// 	if address := w.readAddress(); address != nil {
-	// 		grandMasters = append(grandMasters, *address)
-	// 		continue
-	// 	}
-	// 	if len(grandMasters) > 0 {
-	// 		break
-	// 	}
-	// }
 	fmt.Println(input.Grandmasters)
 	grandMasters := input.Grandmasters
+	owner := input.Grandmasters[0]
 
 	// We also need the initial list of signers
 	fmt.Println()
 	fmt.Println("Which accounts are masternodes? (mandatory at least one)")
 
-	// var signers []common.Address
-	// for {
-	// 	if address := w.readAddress(); address != nil {
-	// 		signers = append(signers, *address)
-	// 		continue
-	// 	}
-	// 	if len(signers) > 0 {
-	// 		break
-	// 	}
-	// }
-	// // Sort the signers and embed into the extra-data section
-	// for i := 0; i < len(signers); i++ {
-	// 	for j := i + 1; j < len(signers); j++ {
-	// 		if bytes.Compare(signers[i][:], signers[j][:]) > 0 {
-	// 			signers[i], signers[j] = signers[j], signers[i]
-	// 		}
-	// 	}
-	// }
 	fmt.Println(input.Masternodes)
-	signers := input.Masternodes
-	genesis.Validators = signers
-	genesis.NextValidators = signers
+	candidates := input.Masternodes
+
+	// Sort the signers and embed into the extra-data section
+	for i := 0; i < len(candidates); i++ {
+		for j := i + 1; j < len(candidates); j++ {
+			if bytes.Compare(candidates[i][:], candidates[j][:]) > 0 {
+				candidates[i], candidates[j] = candidates[j], candidates[i]
+			}
+		}
+	}
+	// De-duplicate signers
+	for i := 0; i < len(candidates)-1; i++ {
+		if bytes.Equal(candidates[i][:], candidates[i+1][:]) {
+			log.Crit("masternodes contain duplicate address")
+		}
+	}
+
+	genesis.Validators = candidates
+	genesis.NextValidators = candidates
 
 	validatorCap := new(big.Int)
-	validatorCap.SetString("50000000000000000000000", 10)
+	validatorCap.SetString(validatorContract.MinCandidateCap, 10)
 	var validatorCaps []*big.Int
-	genesis.ExtraData = make([]byte, 32+len(signers)*common.AddressLength+65)
-	for i, signer := range signers {
+	genesis.ExtraData = make([]byte, 32+len(candidates)*common.AddressLength+65)
+	for i, signer := range candidates {
 		validatorCaps = append(validatorCaps, validatorCap)
 		copy(genesis.ExtraData[32+i*common.AddressLength:], signer[:])
 	}
@@ -264,16 +233,16 @@ func (w *wizard) makeGenesisFile() {
 	fmt.Println()
 	fmt.Println("What is foundation wallet address? (default = xdc0000000000000000000000000000000000000068)")
 	// genesis.Config.XDPoS.FoudationWalletAddr = w.readDefaultAddress(common.HexToAddress(common.FoudationAddr))
-	fmt.Println(input.FoudationWalletAddr)
-	genesis.Config.XDPoS.FoudationWalletAddr = input.FoudationWalletAddr
+	fmt.Println(input.Grandmasters[0])
+	genesis.Config.XDPoS.FoudationWalletAddr = input.Grandmasters[0]
 
 	// Validator Smart Contract Code
 	pKey, _ := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	addr := crypto.PubkeyToAddress(pKey.PublicKey)
-	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig)
+	contractBackend := backends.NewXDCSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(1000000000)}}, 10000000, params.TestXDPoSMockChainConfig, nil)
 	transactOpts := bind.NewKeyedTransactor(pKey)
 
-	validatorAddress, _, err := validatorContract.DeployValidator(transactOpts, contractBackend, signers, validatorCaps, owner, grandMasters)
+	validatorAddress, _, err := validatorContract.DeployValidator(transactOpts, contractBackend, candidates, validatorCaps, owner, grandMasters, int64(minCandidateThreshold))
 	if err != nil {
 		fmt.Println("Can't deploy root registry")
 	}
@@ -302,149 +271,30 @@ func (w *wizard) makeGenesisFile() {
 		Storage: storage,
 	}
 
-	fmt.Println()
-	fmt.Println("Which accounts are allowed to confirm in Foudation MultiSignWallet?")
-	// var owners []common.Address
-	// for {
-	// 	if address := w.readAddress(); address != nil {
-	// 		owners = append(owners, *address)
-	// 		continue
-	// 	}
-	// 	if len(owners) > 0 {
-	// 		break
-	// 	}
-	// }
-	var owners []common.Address
-	owners = append(owners, common.StringToAddress("1111111111111111111111111111111111111111")) //unused feature, leave random
-	fmt.Println(owners)
-	fmt.Println()
-	fmt.Println("How many require for confirm tx in Foudation MultiSignWallet? (default = 2)")
-	// required := int64(w.readDefaultInt(2))
-	required := int64(2)
-	fmt.Println(required)
-	// MultiSigWallet.
-	// multiSignWalletAddr, _, err := multiSignWalletContract.DeployMultiSigWallet(transactOpts, contractBackend, owners, big.NewInt(required))
-	// if err != nil {
-	// 	fmt.Println("Can't deploy MultiSignWallet SMC.", err)
-	// }
-	// contractBackend.Commit()
-	// code, _ = contractBackend.CodeAt(ctx, multiSignWalletAddr, nil)
-	// storage = make(map[common.Hash]common.Hash)
-	// contractBackend.ForEachStorageAt(ctx, multiSignWalletAddr, nil, f)
-	// fBalance := big.NewInt(0) // 16m
-	// fBalance.Add(fBalance, big.NewInt(16*1000*1000))
-	// fBalance.Mul(fBalance, big.NewInt(1000000000000000000))
-	// genesis.Alloc[common.HexToAddress(common.FoudationAddr)] = core.GenesisAccount{
-	// 	Balance: fBalance,
-	// 	Code:    code,
-	// 	Storage: storage,
-	// }
-
-	// Block Signers Smart Contract
-	blockSignerAddress, _, err := blockSignerContract.DeployBlockSigner(transactOpts, contractBackend, big.NewInt(int64(epochNumber)))
-	if err != nil {
-		fmt.Println("Can't deploy root registry")
-	}
-	contractBackend.Commit()
-
-	code, _ = contractBackend.CodeAt(ctx, blockSignerAddress, nil)
-	storage = make(map[common.Hash]common.Hash)
-	contractBackend.ForEachStorageAt(ctx, blockSignerAddress, nil, f)
-	genesis.Alloc[common.HexToAddress(common.BlockSigners)] = core.GenesisAccount{
-		Balance: big.NewInt(0),
-		Code:    code,
-		Storage: storage,
-	}
-
-	// Randomize Smart Contract Code
-	randomizeAddress, _, err := randomizeContract.DeployRandomize(transactOpts, contractBackend)
-	if err != nil {
-		fmt.Println("Can't deploy root registry")
-	}
-	contractBackend.Commit()
-
-	code, _ = contractBackend.CodeAt(ctx, randomizeAddress, nil)
-	storage = make(map[common.Hash]common.Hash)
-	contractBackend.ForEachStorageAt(ctx, randomizeAddress, nil, f)
-	genesis.Alloc[common.HexToAddress(common.RandomizeSMC)] = core.GenesisAccount{
-		Balance: big.NewInt(0),
-		Code:    code,
-		Storage: storage,
-	}
-
-	fmt.Println()
-	fmt.Println("Which accounts are allowed to confirm in Team MultiSignWallet?")
-	// var teams []common.Address
-	// for {
-	// 	if address := w.readAddress(); address != nil {
-	// 		teams = append(teams, *address)
-	// 		continue
-	// 	}
-	// 	if len(teams) > 0 {
-	// 		break
-	// 	}
-	// }
-	var teams []common.Address
-	teams = append(teams, common.StringToAddress("1111111111111111111111111111111111111111")) //unused feature, leave random
-	fmt.Println(teams)
-	fmt.Println()
-	fmt.Println("How many require for confirm tx in Team MultiSignWallet? (default = 2)")
-	required = int64(2)
-	fmt.Println(required)
-	// // MultiSigWallet.
-	// multiSignWalletTeamAddr, _, err := multiSignWalletContract.DeployMultiSigWallet(transactOpts, contractBackend, teams, big.NewInt(required))
-	// if err != nil {
-	// 	fmt.Println("Can't deploy MultiSignWallet SMC.", err)
-	// }
-	// contractBackend.Commit()
-	// code, _ = contractBackend.CodeAt(ctx, multiSignWalletTeamAddr, nil)
-	// storage = make(map[common.Hash]common.Hash)
-	// contractBackend.ForEachStorageAt(ctx, multiSignWalletTeamAddr, nil, f)
-	// // Team balance.
-	// balance := big.NewInt(0) // 12m
-	// balance.Add(balance, big.NewInt(12*1000*1000))
-	// balance.Mul(balance, big.NewInt(1000000000000000000))
-	// subBalance := big.NewInt(0) // i * 50k
-	// subBalance.Add(subBalance, big.NewInt(int64(len(signers))*50*1000))
-	// subBalance.Mul(subBalance, big.NewInt(1000000000000000000))
-	// balance.Sub(balance, subBalance) // 12m - i * 50k
-	// genesis.Alloc[common.HexToAddress(common.TeamAddr)] = core.GenesisAccount{
-	// 	Balance: balance,
-	// 	Code:    code,
-	// 	Storage: storage,
-	// }
-
-	fmt.Println()
-	fmt.Println("What is swap wallet address for fund 55m XDC?")
-	// swapAddr := *w.readAddress()
-	swapAddr := common.StringToAddress("1111111111111111111111111111111111111111") //unused feature, leave random
-	fmt.Println(swapAddr)
-	baseBalance := big.NewInt(0) // 55m
-	baseBalance.Add(baseBalance, big.NewInt(55*1000*1000))
-	baseBalance.Mul(baseBalance, big.NewInt(1000000000000000000))
-	genesis.Alloc[swapAddr] = core.GenesisAccount{
-		Balance: baseBalance,
-	}
-
 	// Consensus all set, just ask for initial funds and go
 	fmt.Println()
-	fmt.Println("Which accounts should be pre-funded? (advisable at least one)")
-	// for {
-	// 	// Read the address of the account to fund
-	// 	if address := w.readAddress(); address != nil {
-	// 		genesis.Alloc[*address] = core.GenesisAccount{
-	// 			Balance: new(big.Int).Lsh(big.NewInt(1), 256-7), // 2^256 / 128 (allow many pre-funds without balance overflows)
-	// 		}
-	// 		continue
-	// 	}
-	// 	break
-	// }
+	fmt.Println("Pre-funding grand master nodes...")
+	exponent := uint(256 - 7)
+	for i := 0; i < len(grandMasters); i++ {
+		// Read the address of the account to fund
+		address := grandMasters[i]
+		genesis.Alloc[address] = core.GenesisAccount{
+			Balance: new(big.Int).Lsh(big.NewInt(1), exponent), // 2^256 / 128 (allow many pre-funds without balance overflows)
+		}
+		fmt.Printf("Pre-fund grand master node %s with 2^%d tokens\n", address.Hex(), exponent-18)
+	}
+	fmt.Println()
+
+	fmt.Println()
+	fmt.Println("Which accounts should be pre-funded? (other than grand master nodes)")
+
 	fmt.Println(input.PreFundedAccounts)
 	address := input.PreFundedAccounts
 	for _, value := range address {
 		genesis.Alloc[value] = core.GenesisAccount{
 			Balance: new(big.Int).Lsh(big.NewInt(1), 256-7), // 2^256 / 128 (allow many pre-funds without balance overflows)
 		}
+		fmt.Printf("Pre-fund node %s with 2^%d tokens\n", value.Hex(), exponent-18)
 	}
 
 	// Add a batch of precompile balances to avoid them getting deleted
