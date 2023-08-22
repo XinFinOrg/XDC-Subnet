@@ -222,5 +222,9 @@ describe("XDCValidator", () => {
       );
       expect(afterBalance).to.eq(beforeBalance.sub(withdrawCap));
     });
+    it("directly resign one candidate", async () => {
+      const candidate = await ethers.Wallet.createRandom().getAddress();
+      console.log(candidate);
+    });
   });
 });
