@@ -4,9 +4,9 @@ const deploy = {
   candidates: [
     "0xf0AbABbb043792D8cDAf1961c96758932189965D",
     "0xf43988206b1F23cBECe8EA835F31FA97EB1a73fd",
+    "0xF5D476D1566e102d4591Fc11D93E2F0B1FB82C70",
   ],
-  caps: ["10000000000000000000000000", "10000000000000000000000000"],
-  firstOwner: "0x662696e1f7925b68b4f6f440977d1da2b1b8d3f6",
+  caps: ["10000000000000000000000000", "10000000000000000000000000", "100"],
   minCandidateCap: "10000000000000000000000000",
   minVoterCap: "25000000000000000000000",
   maxValidatorNumber: 18,
@@ -34,7 +34,7 @@ describe("XDCValidator", () => {
       deploy["caps"].map((item) => {
         return hre.ethers.utils.parseUnits(item, 0);
       }),
-      deploy["firstOwner"],
+      master,
       hre.ethers.utils.parseUnits(deploy["minCandidateCap"], 0),
       hre.ethers.utils.parseUnits(deploy["minVoterCap"], 0),
       deploy["maxValidatorNumber"],
@@ -221,6 +221,17 @@ describe("XDCValidator", () => {
         xdcValidator.address
       );
       expect(afterBalance).to.eq(beforeBalance.sub(withdrawCap));
+    });
+    it("directly resign one candidate", async () => {
+      const oldCandidates = await xdcValidator.getCandidates();
+
+      await xdcValidator.resign("0xF5D476D1566e102d4591Fc11D93E2F0B1FB82C70");
+      const newCandidates = await xdcValidator.getCandidates();
+      expect(oldCandidates).to.deep.eq(deploy["candidates"]);
+      expect(newCandidates).to.deep.eq([
+        "0xf0AbABbb043792D8cDAf1961c96758932189965D",
+        "0xf43988206b1F23cBECe8EA835F31FA97EB1a73fd",
+      ]);
     });
   });
 });
