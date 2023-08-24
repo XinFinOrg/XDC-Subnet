@@ -609,7 +609,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "3711bab9f33dd5a8e8ad970d11bb58f55c61c6deb9070cc0d7a972d439837639"
+		merkleRoot = "4de5b7decb41a4aa648140d0fecb169bd22f07e92be20cf63397111f48653bdc"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()
