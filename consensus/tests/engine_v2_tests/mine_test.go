@@ -128,9 +128,9 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	stateRoot := "238cda75adb6630d1b7ac209012cc95f258fb84fa2b7a14e1c02a092955fc73d"
+	merkleRoot := "238cda75adb6630d1b7ac209012cc95f258fb84fa2b7a14e1c02a092955fc73d"
 	header := &types.Header{
-		Root:       common.HexToHash(stateRoot),
+		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(1350)),
 		ParentHash: currentBlock.Hash(),
 		Coinbase:   common.HexToAddress(blockCoinbaseA),
@@ -150,7 +150,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		blockCoinbase := fmt.Sprintf("0xaaa000000000000000000000000000000000%4d", i)
 		//Get from block validator error message
 		header = &types.Header{
-			Root:       common.HexToHash(stateRoot),
+			Root:       common.HexToHash(merkleRoot),
 			Number:     big.NewInt(int64(i)),
 			ParentHash: parentBlock.Hash(),
 			Coinbase:   common.HexToAddress(blockCoinbase),
