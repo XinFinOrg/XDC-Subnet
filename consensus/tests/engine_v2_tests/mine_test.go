@@ -128,7 +128,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	stateRoot := "7ea98348690ef1c2e04107adeabeb93c678895aba0ae403b338747314b9afbd2"
+	stateRoot := "238cda75adb6630d1b7ac209012cc95f258fb84fa2b7a14e1c02a092955fc73d"
 	header := &types.Header{
 		Root:       common.HexToHash(stateRoot),
 		Number:     big.NewInt(int64(1350)),
