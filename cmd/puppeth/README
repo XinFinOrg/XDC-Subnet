@@ -1,0 +1,32 @@
+Genesis generation by file input can be done by using 'puppeth --file <file_path>' command.
+The input file should be in YAML format as the following example.
+---
+name: testsubnet
+certthreshold: 4
+grandmasters:
+  - '0x2A5300279D134f7bee1A7ab1930B70d9473eAB8b'
+masternodes:
+  - '0x74aDeAbE0a4f9242E49B801A71A63e4f6cbE0850'
+  - '0xAA3AB1fd09722c90e842691456d9e45e6817086e'
+  - '0x40E7901e83b85c57D5665174854e3A6e640160cA'
+  - '0xeC33a919BC24f0D4E62B53ADAcD7563Ab29E6f42'
+  - '0x35516668bE8595950Bc1025265aaf68C18c17d48'
+chainid: 34908
+---
+
+
+Below are all the available configs and their defaults. Code is in GenesisInput struct, wizard_genesis_file.go.
+---
+name: subnet
+period: 2
+reward: 2
+timeoutperiod: 10
+timeoutsyncthreshold: 3
+certthrehold: len(masternodes) * 2/3
+grandmasters:	(default empty)
+	- '0x0000000000000000000000000000000000000000'
+masternodes: (default empty)
+  - '0x0000000000000000000000000000000000000000'
+epoch: 900
+gap: 450
+chainid: 112
