@@ -24,7 +24,7 @@ timeoutperiod: 10
 timeoutsyncthreshold: 3
 certthrehold: len(masternodes) * 2/3
 grandmasters:	(default empty)
-	- '0x0000000000000000000000000000000000000000'
+  - '0x0000000000000000000000000000000000000000'
 masternodes: (default empty)
   - '0x0000000000000000000000000000000000000000'
 epoch: 900
