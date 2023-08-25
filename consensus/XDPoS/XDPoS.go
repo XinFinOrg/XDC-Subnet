@@ -315,8 +315,7 @@ func (x *XDPoS) GetSnapshot(chain consensus.ChainReader, header *types.Header) (
 }
 
 func (x *XDPoS) GetAuthorisedSignersFromSnapshot(chain consensus.ChainReader, header *types.Header) ([]common.Address, error) {
-	// Legacy V1 function
-	return []common.Address{}, nil
+	return x.EngineV2.GetSignersFromSnapshot(chain, header)
 }
 
 func (x *XDPoS) FindParentBlockToAssign(chain consensus.ChainReader, currentBlock *types.Block) *types.Block {

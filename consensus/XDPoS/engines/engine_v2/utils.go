@@ -6,6 +6,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/crypto"
 	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
@@ -156,4 +157,9 @@ func (x *XDPoS_v2) GetRoundNumber(header *types.Header) (types.Round, error) {
 		}
 		return decodedExtraField.Round, nil
 	}
+}
+
+func (x *XDPoS_v2) GetSignersFromSnapshot(chain consensus.ChainReader, header *types.Header) ([]common.Address, error) {
+	snap, err := x.getSnapshot(chain, header.Number.Uint64(), false)
+	return snap.NextEpochMasterNodes, err
 }
