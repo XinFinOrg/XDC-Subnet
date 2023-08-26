@@ -50,9 +50,8 @@ type NetworkInformation struct {
 	NetworkId                  *big.Int
 	XDCValidatorAddress        common.Address
 	RelayerRegistrationAddress common.Address
-	XDCXListingAddress         common.Address
-	XDCZAddress                common.Address
-	LendingAddress             common.Address
+	Denom                      string
+	NetworkName                string
 }
 
 type SignerTypes struct {
@@ -267,17 +266,8 @@ func (api *API) NetworkInformation() NetworkInformation {
 	info := NetworkInformation{}
 	info.NetworkId = api.chain.Config().ChainId
 	info.XDCValidatorAddress = common.HexToAddress(common.MasternodeVotingSMC)
-	if common.IsTestnet {
-		info.LendingAddress = common.HexToAddress(common.LendingRegistrationSMCTestnet)
-		info.RelayerRegistrationAddress = common.HexToAddress(common.RelayerRegistrationSMCTestnet)
-		info.XDCXListingAddress = common.XDCXListingSMCTestNet
-		info.XDCZAddress = common.TRC21IssuerSMCTestNet
-	} else {
-		info.LendingAddress = common.HexToAddress(common.LendingRegistrationSMC)
-		info.RelayerRegistrationAddress = common.HexToAddress(common.RelayerRegistrationSMC)
-		info.XDCXListingAddress = common.XDCXListingSMC
-		info.XDCZAddress = common.TRC21IssuerSMC
-	}
+	info.Denom = api.chain.Config().XDPoS.Denom
+	info.NetworkName = api.chain.Config().XDPoS.NetworkName
 	return info
 }
 
