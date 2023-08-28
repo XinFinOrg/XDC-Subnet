@@ -157,9 +157,7 @@ contract XDCValidator {
             vs.cap = _caps[i];
             voters[_candidates[i]].push(_firstOwner);
             ownerToCandidate[_firstOwner].push(_candidates[i]);
-            validatorsState[_candidates[i]].voters[
-                _firstOwner
-            ] = minCandidateCap;
+            validatorsState[_candidates[i]].voters[_firstOwner] = _caps[i];
         }
         for (i = 0; i < _grandMasters.length; i++) {
             grandMasters.push(_grandMasters[i]);
