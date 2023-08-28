@@ -44,6 +44,7 @@ import (
 
 type GenesisInput struct {
 	Name                 string
+	Denom                string
 	Period               uint64
 	Reward               uint64
 	TimeoutPeriod        int
@@ -59,7 +60,8 @@ type GenesisInput struct {
 
 func NewGenesisInput() *GenesisInput {
 	return &GenesisInput{
-		Name:                 "subnet",
+		Name:                 "xdc-subnet",
+		Denom:                "0x",
 		Period:               2,
 		Reward:               2,
 		TimeoutPeriod:        10,
@@ -124,9 +126,8 @@ func (w *wizard) makeGenesisFile() {
 			log.Error("I also like to live dangerously, still no spaces or hyphens")
 		}
 	}
+
 	log.Info("Administering Ethereum network", "name", w.network)
-	w.network = input.Name
-	genesis.Name = w.network
 	genesis.Difficulty = big.NewInt(1)
 	genesis.Config.XDPoS = &params.XDPoSConfig{
 		Period: 15,
@@ -140,6 +141,9 @@ func (w *wizard) makeGenesisFile() {
 			AllConfigs: make(map[uint64]*params.V2Config),
 		},
 	}
+	w.network = input.Name
+	genesis.Config.XDPoS.NetworkName = input.Name
+	genesis.Config.XDPoS.Denom = input.Denom
 	fmt.Println()
 	fmt.Println("How many seconds should blocks take? (default = 2)")
 	// genesis.Config.XDPoS.Period = uint64(w.readDefaultInt(2))
