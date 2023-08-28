@@ -232,6 +232,8 @@ var (
 				AllConfigs:       UnitTestV2Configs,
 				SkipV2Validation: true,
 			},
+			Denom:       "xdc",
+			NetworkName: "xdc-subnet",
 		},
 	}
 
@@ -297,6 +299,8 @@ type XDPoSConfig struct {
 	FoudationWalletAddr common.Address `json:"foudationWalletAddr"` // Foundation Address Wallet
 	SkipV1Validation    bool           //Skip Block Validation for testing purpose, V1 consensus only
 	V2                  *V2            `json:"v2"`
+	Denom               string         `json:"denom"`       // The denomination of the chain currency
+	NetworkName         string         `json:"networkname"` // The chain network name
 }
 
 type V2 struct {

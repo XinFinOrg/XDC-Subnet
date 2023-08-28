@@ -73,6 +73,15 @@ func (w *wizard) makeGenesis() {
 			AllConfigs: make(map[uint64]*params.V2Config),
 		},
 	}
+
+	fmt.Println()
+	fmt.Println("What's the name of the subnet chain? (default = xdc-subnet)")
+	genesis.Config.XDPoS.NetworkName = w.readDefaultString("xdc-subnet")
+
+	fmt.Println()
+	fmt.Println("What's the name of the chain denomination? (default = 0x)")
+	genesis.Config.XDPoS.Denom = w.readDefaultString("0x")
+
 	fmt.Println()
 	fmt.Println("How many seconds should blocks take? (default = 2)")
 	genesis.Config.XDPoS.Period = uint64(w.readDefaultInt(2))
