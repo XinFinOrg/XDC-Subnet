@@ -12,6 +12,7 @@ import (
 
 var _ = (*receiptMarshaling)(nil)
 
+// MarshalJSON marshals as JSON.
 func (r Receipt) MarshalJSON() ([]byte, error) {
 	type Receipt struct {
 		PostState         hexutil.Bytes  `json:"root"`
@@ -35,6 +36,7 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (r *Receipt) UnmarshalJSON(input []byte) error {
 	type Receipt struct {
 		PostState         *hexutil.Bytes  `json:"root"`

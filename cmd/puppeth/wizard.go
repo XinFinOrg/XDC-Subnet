@@ -63,12 +63,14 @@ func (c config) flush() {
 	os.MkdirAll(filepath.Dir(c.path), 0755)
 
 	out, _ := json.MarshalIndent(c.Genesis, "", "  ")
+	log.Warn("writing to file", "filename", c.path)
 	if err := ioutil.WriteFile(c.path, out, 0644); err != nil {
 		log.Warn("Failed to save puppeth configs", "file", c.path, "err", err)
 	}
 }
 
 type wizard struct {
+	options flagOptions
 	network string // Network name to manage
 	conf    config // Configurations from previous runs
 

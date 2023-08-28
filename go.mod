@@ -17,7 +17,7 @@ require (
 	github.com/elastic/gosigar v0.10.5
 	github.com/ethereum/go-ethereum v1.9.9
 	github.com/fatih/color v1.6.0
-	github.com/fjl/gencodec v0.0.0-20220412091415-8bb9e558978c // indirect
+	github.com/fjl/gencodec v0.0.0-20230517082657-f9840df7b83e // indirect
 	github.com/gizak/termui v2.2.0+incompatible
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-stack/stack v1.8.0
@@ -64,5 +64,6 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
 	gopkg.in/olebedev/go-duktape.v3 v3.0.0-20190213234257-ec84240a7772
 	gopkg.in/urfave/cli.v1 v1.20.0
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 	gotest.tools v2.2.0+incompatible
 )
