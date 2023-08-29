@@ -291,6 +291,8 @@ func (c *CliqueConfig) String() string {
 
 // XDPoSConfig is the consensus engine configs for delegated-proof-of-stake based sealing.
 type XDPoSConfig struct {
+	NetworkName         string         `json:"networkName"`         // The chain network name
+	Denom               string         `json:"denom"`               // The denomination of the chain currency
 	Period              uint64         `json:"period"`              // Number of seconds between blocks to enforce
 	Epoch               uint64         `json:"epoch"`               // Epoch length to reset votes and checkpoint
 	Reward              uint64         `json:"reward"`              // Block reward - unit Ether
@@ -299,8 +301,6 @@ type XDPoSConfig struct {
 	FoudationWalletAddr common.Address `json:"foudationWalletAddr"` // Foundation Address Wallet
 	SkipV1Validation    bool           //Skip Block Validation for testing purpose, V1 consensus only
 	V2                  *V2            `json:"v2"`
-	Denom               string         `json:"denom"`       // The denomination of the chain currency
-	NetworkName         string         `json:"networkname"` // The chain network name
 }
 
 type V2 struct {
