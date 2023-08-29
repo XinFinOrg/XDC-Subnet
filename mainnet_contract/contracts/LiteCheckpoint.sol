@@ -41,18 +41,20 @@ contract LiteCheckpoint {
 
     string public constant MODE = "lite";
     uint64 public epochNum;
-    uint64 public immutable INIT_GAP;
-    uint64 public immutable INIT_EPOCH;
+    uint64 public INIT_STATUS;
+    uint64 public INIT_GAP;
+    uint64 public INIT_EPOCH;
 
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
 
-    constructor(
+    function init(
         address[] memory initialValidatorSet,
         bytes memory block1,
         uint64 initGap,
         uint64 initEpoch
-    ) {
+    ) public {
+        require(INIT_STATUS == 0, "Already init");
         require(initialValidatorSet.length > 0, "Validator Empty");
         bytes32 block1HeaderHash = keccak256(block1);
         validators[1] = Validators({
@@ -64,6 +66,7 @@ contract LiteCheckpoint {
         latestEpoch = block1HeaderHash;
         INIT_GAP = initGap;
         INIT_EPOCH = initEpoch;
+        INIT_STATUS = 1;
     }
 
     /*

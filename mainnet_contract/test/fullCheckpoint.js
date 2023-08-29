@@ -33,7 +33,8 @@ describe("checkpoint", () => {
 
   const fixture = async () => {
     const factory = await ethers.getContractFactory("FullCheckpoint");
-    const checkpoint = await factory.deploy(
+    const checkpoint = await factory.deploy();
+    await checkpoint.init(
       [
         "0x10982668af23d3e4b8d26805543618412ac724d4",
         "0x6f3c1d8ba6cc6b6fb6387b0fe5d2d37a822b2614",
@@ -61,7 +62,8 @@ describe("checkpoint", () => {
       []
     );
 
-    const custom = await factory.deploy(
+    const custom = await factory.deploy();
+    await custom.init(
       customValidators.map((item) => {
         return item.address;
       }),

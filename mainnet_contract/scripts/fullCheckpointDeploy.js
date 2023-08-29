@@ -43,16 +43,17 @@ async function main() {
     "FullCheckpoint"
   );
 
-  const checkpoint = await checkpointFactory.deploy(
+  const checkpoint = await checkpointFactory.deploy();
+
+  await checkpoint.deployed();
+
+  await checkpoint.init(
     deploy["validators"],
     data0Encoded,
     data1Encoded,
     deploy["gap"],
     deploy["epoch"]
   );
-
-  await checkpoint.deployed();
-
   console.log("checkpoint deployed to:", checkpoint.address);
 }
 

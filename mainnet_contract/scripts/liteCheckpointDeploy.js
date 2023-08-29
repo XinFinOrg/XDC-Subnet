@@ -32,14 +32,15 @@ async function main() {
     "LiteCheckpoint"
   );
 
-  const checkpoint = await checkpointFactory.deploy(
+  const checkpoint = await checkpointFactory.deploy();
+
+  await checkpoint.deployed();
+  await checkpoint.init(
     deploy["validators"],
     data1Encoded,
     deploy["gap"],
     deploy["epoch"]
   );
-
-  await checkpoint.deployed();
 
   console.log("lite checkpoint deployed to:", checkpoint.address);
 }

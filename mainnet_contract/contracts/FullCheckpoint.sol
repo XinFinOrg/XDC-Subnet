@@ -41,20 +41,22 @@ contract FullCheckpoint {
     string public constant MODE = "full";
 
     uint64 private epochNum;
-    uint64 public immutable INIT_GAP;
-    uint64 public immutable INIT_EPOCH;
+    uint64 public INIT_STATUS;
+    uint64 public INIT_GAP;
+    uint64 public INIT_EPOCH;
 
     // Event types
     event SubnetBlockAccepted(bytes32 blockHash, int256 number);
     event SubnetBlockFinalized(bytes32 blockHash, int256 number);
 
-    constructor(
+    function init(
         address[] memory initialValidatorSet,
         bytes memory genesisHeader,
         bytes memory block1Header,
         uint64 initGap,
         uint64 initEpoch
-    ) {
+    ) public {
+        require(INIT_STATUS == 0, "Already init");
         require(initialValidatorSet.length > 0, "Validator Empty");
 
         bytes32 genesisHeaderHash = keccak256(genesisHeader);
@@ -95,6 +97,7 @@ contract FullCheckpoint {
         committedBlocks[1] = block1HeaderHash;
         INIT_GAP = initGap;
         INIT_EPOCH = initEpoch;
+        INIT_STATUS = 1;
     }
 
     /*
