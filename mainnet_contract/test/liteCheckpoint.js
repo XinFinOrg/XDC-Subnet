@@ -89,7 +89,7 @@ describe("lite checkpoint", () => {
       await loadFixture(fixture));
   });
   describe("test lite checkpoint real block data", () => {
-    it("receive a new header which has only the next and uncommitted", async () => {
+    it("should receive a new header which has only the next and uncommitted", async () => {
       await liteCheckpoint.receiveHeader([block451Encoded]);
       const block2Hash = blockToHash(block451Encoded);
       const block2Resp = await liteCheckpoint.getHeader(block2Hash);
@@ -105,7 +105,7 @@ describe("lite checkpoint", () => {
       expect(unBlock2Resp["lastRoundNum"]).to.eq(565);
       expect(unBlock2Resp["lastNum"]).to.eq(451);
     });
-    it("receive new header which has only the next and committed", async () => {
+    it("should receive new header which has only the next and committed", async () => {
       await liteCheckpoint.receiveHeader([
         block451Encoded,
         block452Encoded,
@@ -130,7 +130,7 @@ describe("lite checkpoint", () => {
       expect(unBlock2Resp["lastNum"]).to.eq(0);
     });
 
-    it("commit header", async () => {
+    it("should commit header", async () => {
       await liteCheckpoint.receiveHeader([block451Encoded, block452Encoded]);
 
       const block2Hash = blockToHash(block451Encoded);
@@ -170,7 +170,7 @@ describe("lite checkpoint", () => {
   });
   describe("test lite checkpoint custom block data", () => {
     //TODO
-    it("receive new header which has only the next and uncommitted", async () => {
+    it("should receive new header which has only the next and uncommitted", async () => {
       const next = createValidators(3).map((item) => {
         return item["address"];
       });
@@ -199,7 +199,7 @@ describe("lite checkpoint", () => {
       expect(unBlock6Resp["lastRoundNum"]).to.eq(7);
       expect(unBlock6Resp["lastNum"]).to.eq(6);
     });
-    it("receive new header which has only the next and committed", async () => {
+    it("should receive new header which has only the next and committed", async () => {
       const next = createValidators(3).map((item) => {
         return item["address"];
       });
@@ -267,7 +267,7 @@ describe("lite checkpoint", () => {
       expect(latestBlocks[0]["blockHash"]).to.eq(block6Hash);
       expect(latestBlocks[1]["blockHash"]).to.eq(latestBlocks[0]["blockHash"]);
     });
-    it("commit header", async () => {
+    it("should commit header", async () => {
       const next = createValidators(3).map((item) => {
         return item["address"];
       });
@@ -352,7 +352,7 @@ describe("lite checkpoint", () => {
       );
     });
 
-    it("switch a validator set", async () => {
+    it("should switch a validator set", async () => {
       const next = createValidators(3);
 
       const [block6, block6Encoded, block6Hash] = composeAndSignBlock(
@@ -443,7 +443,7 @@ describe("lite checkpoint", () => {
       expect(currentValidators[0]).to.deep.eq(next.map((item) => item.address));
     });
 
-    it("penalty validitor verify", async () => {
+    it("should penalty validitor verify", async () => {
       const next = createValidators(5);
       const penalties = [next[0], next[1]];
       const actualValidators = [next[2], next[3], next[4]];

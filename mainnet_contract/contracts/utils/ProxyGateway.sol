@@ -2,8 +2,7 @@
 pragma solidity =0.8.19;
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import {FullCheckpoint} from "../FullCheckpoint.sol";
-import {LiteCheckpoint} from "../LiteCheckpoint.sol";
+import {ICheckpoint} from "../interfaces/ICheckpoint.sol";
 
 contract ProxyGateway is ProxyAdmin {
     event CreateProxy(TransparentUpgradeableProxy proxy);
@@ -24,13 +23,19 @@ contract ProxyGateway is ProxyAdmin {
         emit CreateProxy(proxy);
     }
 
-    function createFullCSCProxy(
+    function createFullProxy(
+        address full,
         address[] memory initialValidatorSet,
         bytes memory genesisHeader,
         bytes memory block1Header,
         uint64 initGap,
         uint64 initEpoch
     ) public {
+        require(
+            keccak256(abi.encodePacked(ICheckpoint(full).MODE())) ==
+                keccak256(abi.encodePacked("full")),
+            "MODE must be full"
+        );
         bytes memory data = abi.encodeWithSignature(
             "init(address[],bytes,bytes,uint64,uint64)",
             initialValidatorSet,
@@ -39,16 +44,21 @@ contract ProxyGateway is ProxyAdmin {
             initGap,
             initEpoch
         );
-        FullCheckpoint full = new FullCheckpoint();
-        createProxy(address(full), data);
+        createProxy(full, data);
     }
 
-    function createLiteCSCProxy(
+    function createLiteProxy(
+        address lite,
         address[] memory initialValidatorSet,
         bytes memory block1,
         uint64 initGap,
         uint64 initEpoch
     ) public {
+        require(
+            keccak256(abi.encodePacked(ICheckpoint(lite).MODE())) ==
+                keccak256(abi.encodePacked("lite")),
+            "MODE must be lite"
+        );
         bytes memory data = abi.encodeWithSignature(
             "init(address[],bytes,uint64,uint64)",
             initialValidatorSet,
@@ -56,7 +66,6 @@ contract ProxyGateway is ProxyAdmin {
             initGap,
             initEpoch
         );
-        LiteCheckpoint lite = new LiteCheckpoint();
-        createProxy(address(lite), data);
+        createProxy(lite, data);
     }
 }

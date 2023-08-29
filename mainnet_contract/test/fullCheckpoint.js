@@ -90,7 +90,7 @@ describe("checkpoint", () => {
   });
 
   describe("test checkpoint real block data", () => {
-    it("receive new header", async () => {
+    it("should receive new header", async () => {
       await checkpoint.receiveHeader([block2Encoded]);
 
       const block2Hash = blockToHash(block2Encoded);
@@ -102,7 +102,7 @@ describe("checkpoint", () => {
       expect(latestBlocks[0][0]).to.eq(block2Hash);
     });
 
-    it("confirm a received block", async () => {
+    it("should confirm a received block", async () => {
       await checkpoint.receiveHeader([block2Encoded, block3Encoded]);
       await checkpoint.receiveHeader([block4Encoded, block5Encoded]);
 
@@ -116,7 +116,7 @@ describe("checkpoint", () => {
       expect(latestBlocks[0][0]).to.eq(block5Hash);
       expect(latestBlocks[1][0]).to.eq(block2Hash);
     });
-    it("mainnet num submit", async () => {
+    it("should mainnet num submit", async () => {
       await checkpoint.receiveHeader([block2Encoded, block3Encoded]);
       await checkpoint.receiveHeader([block4Encoded, block5Encoded]);
 
@@ -134,7 +134,7 @@ describe("checkpoint", () => {
   });
 
   describe("test checkpoint custom block data", () => {
-    it("receive new header", async () => {
+    it("should receive new header", async () => {
       const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
         2,
         2,
@@ -154,7 +154,7 @@ describe("checkpoint", () => {
 
       expect(latestBlocks[0][0]).to.eq(block2Hash);
     });
-    it("confirm a received block", async () => {
+    it("should confirm a received block", async () => {
       const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
         2,
         2,
@@ -205,7 +205,7 @@ describe("checkpoint", () => {
       expect(latestBlocks[0][0]).to.eq(block5Hash);
       expect(latestBlocks[1][0]).to.eq(block2Hash);
     });
-    it("switch a validator set", async () => {
+    it("should switch a validator set", async () => {
       const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
         2,
         2,
@@ -331,7 +331,7 @@ describe("checkpoint", () => {
       expect(currentValidators[0]).to.deep.eq(next.map((item) => item.address));
     });
 
-    it("penalty validitor verify", async () => {
+    it("should penalty validitor verify", async () => {
       const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
         2,
         2,
@@ -441,7 +441,7 @@ describe("checkpoint", () => {
         actualValidators.map((item) => item.address)
       );
     });
-    it("mainnet num submit", async () => {
+    it("should mainnet num submit", async () => {
       const [block2, block2Encoded, block2Hash] = composeAndSignBlock(
         2,
         2,
