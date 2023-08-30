@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("dotenv").config();
-const deploy = require("./deployment.json");
+const deploy = require("./deployment.config.json");
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */

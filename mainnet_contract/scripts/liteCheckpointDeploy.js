@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const deploy = require("../deployment.json");
+const deploy = require("../deployment.config.json");
 const fetch = require("node-fetch").default;
 
 async function main() {

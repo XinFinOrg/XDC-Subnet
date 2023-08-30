@@ -5,6 +5,8 @@ import {ProxyAdmin, TransparentUpgradeableProxy} from "@openzeppelin/contracts/p
 import {ICheckpoint} from "../interfaces/ICheckpoint.sol";
 
 contract ProxyGateway is ProxyAdmin {
+    mapping(string => TransparentUpgradeableProxy) public gateway;
+
     event CreateProxy(TransparentUpgradeableProxy proxy);
 
     TransparentUpgradeableProxy[] public proxies;
@@ -13,7 +15,10 @@ contract ProxyGateway is ProxyAdmin {
         return proxies.length;
     }
 
-    function createProxy(address logic, bytes memory data) public {
+    function createProxy(
+        address logic,
+        bytes memory data
+    ) public returns (TransparentUpgradeableProxy) {
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             logic,
             address(this),
@@ -21,6 +26,7 @@ contract ProxyGateway is ProxyAdmin {
         );
         proxies.push(proxy);
         emit CreateProxy(proxy);
+        return proxy;
     }
 
     function createFullProxy(
@@ -32,10 +38,15 @@ contract ProxyGateway is ProxyAdmin {
         uint64 initEpoch
     ) public {
         require(
+            address(gateway["full"]) == address(0),
+            "full proxy have been created"
+        );
+        require(
             keccak256(abi.encodePacked(ICheckpoint(full).MODE())) ==
                 keccak256(abi.encodePacked("full")),
             "MODE must be full"
         );
+
         bytes memory data = abi.encodeWithSignature(
             "init(address[],bytes,bytes,uint64,uint64)",
             initialValidatorSet,
@@ -44,7 +55,7 @@ contract ProxyGateway is ProxyAdmin {
             initGap,
             initEpoch
         );
-        createProxy(full, data);
+        gateway["full"] = createProxy(full, data);
     }
 
     function createLiteProxy(
@@ -54,6 +65,10 @@ contract ProxyGateway is ProxyAdmin {
         uint64 initGap,
         uint64 initEpoch
     ) public {
+        require(
+            address(gateway["lite"]) == address(0),
+            "full proxy have been created"
+        );
         require(
             keccak256(abi.encodePacked(ICheckpoint(lite).MODE())) ==
                 keccak256(abi.encodePacked("lite")),
@@ -66,6 +81,6 @@ contract ProxyGateway is ProxyAdmin {
             initGap,
             initEpoch
         );
-        createProxy(lite, data);
+        gateway["lite"] = createProxy(lite, data);
     }
 }

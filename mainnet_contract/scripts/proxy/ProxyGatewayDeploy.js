@@ -1,5 +1,4 @@
 const hre = require("hardhat");
-const deploy = require("../deployment.json");
 
 async function main() {
   // We get the contract to deploy

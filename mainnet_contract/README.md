@@ -28,7 +28,7 @@ npx hardhat test
 
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
 
-1. Fill in the fields in `deployment.json`
+1. Fill in the fields in `deployment.config.json`
 
    - `validators`: List of initial validator addresses
    - `gap`: GAP block number on public chain
