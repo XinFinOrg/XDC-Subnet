@@ -5,7 +5,8 @@ import {ProxyAdmin, TransparentUpgradeableProxy} from "@openzeppelin/contracts/p
 import {ICheckpoint} from "../interfaces/ICheckpoint.sol";
 
 contract ProxyGateway is ProxyAdmin {
-    mapping(string => TransparentUpgradeableProxy) public gateway;
+    // 0 full | 1 lite
+    mapping(uint256 => TransparentUpgradeableProxy) public cscProxies;
 
     event CreateProxy(TransparentUpgradeableProxy proxy);
 
@@ -36,9 +37,9 @@ contract ProxyGateway is ProxyAdmin {
         bytes memory block1Header,
         uint64 initGap,
         uint64 initEpoch
-    ) public {
+    ) public returns (TransparentUpgradeableProxy) {
         require(
-            address(gateway["full"]) == address(0),
+            address(cscProxies[0]) == address(0),
             "full proxy have been created"
         );
         require(
@@ -55,7 +56,8 @@ contract ProxyGateway is ProxyAdmin {
             initGap,
             initEpoch
         );
-        gateway["full"] = createProxy(full, data);
+        cscProxies[0] = createProxy(full, data);
+        return cscProxies[0];
     }
 
     function createLiteProxy(
@@ -64,9 +66,9 @@ contract ProxyGateway is ProxyAdmin {
         bytes memory block1,
         uint64 initGap,
         uint64 initEpoch
-    ) public {
+    ) public returns (TransparentUpgradeableProxy) {
         require(
-            address(gateway["lite"]) == address(0),
+            address(cscProxies[1]) == address(0),
             "full proxy have been created"
         );
         require(
@@ -81,6 +83,7 @@ contract ProxyGateway is ProxyAdmin {
             initGap,
             initEpoch
         );
-        gateway["lite"] = createProxy(lite, data);
+        cscProxies[1] = createProxy(lite, data);
+        return cscProxies[1];
     }
 }
