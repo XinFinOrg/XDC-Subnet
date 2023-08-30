@@ -54,8 +54,8 @@ describe("proxyGateway", () => {
         450,
         900
       );
-      const fullProxyAddress = await proxyGateway.proxies(0);
-      const liteProxyAddress = await proxyGateway.proxies(1);
+      const fullProxyAddress = await proxyGateway.cscProxies(0);
+      const liteProxyAddress = await proxyGateway.cscProxies(1);
 
       const fullProxy = full.attach(fullProxyAddress);
       const liteProxy = lite.attach(liteProxyAddress);
@@ -90,7 +90,7 @@ describe("proxyGateway", () => {
         450,
         900
       );
-      const fullProxyAddress = await proxyGateway.proxies(0);
+      const fullProxyAddress = await proxyGateway.cscProxies(0);
       const fullProxy = full.attach(fullProxyAddress);
       const fullMode = await fullProxy.MODE();
       const fullGap = await fullProxy.INIT_GAP();
