@@ -74,4 +74,19 @@ npx solhint 'contracts/**/*.sol' --fix
 
 ![Alt text](image.png)
 
+## Upgrade module
 
+1. Fill in the fields in `upgrade.config.json`
+   - `proxyGateway`: Admin contract that manages all proxy contracts
+
+If you have no proxyGateway contract , deploy your ProxyGateway
+
+```shell
+npx hardhat run scripts/proxy/ProxyGatewayDeploy.js --network xdcparentnet
+```
+
+2. Upgrade
+
+```shell
+npx hardhat run scripts/proxy/UpgradeCSC.js --network xdcparentnet
+```
