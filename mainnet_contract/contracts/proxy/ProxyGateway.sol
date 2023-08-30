@@ -10,22 +10,15 @@ contract ProxyGateway is ProxyAdmin {
 
     event CreateProxy(TransparentUpgradeableProxy proxy);
 
-    TransparentUpgradeableProxy[] public proxies;
-
-    function getProxiesLength() external view returns (uint256) {
-        return proxies.length;
-    }
-
     function createProxy(
         address logic,
         bytes memory data
-    ) public returns (TransparentUpgradeableProxy) {
+    ) public onlyOwner returns (TransparentUpgradeableProxy) {
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             logic,
             address(this),
             data
         );
-        proxies.push(proxy);
         emit CreateProxy(proxy);
         return proxy;
     }
@@ -37,7 +30,7 @@ contract ProxyGateway is ProxyAdmin {
         bytes memory block1Header,
         uint64 initGap,
         uint64 initEpoch
-    ) public returns (TransparentUpgradeableProxy) {
+    ) public onlyOwner returns (TransparentUpgradeableProxy) {
         require(
             address(cscProxies[0]) == address(0),
             "full proxy have been created"
@@ -66,7 +59,7 @@ contract ProxyGateway is ProxyAdmin {
         bytes memory block1,
         uint64 initGap,
         uint64 initEpoch
-    ) public returns (TransparentUpgradeableProxy) {
+    ) public onlyOwner returns (TransparentUpgradeableProxy) {
         require(
             address(cscProxies[1]) == address(0),
             "full proxy have been created"
