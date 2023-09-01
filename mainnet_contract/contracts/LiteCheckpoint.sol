@@ -5,9 +5,11 @@ import {HeaderReader} from "./libraries/HeaderReader.sol";
 
 contract LiteCheckpoint {
     struct HeaderInfo {
+        bytes32 parentHash;
         uint64 number;
         uint64 roundNum;
         int64 mainnetNum;
+        bool finalized;
     }
 
     struct UnCommittedHeaderInfo {
@@ -366,11 +368,17 @@ contract LiteCheckpoint {
     function getHeader(
         bytes32 blockHash
     ) public view returns (HeaderInfo memory) {
+        bool finalized = false;
+        if (int64(uint64(headerTree[blockHash])) != -1) {
+            finalized = true;
+        }
         return
             HeaderInfo({
+                parentHash: 0,
                 number: uint64(headerTree[blockHash] >> 128),
                 roundNum: uint64(headerTree[blockHash] >> 64),
-                mainnetNum: int64(uint64(headerTree[blockHash]))
+                mainnetNum: int64(uint64(headerTree[blockHash])),
+                finalized: finalized
             });
     }
 
@@ -383,16 +391,32 @@ contract LiteCheckpoint {
     ) public view returns (HeaderInfo memory, bytes32) {
         if (heightTree[uint64(number)] != 0) {
             bytes32 blockHash = heightTree[uint64(number)];
+
+            bool finalized = false;
+            if (int64(uint64(headerTree[blockHash])) != -1) {
+                finalized = true;
+            }
             return (
                 HeaderInfo({
+                    parentHash: 0,
                     number: uint64(headerTree[blockHash] >> 128),
                     roundNum: uint64(headerTree[blockHash] >> 64),
-                    mainnetNum: int64(uint64(headerTree[blockHash]))
+                    mainnetNum: int64(uint64(headerTree[blockHash])),
+                    finalized: finalized
                 }),
                 blockHash
             );
         } else {
-            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}), 0);
+            return (
+                HeaderInfo({
+                    parentHash: 0,
+                    number: 0,
+                    roundNum: 0,
+                    mainnetNum: -1,
+                    finalized: false
+                }),
+                0
+            );
         }
     }
 
@@ -400,15 +424,31 @@ contract LiteCheckpoint {
         uint256 idx
     ) public view returns (HeaderInfo memory) {
         if (idx < currentTree.length) {
+            bool finalized = false;
+
+            if (int64(uint64(headerTree[currentTree[idx]])) != -1) {
+                finalized = true;
+            }
+
             return (
                 HeaderInfo({
+                    parentHash: bytes32(0),
                     number: uint64(headerTree[currentTree[idx]] >> 128),
                     roundNum: uint64(headerTree[currentTree[idx]] >> 64),
-                    mainnetNum: int64(uint64(headerTree[currentTree[idx]]))
+                    mainnetNum: int64(uint64(headerTree[currentTree[idx]])),
+                    finalized: finalized
                 })
             );
         } else {
-            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}));
+            return (
+                HeaderInfo({
+                    parentHash: 0,
+                    number: 0,
+                    roundNum: 0,
+                    mainnetNum: -1,
+                    finalized: false
+                })
+            );
         }
     }
 
