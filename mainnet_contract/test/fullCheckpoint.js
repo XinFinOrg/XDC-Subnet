@@ -12,7 +12,7 @@ const {
   getSigs,
   composeAndSignBlock,
   createValidators,
-} = require("./libraries/utils");
+} = require("./libraries/Utils");
 
 describe("checkpoint", () => {
   const block2Encoded =
