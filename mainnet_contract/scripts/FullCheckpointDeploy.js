@@ -47,13 +47,14 @@ async function main() {
 
   await checkpoint.deployed();
 
-  await checkpoint.init(
+  const tx = await checkpoint.init(
     deploy["validators"],
     data0Encoded,
     data1Encoded,
     deploy["gap"],
     deploy["epoch"]
   );
+  await tx.wait();
   console.log("checkpoint deployed to:", checkpoint.address);
 }
 
