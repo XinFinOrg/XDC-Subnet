@@ -2,9 +2,9 @@ name: PR tests
 
 on:
   pull_request:
-    branches:    
+    branches:
       - master
-  
+
 jobs:
   test_on_pr:
     name: Test
@@ -16,19 +16,28 @@ jobs:
       run:
         working-directory: ${{ env.GOPATH }}/src/XDC-Subnet
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
-      with:
-        path: ${{ env.GOPATH }}/src/XDC-Subnet
-    - name: Set up Go 1.14.x
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.14.x' # The Go version to download (if necessary) and use.
-    - name: Run tests
-      run: |
-        make test
-      env:
-        GO111MODULE: auto
-      
-    
-    
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.GOPATH }}/src/XDC-Subnet
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "20.x"
+      - name: Check smart contract
+        run: |
+          cd mainnet_contract
+          yarn
+          npx hardhat test
+          cd ../contracts/validator/src
+          yarn 
+          npx hardhat test
+      - name: Set up Go 1.14.x
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.14.x" # The Go version to download (if necessary) and use.
+      - name: Run tests
+        run: |
+          make test
+        env:
+          GO111MODULE: auto

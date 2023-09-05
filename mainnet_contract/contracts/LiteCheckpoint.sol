@@ -5,9 +5,11 @@ import {HeaderReader} from "./libraries/HeaderReader.sol";
 
 contract LiteCheckpoint {
     struct HeaderInfo {
+        bytes32 parentHash;
         uint64 number;
         uint64 roundNum;
         int64 mainnetNum;
+        bool finalized;
     }
 
     struct UnCommittedHeaderInfo {
@@ -41,18 +43,20 @@ contract LiteCheckpoint {
 
     string public constant MODE = "lite";
     uint64 public epochNum;
-    uint64 public immutable INIT_GAP;
-    uint64 public immutable INIT_EPOCH;
+    uint64 public INIT_STATUS;
+    uint64 public INIT_GAP;
+    uint64 public INIT_EPOCH;
 
     // Event types
     event SubnetEpochBlockAccepted(bytes32 blockHash, uint64 number);
 
-    constructor(
+    function init(
         address[] memory initialValidatorSet,
         bytes memory block1,
         uint64 initGap,
         uint64 initEpoch
-    ) {
+    ) public {
+        require(INIT_STATUS == 0, "Already init");
         require(initialValidatorSet.length > 0, "Validator Empty");
         bytes32 block1HeaderHash = keccak256(block1);
         validators[1] = Validators({
@@ -64,6 +68,7 @@ contract LiteCheckpoint {
         latestEpoch = block1HeaderHash;
         INIT_GAP = initGap;
         INIT_EPOCH = initEpoch;
+        INIT_STATUS = 1;
     }
 
     /*
@@ -363,11 +368,17 @@ contract LiteCheckpoint {
     function getHeader(
         bytes32 blockHash
     ) public view returns (HeaderInfo memory) {
+        bool finalized = false;
+        if (int64(uint64(headerTree[blockHash])) != -1) {
+            finalized = true;
+        }
         return
             HeaderInfo({
+                parentHash: 0,
                 number: uint64(headerTree[blockHash] >> 128),
                 roundNum: uint64(headerTree[blockHash] >> 64),
-                mainnetNum: int64(uint64(headerTree[blockHash]))
+                mainnetNum: int64(uint64(headerTree[blockHash])),
+                finalized: finalized
             });
     }
 
@@ -380,16 +391,32 @@ contract LiteCheckpoint {
     ) public view returns (HeaderInfo memory, bytes32) {
         if (heightTree[uint64(number)] != 0) {
             bytes32 blockHash = heightTree[uint64(number)];
+
+            bool finalized = false;
+            if (int64(uint64(headerTree[blockHash])) != -1) {
+                finalized = true;
+            }
             return (
                 HeaderInfo({
+                    parentHash: 0,
                     number: uint64(headerTree[blockHash] >> 128),
                     roundNum: uint64(headerTree[blockHash] >> 64),
-                    mainnetNum: int64(uint64(headerTree[blockHash]))
+                    mainnetNum: int64(uint64(headerTree[blockHash])),
+                    finalized: finalized
                 }),
                 blockHash
             );
         } else {
-            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}), 0);
+            return (
+                HeaderInfo({
+                    parentHash: 0,
+                    number: 0,
+                    roundNum: 0,
+                    mainnetNum: -1,
+                    finalized: false
+                }),
+                0
+            );
         }
     }
 
@@ -397,15 +424,31 @@ contract LiteCheckpoint {
         uint256 idx
     ) public view returns (HeaderInfo memory) {
         if (idx < currentTree.length) {
+            bool finalized = false;
+
+            if (int64(uint64(headerTree[currentTree[idx]])) != -1) {
+                finalized = true;
+            }
+
             return (
                 HeaderInfo({
+                    parentHash: bytes32(0),
                     number: uint64(headerTree[currentTree[idx]] >> 128),
                     roundNum: uint64(headerTree[currentTree[idx]] >> 64),
-                    mainnetNum: int64(uint64(headerTree[currentTree[idx]]))
+                    mainnetNum: int64(uint64(headerTree[currentTree[idx]])),
+                    finalized: finalized
                 })
             );
         } else {
-            return (HeaderInfo({number: 0, roundNum: 0, mainnetNum: -1}));
+            return (
+                HeaderInfo({
+                    parentHash: 0,
+                    number: 0,
+                    roundNum: 0,
+                    mainnetNum: -1,
+                    finalized: false
+                })
+            );
         }
     }
 

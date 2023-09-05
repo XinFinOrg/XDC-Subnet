@@ -28,7 +28,7 @@ npx hardhat test
 
 This step is recommended to complete in python virtual environment because it is going to use the web3 library adapted for XDC. And before running the process, it is required to performed two operations:
 
-1. Fill in the fields in `deployment.json`
+1. Fill in the fields in `deployment.config.json`
 
    - `validators`: List of initial validator addresses
    - `gap`: GAP block number on public chain
@@ -45,13 +45,13 @@ And get the deployed contract address
 FullCheckpoint
 
 ```shell
-npx hardhat run scripts/fullCheckpointDeploy.js --network xdcparentnet
+npx hardhat run scripts/FullCheckpointDeploy.js --network xdcparentnet
 ```
 
 Lite checkpoint
 
 ```shell
-npx hardhat run scripts/liteCheckpointDeploy.js --network xdcparentnet
+npx hardhat run scripts/LiteCheckpointDeploy.js --network xdcparentnet
 ```
 
 ## Other command
@@ -73,3 +73,20 @@ npx solhint 'contracts/**/*.sol' --fix
 ## Gas report
 
 ![Alt text](image.png)
+
+## Upgrade module
+
+1. Fill in the fields in `upgrade.config.json`
+   - `proxyGateway`: Admin contract that manages all proxy contracts
+
+If you have no proxyGateway contract , deploy your ProxyGateway
+
+```shell
+npx hardhat run scripts/proxy/ProxyGatewayDeploy.js --network xdcparentnet
+```
+
+2. Upgrade
+
+```shell
+npx hardhat run scripts/proxy/UpgradeCSC.js --network xdcparentnet
+```
