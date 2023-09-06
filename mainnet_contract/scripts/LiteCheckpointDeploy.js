@@ -15,7 +15,7 @@ async function main() {
     lite = await checkpointFactory.deploy();
   } catch (e) {
     throw Error(
-      "depoly csc to parentnet node failure , pls check the parentnet node status"
+      "depoly to parentnet node failure , pls check the parentnet node status"
     );
   }
 
