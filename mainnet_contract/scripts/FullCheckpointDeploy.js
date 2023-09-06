@@ -1,53 +1,26 @@
 const hre = require("hardhat");
 const deploy = require("../deployment.config.json");
-const fetch = require("node-fetch").default;
-
+const subnet = require("./utils/subnet");
 async function main() {
-  const block0 = {
-    jsonrpc: "2.0",
-    method: "XDPoS_getV2BlockByNumber",
-    params: ["0x0"],
-    id: 1,
-  };
-  const block1 = {
-    jsonrpc: "2.0",
-    method: "XDPoS_getV2BlockByNumber",
-    params: ["0x1"],
-    id: 1,
-  };
-  const block0res = await fetch(deploy["xdcsubnet"], {
-    method: "POST",
-    body: JSON.stringify(block0),
-    headers: { "Content-Type": "application/json" },
-  });
-  const block1res = await fetch(deploy["xdcsubnet"], {
-    method: "POST",
-    body: JSON.stringify(block1),
-    headers: { "Content-Type": "application/json" },
-  });
-  const data0 = await block0res.json();
-  const data1 = await block1res.json();
-
-  if (!data0["result"]["Committed"] || !data1["result"]["Committed"]) {
-    console.error(
-      "remote subnet node block data 0 or block 1 is not committed"
-    );
-    return;
-  }
-
-  const data0Encoded = "0x" + data0["result"]["HexRLP"];
-  const data1Encoded = "0x" + data1["result"]["HexRLP"];
+  const { data0Encoded, data1Encoded } = await subnet.data();
 
   // We get the contract to deploy
   const checkpointFactory = await hre.ethers.getContractFactory(
     "FullCheckpoint"
   );
 
-  const checkpoint = await checkpointFactory.deploy();
+  let full;
+  try {
+    full = await checkpointFactory.deploy();
+  } catch (e) {
+    throw Error(
+      "depoly to parentnet node failure , pls check the parentnet node status"
+    );
+  }
 
-  await checkpoint.deployed();
+  await full.deployed();
 
-  const tx = await checkpoint.init(
+  const tx = await full.init(
     deploy["validators"],
     data0Encoded,
     data1Encoded,
@@ -55,7 +28,7 @@ async function main() {
     deploy["epoch"]
   );
   await tx.wait();
-  console.log("checkpoint deployed to:", checkpoint.address);
+  console.log("full checkpoint deployed to:", full.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

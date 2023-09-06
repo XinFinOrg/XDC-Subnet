@@ -1,48 +1,33 @@
 const hre = require("hardhat");
 const deploy = require("../deployment.config.json");
-const fetch = require("node-fetch").default;
+const subnet = require("./utils/subnet");
 
 async function main() {
-  const block1 = {
-    jsonrpc: "2.0",
-    method: "XDPoS_getV2BlockByNumber",
-    params: ["0x1"],
-    id: 1,
-  };
-
-  const block1res = await fetch(deploy["xdcsubnet"], {
-    method: "POST",
-    body: JSON.stringify(block1),
-    headers: { "Content-Type": "application/json" },
-  });
-
-  const data1 = await block1res.json();
-
-  if (!data1["result"]["Committed"]) {
-    console.error(
-      "remote subnet node block data 0 or block 1 is not committed"
-    );
-    return;
-  }
-
-  const data1Encoded = "0x" + data1["result"]["HexRLP"];
+  const { data0Encoded, data1Encoded } = await subnet.data();
 
   // We get the contract to deploy
   const checkpointFactory = await hre.ethers.getContractFactory(
     "LiteCheckpoint"
   );
 
-  const checkpoint = await checkpointFactory.deploy();
+  let lite;
+  try {
+    lite = await checkpointFactory.deploy();
+  } catch (e) {
+    throw Error(
+      "depoly to parentnet node failure , pls check the parentnet node status"
+    );
+  }
 
-  await checkpoint.deployed();
-  const tx = await checkpoint.init(
+  await lite.deployed();
+  const tx = await lite.init(
     deploy["validators"],
     data1Encoded,
     deploy["gap"],
     deploy["epoch"]
   );
   await tx.wait();
-  console.log("lite checkpoint deployed to:", checkpoint.address);
+  console.log("lite checkpoint deployed to:", lite.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

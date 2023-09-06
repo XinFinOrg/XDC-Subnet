@@ -6,7 +6,14 @@ async function main() {
     "ProxyGateway"
   );
 
-  const proxyGateway = await proxyGatewayFactory.deploy();
+  let proxyGateway;
+  try {
+    proxyGateway = await proxyGatewayFactory.deploy();
+  } catch (e) {
+    throw Error(
+      "depoly to parentnet node failure , pls check the parentnet node status"
+    );
+  }
 
   await proxyGateway.deployed();
 
