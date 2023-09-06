@@ -8,7 +8,7 @@ contract ProxyTest {
     }
 
     function getHeaderByNumber(
-        int256 number
+        int256
     ) external pure returns (BlockLite memory) {
         return
             BlockLite({
