@@ -77,7 +77,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	err = adaptor.VerifyHeader(blockchain, invalidPenaltiesExistBlock, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 
-	merkleRoot := "4de5b7decb41a4aa648140d0fecb169bd22f07e92be20cf63397111f48653bdc"
+	merkleRoot := "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
 	parentNotExistBlock := blockchain.GetBlockByNumber(901).Header()
 	parentNotExistBlock.ParentHash = common.HexToHash(merkleRoot)
 	err = adaptor.VerifyHeader(blockchain, parentNotExistBlock, true)

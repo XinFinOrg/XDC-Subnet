@@ -567,7 +567,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 			blockCoinBase = signer.Hex()
 		}
 		roundNumber := int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()
-		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "10f2c00fef7093f265fde39c806f17aaea50a2093ca68ab795462021c38fd4b0")
+		block := CreateBlock(blockchain, chainConfig, currentBlock, i, roundNumber, blockCoinBase, signer, signFn, nil, nil, "c2bf7b59be5184fc1148be5db14692b2dc89a1b345895d3e8d0ee7b8a7607450")
 		err = blockchain.InsertBlock(block)
 		if err != nil {
 			t.Fatal(err)
@@ -609,7 +609,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "4de5b7decb41a4aa648140d0fecb169bd22f07e92be20cf63397111f48653bdc"
+		merkleRoot = "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()

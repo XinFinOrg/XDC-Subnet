@@ -52,12 +52,12 @@ contract XDCValidator {
 
     modifier onlyValidCandidateCap() {
         // anyone can deposit X XDC to become a candidate
-        require(msg.value >= minCandidateCap, "onlyValidCandidateCap");
+        require(msg.value >= minCandidateCap, "Low Candidate Cap");
         _;
     }
 
     modifier onlyValidVoterCap() {
-        require(msg.value >= minVoterCap, "onlyValidVoterCap");
+        require(msg.value >= minVoterCap, "Low Voter Cap");
         _;
     }
 
@@ -65,68 +65,62 @@ contract XDCValidator {
         require(
             kycString[msg.sender].length != 0 ||
                 ownerToCandidate[msg.sender].length > 0,
-            "onlyKYCWhitelisted"
+            "Not KYC Whitelisted"
         );
         _;
     }
 
     modifier onlyOwner(address _candidate) {
-        require(validatorsState[_candidate].owner == msg.sender, "onlyOwner");
+        require(validatorsState[_candidate].owner == msg.sender, "Not Owner");
         _;
     }
 
     modifier onlyCandidate(address _candidate) {
-        require(validatorsState[_candidate].isCandidate, "onlyCandidate");
+        require(validatorsState[_candidate].isCandidate, "Not Candidate");
         _;
     }
 
     modifier onlyValidCandidate(address _candidate) {
-        require(validatorsState[_candidate].isCandidate, "onlyValidCandidate");
+        require(validatorsState[_candidate].isCandidate, "Not Valid Candidate");
         _;
     }
 
     modifier onlyNotCandidate(address _candidate) {
-        require(!validatorsState[_candidate].isCandidate, "onlyNotCandidate");
+        require(!validatorsState[_candidate].isCandidate, "Already Candidate");
         _;
     }
 
     modifier onlyValidVote(address _candidate, uint256 _cap) {
         require(
             validatorsState[_candidate].voters[msg.sender] >= _cap,
-            "onlyValidVote validatorsState[_candidate].voters[msg.sender] >= _cap is false"
+            "Insufficient Vote Cap"
         );
         if (validatorsState[_candidate].owner == msg.sender) {
             require(
                 validatorsState[_candidate].voters[msg.sender].sub(_cap) >=
                     minCandidateCap,
-                "onlyValidVote validatorsState[_candidate].voters[msg.sender] - (_cap) >= minCandidateCap is false"
+                "Below Min Cap"
             );
         }
         _;
     }
 
     modifier onlyValidWithdraw(uint256 _blockNumber, uint256 _index) {
-        require(
-            _blockNumber > 0,
-            "onlyValidWithdraw _blockNumber > 0 is false"
-        );
-        require(
-            block.number >= _blockNumber,
-            "onlyValidWithdraw block.number >= _blockNumber is false"
-        );
+        require(_blockNumber > 0, "Invalid Block Number");
+        require(block.number >= _blockNumber, "Block Number Too High");
         require(
             withdrawsState[msg.sender].caps[_blockNumber] > 0,
-            "onlyValidWithdraw withdrawsState[msg.sender].caps[_blockNumber] > 0 is false"
+            "Invalid Withdraw Cap"
         );
         require(
             withdrawsState[msg.sender].blockNumbers[_index] == _blockNumber,
-            "onlyValidWithdraw withdrawsState[msg.sender].blockNumbers[_index] == _blockNumber is false"
+            "Mismatch Block Number"
         );
         _;
     }
 
     modifier onlyGrandMaster() {
-        require(grandMasterMap[msg.sender] == true, "onlyGrandMaster");
+        require(grandMasterMap[msg.sender] == true, "Not Grand Master");
         _;
     }
 
@@ -313,10 +307,7 @@ contract XDCValidator {
     }
 
     function checkMinCandidateNum() private view {
-        require(
-            candidates.length >= minCandidateNum,
-            "cadidates must greater than minCandidateNum"
-        );
+        require(candidates.length >= minCandidateNum, "Low Candidate Count");
     }
 
     // voteInvalidKYC : any candidate can vote for invalid KYC i.e. a particular candidate's owner has uploaded a bad KYC.
@@ -332,7 +323,7 @@ contract XDCValidator {
         address _invalidMasternode = getCandidateOwner(_invalidCandidate);
         require(
             !hasVotedInvalid[candidateOwner][_invalidMasternode],
-            "!hasVotedInvalid[candidateOwner][_invalidMasternode]"
+            "Already Voted Invalid"
         );
         hasVotedInvalid[candidateOwner][_invalidMasternode] = true;
         invalidKYCCount[_invalidMasternode]++;
