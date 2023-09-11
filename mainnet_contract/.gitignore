@@ -1,6 +1,0 @@
-.env
-cache/
-artifacts/
-node_modules/
-dbg.project.json
-contracts-dbg/
