@@ -26,7 +26,7 @@ jobs:
           node-version: "20.x"
       - name: Check smart contract
         run: |
-          contracts/validator/src
+          cd contracts/validator/src
           yarn 
           npx hardhat test
       - name: Set up Go 1.14.x
