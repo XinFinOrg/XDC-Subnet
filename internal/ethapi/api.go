@@ -28,6 +28,7 @@ import (
 
 	"github.com/XinFinOrg/XDC-Subnet/XDCxlending/lendingstate"
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/trie"
 
 	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
 
@@ -532,6 +533,64 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 	}
 	b := state.GetBalance(address)
 	return b, state.Error()
+}
+
+// proofPairList implements ethdb.KeyValueWriter and collects the proofs as
+// hex-strings of key and value for delivery to rpc-caller.
+type proofPairList struct {
+	keys   []string
+	values []string
+}
+
+func (n *proofPairList) Put(key []byte, value []byte) error {
+	n.keys = append(n.keys, hexutil.Encode(key))
+	n.values = append(n.values, hexutil.Encode(value))
+	return nil
+}
+
+func (n *proofPairList) Delete(key []byte) error {
+	panic("not supported")
+}
+
+// modified from core/types/derive_sha.go
+func deriveTrie(list types.DerivableList) *trie.Trie {
+	keybuf := new(bytes.Buffer)
+	trie := new(trie.Trie)
+	for i := 0; i < list.Len(); i++ {
+		keybuf.Reset()
+		rlp.Encode(keybuf, uint(i))
+		trie.Update(keybuf.Bytes(), list.GetRlp(i))
+	}
+	return trie
+}
+
+// GetReceiptProof returns the Trie proof of the receipt for a given transaction.
+func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
+	tx, blockHash, _, index := core.GetTransaction(s.b.ChainDb(), hash)
+	if tx == nil {
+		return nil, nil
+	}
+	receipts, err := s.b.GetReceipts(ctx, blockHash)
+	if err != nil {
+		return nil, err
+	}
+	if len(receipts) <= int(index) {
+		return nil, nil
+	}
+	tr := deriveTrie(receipts)
+	var proof proofPairList
+	keybuf := new(bytes.Buffer)
+	rlp.Encode(keybuf, uint(index))
+	if err := tr.Prove(keybuf.Bytes(), 0, &proof); err != nil {
+		return nil, err
+	}
+	fields := map[string]interface{}{
+		"keys":      proof.keys,
+		"values":    proof.values,
+		"index":     index,
+		"leafValue": receipts.GetRlp(int(index)),
+	}
+	return fields, nil
 }
 
 // GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
