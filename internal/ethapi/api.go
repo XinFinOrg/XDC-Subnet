@@ -28,7 +28,6 @@ import (
 
 	"github.com/XinFinOrg/XDC-Subnet/XDCxlending/lendingstate"
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
-	"github.com/XinFinOrg/XDC-Subnet/trie"
 
 	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
 
@@ -535,35 +534,6 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 	return b, state.Error()
 }
 
-// proofPairList implements ethdb.KeyValueWriter and collects the proofs as
-// hex-strings of key and value for delivery to rpc-caller.
-type proofPairList struct {
-	keys   []string
-	values []string
-}
-
-func (n *proofPairList) Put(key []byte, value []byte) error {
-	n.keys = append(n.keys, hexutil.Encode(key))
-	n.values = append(n.values, hexutil.Encode(value))
-	return nil
-}
-
-func (n *proofPairList) Delete(key []byte) error {
-	panic("not supported")
-}
-
-// modified from core/types/derive_sha.go
-func deriveTrie(list types.DerivableList) *trie.Trie {
-	keybuf := new(bytes.Buffer)
-	trie := new(trie.Trie)
-	for i := 0; i < list.Len(); i++ {
-		keybuf.Reset()
-		rlp.Encode(keybuf, uint(i))
-		trie.Update(keybuf.Bytes(), list.GetRlp(i))
-	}
-	return trie
-}
-
 // GetReceiptProof returns the Trie proof of the receipt for a given transaction.
 func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
 	tx, blockHash, _, index := core.GetTransaction(s.b.ChainDb(), hash)
@@ -585,10 +555,8 @@ func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.H
 		return nil, err
 	}
 	fields := map[string]interface{}{
-		"keys":      proof.keys,
-		"values":    proof.values,
-		"index":     index,
-		"leafValue": receipts.GetRlp(int(index)),
+		"keys":   proof.keys,
+		"values": proof.values,
 	}
 	return fields, nil
 }
