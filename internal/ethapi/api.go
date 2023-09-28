@@ -555,8 +555,10 @@ func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.H
 		return nil, err
 	}
 	fields := map[string]interface{}{
-		"proof": proof.values,
-		"key":  keybuf.Bytes(),
+		"proofKeys":   proof.keys,
+		"proofValues": proof.values,
+		"key":         hexutil.Encode(keybuf.Bytes()),
+		"blockhash":   blockHash,
 	}
 	return fields, nil
 }
