@@ -548,6 +548,7 @@ func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.H
 		return nil, nil
 	}
 	tr := deriveTrie(receipts)
+
 	var proof proofPairList
 	keybuf := new(bytes.Buffer)
 	rlp.Encode(keybuf, uint(index))
@@ -555,8 +556,11 @@ func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.H
 		return nil, err
 	}
 	fields := map[string]interface{}{
-		"keys":   proof.keys,
-		"values": proof.values,
+		"blockHash":   blockHash,
+		"receiptRoot": tr.Hash(),
+		"key":         hexutil.Encode(keybuf.Bytes()),
+		"proofKeys":   proof.keys,
+		"proofValues": proof.values,
 	}
 	return fields, nil
 }
