@@ -71,6 +71,7 @@ jobs:
       #     -u ${{ secrets.CICD_PAT }} \
       #     --data '{"event_type": "Trigger Workflow", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
 
+
       - name: trigger deploy workflow
         run: |
           curl -L \
