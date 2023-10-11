@@ -6,7 +6,6 @@ on:
       - develop
     tags:
       - "*"
-
   workflow_dispatch: #allow manual trigger to workflow
 
 jobs:
