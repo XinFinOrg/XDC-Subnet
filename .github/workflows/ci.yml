@@ -77,8 +77,5 @@ jobs:
           https://api.github.com/repos/hash-laboratories-au/xinfin-script/actions/workflows/test-ansible.yaml/dispatches \
           -d '{"ref":"test-ansible"}' \
           )
-          echo $response
+          echo "$response"
         
-
-      - name: trigger deploy workflow
-        run: echo ${{ steps.trigger_deploy.outputs }}
