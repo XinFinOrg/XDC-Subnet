@@ -65,6 +65,7 @@ jobs:
       #     docker build . --file docker/Dockerfile --tag ${{ steps.image.outputs.name }}
       #     docker push ${{ steps.image.outputs.name }}
 
+
       - name: trigger deploy workflow
         id: trigger_deploy
         run: |
