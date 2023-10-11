@@ -81,7 +81,6 @@ jobs:
 
       - name: test
         run: | 
-          curl google.com > $HOME/curl.json
-          cat $HOME/curl.json
+          curl google.com 
       # - name: trigger deploy workflow
       #   run: echo ${{ steps.trigger_deploy.outputs }}
