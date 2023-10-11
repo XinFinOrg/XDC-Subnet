@@ -85,7 +85,7 @@ jobs:
         run: |
           cat response.txt
           echo "RESPONSE_CODE=${{ env.RESPONSE_CODE }}"
-          if [ {{ env.RESPONSE_CODE }} != 200 ]
+          if [ ${{ env.RESPONSE_CODE }} != 204 ]
           then
             exit 1
           fi
