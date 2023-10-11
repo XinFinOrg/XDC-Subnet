@@ -68,6 +68,7 @@ jobs:
       - name: trigger deploy workflow
         id: trigger_deploy
         run: |
+          echo "RESPONSE=$( \
           curl -L \
           -X POST \
           -H "Accept: application/vnd.github+json" \
@@ -75,12 +76,11 @@ jobs:
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/hash-laboratories-au/xinfin-script/actions/workflows/test-ansible.yaml/dispatches \
           -d '{"ref":"test-ansible"}' \
-
+          )" >> $GITHUB_ENV
 
         #  echo "GIT_EMAIL=$(jq -r '.commit.author.email' $HOME/pr.json)" >> $GITHUB_ENV
 
-      - name: test
-        run: | 
-          curl google.com 
-      # - name: trigger deploy workflow
-      #   run: echo ${{ steps.trigger_deploy.outputs }}
+      - name: Use the value
+        id: trigger_deploy
+        run: |
+          echo "${{ env.RESPONSE }}"
