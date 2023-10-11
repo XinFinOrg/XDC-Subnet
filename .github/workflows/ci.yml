@@ -79,7 +79,7 @@ jobs:
           -H "Authorization: Bearer ${{ secrets.CICD_PAT }}" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/hash-laboratories-au/xinfin-script/actions/workflows/test-ansible.yaml/dispatches \
-          -d '{"ref":"test-ansible", "inputs":{"caller_repo": "${{ GITHUB_REPOSITORY }}", "caller_ref": "${{ GITHUB_REF_NAME }}", "caller_sha": "${{ GITHUB_SHA }}"}}' \
+          -d '{"ref":"test-ansible", "inputs":{"caller_repo": "${{ env.GITHUB_REPOSITORY }}", "caller_ref": "${{ env.GITHUB_REF_NAME }}", "caller_sha": "${{ env.GITHUB_SHA }}"}}' \
           )" >> $GITHUB_ENV
 
       - name: Check response fail or success
