@@ -81,9 +81,11 @@ jobs:
           -d '{"ref":"test-ansible"}' \
           )" >> $GITHUB_ENV
 
-        #  echo "GIT_EMAIL=$(jq -r '.commit.author.email' $HOME/pr.json)" >> $GITHUB_ENV
-
-      - name: Use the value
+      - name: Check response fail or success
         run: |
           cat response.txt
-          echo "${{ env.RESPONSE_CODE }}"
+          echo "RESPONSE_CODE=${{ env.RESPONSE_CODE }}"
+          if [ {{ env.RESPONSE_CODE }} != 200 ]
+          then
+            exit 1
+          fi
