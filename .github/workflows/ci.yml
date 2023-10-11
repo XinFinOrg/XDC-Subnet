@@ -81,6 +81,5 @@ jobs:
         #  echo "GIT_EMAIL=$(jq -r '.commit.author.email' $HOME/pr.json)" >> $GITHUB_ENV
 
       - name: Use the value
-        id: trigger_deploy
         run: |
           echo "${{ env.RESPONSE }}"
