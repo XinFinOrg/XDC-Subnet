@@ -32,6 +32,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/ethdb"
 	"github.com/XinFinOrg/XDC-Subnet/event"
 	"github.com/XinFinOrg/XDC-Subnet/rpc"
+	"github.com/XinFinOrg/XDC-Subnet/core"
 )
 
 var (
@@ -418,6 +419,10 @@ func (api *PublicFilterAPI) GetFilterChanges(id rpc.ID) (interface{}, error) {
 		case LogsSubscription:
 			logs := f.logs
 			f.logs = nil
+			for _, log := range logs {
+				// update BlockHash to fix #208
+				log.BlockHash = core.GetCanonicalHash(api.chainDb, log.BlockNumber)
+			}
 			return returnLogs(logs), nil
 		}
 	}

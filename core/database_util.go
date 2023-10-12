@@ -260,6 +260,10 @@ func GetBlockReceipts(db DatabaseReader, hash common.Hash, number uint64) types.
 	receipts := make(types.Receipts, len(storageReceipts))
 	for i, receipt := range storageReceipts {
 		receipts[i] = (*types.Receipt)(receipt)
+		for _, log := range receipts[i].Logs {
+			// update BlockHash to fix #208
+			log.BlockHash = hash
+		}
 	}
 	return receipts
 }
