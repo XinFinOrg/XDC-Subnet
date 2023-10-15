@@ -534,6 +534,34 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 	return b, state.Error()
 }
 
+// GetTransactionProof returns the Trie proof of the given transaction.
+func (s *PublicBlockChainAPI) GetTransactionProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
+	tx, blockHash, _, index := core.GetTransaction(s.b.ChainDb(), hash)
+	if tx == nil {
+		return nil, nil
+	}
+	block, err := s.b.GetBlock(ctx, blockHash)
+	if err != nil {
+		return nil, err
+	}
+	tr := deriveTrie(block.Transactions())
+
+	var proof proofPairList
+	keybuf := new(bytes.Buffer)
+	rlp.Encode(keybuf, uint(index))
+	if err := tr.Prove(keybuf.Bytes(), 0, &proof); err != nil {
+		return nil, err
+	}
+	fields := map[string]interface{}{
+		"blockHash":   blockHash,
+		"txRoot":      tr.Hash(),
+		"key":         hexutil.Encode(keybuf.Bytes()),
+		"proofKeys":   proof.keys,
+		"proofValues": proof.values,
+	}
+	return fields, nil
+}
+
 // GetReceiptProof returns the Trie proof of the receipt for a given transaction.
 func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
 	tx, blockHash, _, index := core.GetTransaction(s.b.ChainDb(), hash)

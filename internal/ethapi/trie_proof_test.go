@@ -3,9 +3,11 @@ package ethapi
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"reflect"
 	"testing"
 
+	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/rlp"
@@ -35,6 +37,39 @@ func (n *proofPairList) Get(key []byte) ([]byte, error) {
 		}
 	}
 	return nil, fmt.Errorf("key not found")
+}
+
+func TestTransactionProof(t *testing.T) {
+	to1:= common.HexToAddress("0x01")
+	to2:= common.HexToAddress("0x02")
+	t1 := types.NewTransaction(1, to1, big.NewInt(1), 1, big.NewInt(1), []byte{})
+	t2 := types.NewTransaction(2, to2, big.NewInt(2), 2, big.NewInt(2), []byte{})
+	t3 := types.NewTransaction(3, to2, big.NewInt(3), 3, big.NewInt(3), []byte{})
+	t4 := types.NewTransaction(4, to1, big.NewInt(4), 4, big.NewInt(4), []byte{})
+	transactions := types.Transactions([]*types.Transaction{t1, t2, t3, t4})
+	tr := deriveTrie(transactions)
+	// for verifying the proof
+	root := types.DeriveSha(transactions)
+	for i := 0; i < transactions.Len(); i++ {
+		var proof proofPairList
+		keybuf := new(bytes.Buffer)
+		rlp.Encode(keybuf, uint(i))
+		if err := tr.Prove(keybuf.Bytes(), 0, &proof); err != nil {
+			t.Fatal("Prove err:", err)
+		}
+		// verify the proof
+		value, err := trie.VerifyProof(root, keybuf.Bytes(), &proof)
+		if err != nil {
+			t.Fatal("verify proof error")
+		}
+		encodedTransaction, err := rlp.EncodeToBytes(transactions[i])
+		if err != nil {
+			t.Fatal("encode receipt error")
+		}
+		if !reflect.DeepEqual(encodedTransaction, value) {
+			t.Fatal("verify does not return the receipt we want")
+		}
+	}
 }
 
 func TestReceiptProof(t *testing.T) {
