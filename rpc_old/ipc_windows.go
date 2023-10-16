@@ -14,41 +14,35 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+// +build windows
 
 package rpc
 
 import (
 	"context"
-	"fmt"
 	"net"
-	"os"
-	"path/filepath"
+	"time"
 
-	"github.com/ethereum/go-ethereum/log"
+	"gopkg.in/natefinch/npipe.v2"
 )
 
-// ipcListen will create a Unix socket on the given endpoint.
-func ipcListen(endpoint string) (net.Listener, error) {
-	if len(endpoint) > int(max_path_size) {
-		log.Warn(fmt.Sprintf("The ipc endpoint is longer than %d characters. ", max_path_size),
-			"endpoint", endpoint)
-	}
+// This is used if the dialing context has no deadline. It is much smaller than the
+// defaultDialTimeout because named pipes are local and there is no need to wait so long.
+const defaultPipeDialTimeout = 2 * time.Second
 
-	// Ensure the IPC path exists and remove any previous leftover
-	if err := os.MkdirAll(filepath.Dir(endpoint), 0751); err != nil {
-		return nil, err
-	}
-	os.Remove(endpoint)
-	l, err := net.Listen("unix", endpoint)
-	if err != nil {
-		return nil, err
-	}
-	os.Chmod(endpoint, 0600)
-	return l, nil
+// ipcListen will create a named pipe on the given endpoint.
+func ipcListen(endpoint string) (net.Listener, error) {
+	return npipe.Listen(endpoint)
 }
 
-// newIPCConnection will connect to a Unix socket on the given endpoint.
+// newIPCConnection will connect to a named pipe with the given endpoint as name.
 func newIPCConnection(ctx context.Context, endpoint string) (net.Conn, error) {
-	return new(net.Dialer).DialContext(ctx, "unix", endpoint)
+	timeout := defaultPipeDialTimeout
+	if deadline, ok := ctx.Deadline(); ok {
+		timeout = deadline.Sub(time.Now())
+		if timeout < 0 {
+			timeout = 0
+		}
+	}
+	return npipe.DialTimeout(endpoint, timeout)
 }
