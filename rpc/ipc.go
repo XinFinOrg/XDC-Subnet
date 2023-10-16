@@ -24,6 +24,12 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/netutil"
 )
 
+// CreateIPCListener creates an listener, on Unix platforms this is a unix socket, on
+// Windows this is a named pipe
+func CreateIPCListener(endpoint string) (net.Listener, error) {
+	return ipcListen(endpoint)
+}
+
 // ServeListener accepts connections on l, serving JSON-RPC on them.
 func (s *Server) ServeListener(l net.Listener) error {
 	for {

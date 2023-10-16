@@ -67,11 +67,14 @@ type jsonWriter interface {
 }
 
 type BlockNumber int64
+type EpochNumber int64
 
 const (
-	PendingBlockNumber  = BlockNumber(-2)
-	LatestBlockNumber   = BlockNumber(-1)
-	EarliestBlockNumber = BlockNumber(0)
+	CommittedBlockNumber = BlockNumber(-3)
+	PendingBlockNumber   = BlockNumber(-2)
+	LatestBlockNumber    = BlockNumber(-1)
+	EarliestBlockNumber  = BlockNumber(0)
+	LatestEpochNumber    = EpochNumber(-1)
 )
 
 // UnmarshalJSON parses the given JSON fragment into a BlockNumber. It supports:
@@ -111,6 +114,10 @@ func (bn *BlockNumber) UnmarshalJSON(data []byte) error {
 
 func (bn BlockNumber) Int64() int64 {
 	return (int64)(bn)
+}
+
+func (e EpochNumber) Int64() int64 {
+	return (int64)(e)
 }
 
 type BlockNumberOrHash struct {
