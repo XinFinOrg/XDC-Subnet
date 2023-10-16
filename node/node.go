@@ -19,13 +19,14 @@ package node
 import (
 	"errors"
 	"fmt"
-	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 	"net"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
 	"github.com/XinFinOrg/XDC-Subnet/ethdb"

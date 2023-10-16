@@ -342,7 +342,7 @@ func (c *Client) GetResultCallContext(ctx context.Context, result interface{}, m
 	}
 
 	// dispatch has accepted the request and will close the channel it when it quits.
-	switch resp, err := op.wait(ctx); {
+	switch resp, err := op.wait(ctx, c); {
 	case err != nil:
 		return nil, err
 	case resp.Error != nil:

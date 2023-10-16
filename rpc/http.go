@@ -25,10 +25,14 @@ import (
 	"io"
 	"io/ioutil"
 	"mime"
+	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/rs/cors"
 )
 
 const (
@@ -294,4 +298,65 @@ func validateRequest(r *http.Request) (int, error) {
 	// Invalid content-type
 	err := fmt.Errorf("invalid content type, only %s is supported", contentType)
 	return http.StatusUnsupportedMediaType, err
+}
+
+func newCorsHandler(srv *Server, allowedOrigins []string) http.Handler {
+	// disable CORS support if user has not specified a custom CORS configuration
+	if len(allowedOrigins) == 0 {
+		return srv
+	}
+	c := cors.New(cors.Options{
+		AllowedOrigins: allowedOrigins,
+		AllowedMethods: []string{http.MethodPost, http.MethodGet},
+		MaxAge:         600,
+		AllowedHeaders: []string{"*"},
+	})
+	return c.Handler(srv)
+}
+
+// virtualHostHandler is a handler which validates the Host-header of incoming requests.
+// The virtualHostHandler can prevent DNS rebinding attacks, which do not utilize CORS-headers,
+// since they do in-domain requests against the RPC api. Instead, we can see on the Host-header
+// which domain was used, and validate that against a whitelist.
+type virtualHostHandler struct {
+	vhosts map[string]struct{}
+	next   http.Handler
+}
+
+func newVHostHandler(vhosts []string, next http.Handler) http.Handler {
+	vhostMap := make(map[string]struct{})
+	for _, allowedHost := range vhosts {
+		vhostMap[strings.ToLower(allowedHost)] = struct{}{}
+	}
+	return &virtualHostHandler{vhostMap, next}
+}
+
+// ServeHTTP serves JSON-RPC requests over HTTP, implements http.Handler
+func (h *virtualHostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// if r.Host is not set, we can continue serving since a browser would set the Host header
+	if r.Host == "" {
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	host, _, err := net.SplitHostPort(r.Host)
+	if err != nil {
+		// Either invalid (too many colons) or no port specified
+		host = r.Host
+	}
+	if ipAddr := net.ParseIP(host); ipAddr != nil {
+		// It's an IP address, we can serve that
+		h.next.ServeHTTP(w, r)
+		return
+
+	}
+	// Not an ip address, but a hostname. Need to validate
+	if _, exist := h.vhosts["*"]; exist {
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	if _, exist := h.vhosts[host]; exist {
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	http.Error(w, "invalid host specified", http.StatusForbidden)
 }
