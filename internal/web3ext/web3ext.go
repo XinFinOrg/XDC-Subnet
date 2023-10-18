@@ -491,13 +491,8 @@ web3._extend({
 			params: 1
 		}),
 		new web3._extend.Method({
-			name: 'getTransactionProof',
-			call: 'eth_getTransactionProof',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'getReceiptProof',
-			call: 'eth_getReceiptProof',
+			name: 'getTransactionAndReceiptProof',
+			call: 'eth_getTransactionAndReceiptProof',
 			params: 1
 		}),
 		new web3._extend.Method({

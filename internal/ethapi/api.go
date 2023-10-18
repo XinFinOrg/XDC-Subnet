@@ -534,8 +534,8 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 	return b, state.Error()
 }
 
-// GetTransactionProof returns the Trie proof of the given transaction.
-func (s *PublicBlockChainAPI) GetTransactionProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
+// GetTransactionAndReceiptProof returns the Trie transaction and receipt proof of the given transaction hash.
+func (s *PublicBlockChainAPI) GetTransactionAndReceiptProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
 	tx, blockHash, _, index := core.GetTransaction(s.b.ChainDb(), hash)
 	if tx == nil {
 		return nil, nil
@@ -544,29 +544,13 @@ func (s *PublicBlockChainAPI) GetTransactionProof(ctx context.Context, hash comm
 	if err != nil {
 		return nil, err
 	}
-	tr := deriveTrie(block.Transactions())
+	tx_tr := deriveTrie(block.Transactions())
 
-	var proof proofPairList
 	keybuf := new(bytes.Buffer)
 	rlp.Encode(keybuf, uint(index))
-	if err := tr.Prove(keybuf.Bytes(), 0, &proof); err != nil {
+	var tx_proof proofPairList
+	if err := tx_tr.Prove(keybuf.Bytes(), 0, &tx_proof); err != nil {
 		return nil, err
-	}
-	fields := map[string]interface{}{
-		"blockHash":   blockHash,
-		"txRoot":      tr.Hash(),
-		"key":         hexutil.Encode(keybuf.Bytes()),
-		"proofKeys":   proof.keys,
-		"proofValues": proof.values,
-	}
-	return fields, nil
-}
-
-// GetReceiptProof returns the Trie proof of the receipt for a given transaction.
-func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
-	tx, blockHash, _, index := core.GetTransaction(s.b.ChainDb(), hash)
-	if tx == nil {
-		return nil, nil
 	}
 	receipts, err := s.b.GetReceipts(ctx, blockHash)
 	if err != nil {
@@ -575,20 +559,20 @@ func (s *PublicBlockChainAPI) GetReceiptProof(ctx context.Context, hash common.H
 	if len(receipts) <= int(index) {
 		return nil, nil
 	}
-	tr := deriveTrie(receipts)
-
-	var proof proofPairList
-	keybuf := new(bytes.Buffer)
-	rlp.Encode(keybuf, uint(index))
-	if err := tr.Prove(keybuf.Bytes(), 0, &proof); err != nil {
+	receipt_tr := deriveTrie(receipts)
+	var receipt_proof proofPairList
+	if err := receipt_tr.Prove(keybuf.Bytes(), 0, &receipt_proof); err != nil {
 		return nil, err
 	}
 	fields := map[string]interface{}{
-		"blockHash":   blockHash,
-		"receiptRoot": tr.Hash(),
-		"key":         hexutil.Encode(keybuf.Bytes()),
-		"proofKeys":   proof.keys,
-		"proofValues": proof.values,
+		"blockHash":          blockHash,
+		"txRoot":             tx_tr.Hash(),
+		"receiptRoot":        receipt_tr.Hash(),
+		"key":                hexutil.Encode(keybuf.Bytes()),
+		"txProofKeys":        tx_proof.keys,
+		"txProofValues":      tx_proof.values,
+		"receiptProofKeys":   receipt_proof.keys,
+		"receiptProofValues": receipt_proof.values,
 	}
 	return fields, nil
 }
