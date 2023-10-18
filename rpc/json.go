@@ -143,20 +143,6 @@ func (err *jsonError) ErrorData() interface{} {
 	return err.Data
 }
 
-// NewJSONCodec creates a new RPC server codec with support for JSON-RPC 2.0.
-func NewJSONCodec(rwc io.ReadWriteCloser) ServerCodec {
-	enc := json.NewEncoder(rwc)
-	dec := json.NewDecoder(rwc)
-	dec.UseNumber()
-
-	return &jsonCodec{
-		closed: make(chan interface{}),
-		encode: enc.Encode,
-		decode: dec.Decode,
-		rw:     rwc,
-	}
-}
-
 // Conn is a subset of the methods of net.Conn which are sufficient for ServerCodec.
 type Conn interface {
 	io.ReadWriteCloser
