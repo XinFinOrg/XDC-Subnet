@@ -1,6 +1,6 @@
 module github.com/XinFinOrg/XDC-Subnet
 
-go 1.13
+go 1.14
 
 require (
 	bazil.org/fuse v0.0.0-20180421153158-65cc252bf669
