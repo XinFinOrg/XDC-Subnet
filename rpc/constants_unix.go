@@ -22,6 +22,7 @@ package rpc
 /*
 #include <sys/un.h>
 
+__attribute__((weak))
 int max_socket_path_size() {
 struct sockaddr_un s;
 return sizeof(s.sun_path);
