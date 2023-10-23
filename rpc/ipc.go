@@ -20,7 +20,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
 )
 
