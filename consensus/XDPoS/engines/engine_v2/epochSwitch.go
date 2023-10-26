@@ -74,9 +74,10 @@ func (x *XDPoS_v2) getEpochSwitchInfo(chain consensus.ChainReader, header *types
 			standbynodes = common.RemoveItemFromArray(standbynodes, penalties)
 		}
 		epochSwitchInfo := &types.EpochSwitchInfo{
-			Penalties:    penalties,
-			Standbynodes: standbynodes,
-			Masternodes:  masternodes,
+			Penalties:      penalties,
+			Standbynodes:   standbynodes,
+			Masternodes:    masternodes,
+			MasternodesLen: len(masternodes),
 			EpochSwitchBlockInfo: &types.BlockInfo{
 				Hash:   hash,
 				Number: h.Number,
