@@ -1,9 +1,10 @@
 name: check functionality
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
-      - develop
+      - feature**
+      - fix**
 
 
 jobs:
@@ -14,14 +15,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: check out trigger branch
-        run: |
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-          git checkout pr-branch
-
       - name: test
         run: echo abc
-
 
       - name: test2
         run: cat example_file
