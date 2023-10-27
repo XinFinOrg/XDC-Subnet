@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: check out trigger branch
-        uses: |
+        run: |
           git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
           git checkout pr-branch
 
