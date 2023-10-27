@@ -32,6 +32,9 @@ jobs:
           repo=${{ github.repository }}
           branch=$(git rev-parse --abbrev-ref HEAD)
           commit=$(git rev-parse --short HEAD)
+          echo $repo
+          echo $branch
+          echo $commit
 
       - name: test2
         run: cat example_file
