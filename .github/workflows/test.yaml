@@ -16,3 +16,6 @@ jobs:
 
       - name: test
         run: echo def
+
+      - name: test2
+        run: cat example_file
