@@ -3,7 +3,7 @@ name: check functionality
 on:
   pull_request:
     branches:
-      - feature**
+      - 'develop'
 
 jobs:
   check:
