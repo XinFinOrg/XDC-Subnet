@@ -27,6 +27,12 @@ jobs:
           echo ${{ github.ref_name }}
           echo ${{ github.sha }}
 
+      - name: check branch env
+        run: |
+          repo=${{ github.repository }}
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          commit=$(git rev-parse --short HEAD)
+
       - name: test2
         run: cat example_file
 
