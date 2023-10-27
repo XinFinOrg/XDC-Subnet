@@ -15,10 +15,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      # - name: check out trigger branch
+      #   run: |
+      #     git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+      #     git checkout pr-branch
+
       - name: check out trigger branch
         run: |
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-          git checkout pr-branch
+          git fetch origin ${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
 
       - name: test
         run: echo ${{ github.head_ref }}
