@@ -1,12 +1,12 @@
 name: Build and update image
 
-# on:
-#   push:
-#     branches:
-#       - develop
-#     tags:
-#       - "*"
-#   workflow_dispatch: #allow manual trigger to workflow
+on:
+  push:
+    branches:
+      - develop
+    tags:
+      - "*"
+  workflow_dispatch: #allow manual trigger to workflow
 
 jobs:
   test_on_pr:
