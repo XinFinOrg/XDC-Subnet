@@ -17,5 +17,7 @@ jobs:
       - name: test
         run: echo def
 
-      - name: test2
+      - name: trig
         run: cat example_file
+
+
