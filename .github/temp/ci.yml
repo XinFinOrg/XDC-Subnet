@@ -9,7 +9,7 @@ on:
   workflow_dispatch: #allow manual trigger to workflow
 
 jobs:
-  test_on_pr:
+  build_image:
     name: Test, build and push image to registry
     runs-on: ubuntu-latest
     env:
@@ -24,67 +24,43 @@ jobs:
         with:
           path: ${{ env.GOPATH }}/src/XDC-Subnet
 
-      # - name: Use Node.js
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: "20.x"
-      # - name: Check smart contract
-      #   run: |
-      #     cd contracts/validator/src
-      #     yarn 
-      #     npx hardhat test
-      # - name: Set up Go 1.14.x
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: "1.14.x" # The Go version to download (if necessary) and use.
-      # - name: Run tests
-      #   run: |
-      #     make test
-      #   env:
-      #     GO111MODULE: auto
-
-      # - name: Docker login
-      #   env:
-      #     DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
-      #     DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
-      #   run: |
-      #     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-      # - name: Determine Docker Image Name
-      #   id: image
-      #   run: |
-      #     if [[ "${{github.ref_name}}" == "master" ]]; then
-      #       echo "name= xinfinorg/xdcsubnets:latest" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "name= xinfinorg/xdcsubnets:${{github.ref_name}}" >> $GITHUB_OUTPUT
-      #     fi
-
-      # - name: Build and push image
-      #   run: |
-      #     docker build . --file docker/Dockerfile --tag ${{ steps.image.outputs.name }}
-      #     docker push ${{ steps.image.outputs.name }}
-
-      - name: trigger deploy workflow
-        id: trigger_deploy
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "20.x"
+      - name: Check smart contract
         run: |
-          echo "RESPONSE_CODE=$( \
-          curl -L \
-          -o response.txt \
-          -w %{response_code} \
-          -s \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.CICD_PAT }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/hash-laboratories-au/xinfin-script/actions/workflows/subnet-deploy.yaml/dispatches \
-          -d '{"ref":"test-ansible", "inputs":{"caller_repo": "${{ github.repository }}", "caller_ref": "${{ github.ref_name }}", "caller_sha": "${{ github.sha }}"}}' \
-          )" >> $GITHUB_ENV
-
-      - name: Check response fail or success
+          cd contracts/validator/src
+          yarn 
+          npx hardhat test
+      - name: Set up Go 1.14.x
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.14.x" # The Go version to download (if necessary) and use.
+      - name: Run tests
         run: |
-          cat response.txt
-          echo "RESPONSE_CODE=${{ env.RESPONSE_CODE }}"
-          if [ ${{ env.RESPONSE_CODE }} != 204 ]
-          then
-            exit 1
+          make test
+        env:
+          GO111MODULE: auto
+
+      - name: Docker login
+        env:
+          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_ACCESS_TOKEN}}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - name: Determine Docker Image Name
+        id: image
+        run: |
+          if [[ "${{github.ref_name}}" == "master" ]]; then
+            echo "name=xinfinorg/xdcsubnets:latest" >> $GITHUB_OUTPUT
+          else
+            echo "name=xinfinorg/xdcsubnets:${{github.ref_name}}" >> $GITHUB_OUTPUT
           fi
+
+      - name: Build and push image
+        run: |
+          docker build . --file docker/Dockerfile --tag ${{ steps.image.outputs.name }}
+          docker push ${{ steps.image.outputs.name }}
+

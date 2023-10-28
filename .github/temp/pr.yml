@@ -3,11 +3,11 @@ name: PR tests
 on:
   pull_request:
     branches:
-      - master
+      - develop
 
 jobs:
   test_on_pr:
-    name: Test
+    name: Test on PR
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
