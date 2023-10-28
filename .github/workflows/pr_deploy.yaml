@@ -32,9 +32,9 @@ jobs:
           echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
           echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
           echo "commit=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo $repo
-          echo $branch
-          echo $commit
+          # echo $repo
+          # echo $branch
+          # echo $commit
 
       - name: Docker login
         env:
