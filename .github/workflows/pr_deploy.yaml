@@ -46,7 +46,7 @@ jobs:
       - name: Determine Docker Image Name
         id: image
         run: |
-            echo "name=xinfinorg/xdcsubnets:${{github.ref_name}}" >> $GITHUB_OUTPUT
+            echo "name=xinfinorg/xdcsubnets:${{ steps.branch.outputs.branch }}" >> $GITHUB_OUTPUT
         
 
       - name: Build and push image
