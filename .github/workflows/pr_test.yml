@@ -1,9 +1,8 @@
 name: PR tests
-
 on:
   pull_request:
     branches:
-      - develop
+      - master
 
 jobs:
   test_on_pr:

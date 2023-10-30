@@ -1,9 +1,8 @@
 name: Build and update image
-
 on:
   push:
     branches:
-      - develop
+      - master
     tags:
       - "*"
   workflow_dispatch: #allow manual trigger to workflow
