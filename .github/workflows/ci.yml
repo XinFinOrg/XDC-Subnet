@@ -8,7 +8,7 @@ on:
   workflow_dispatch: #allow manual trigger to workflow
 
 jobs:
-  build_image:
+  test_build_and_push_to_docker_registry:
     name: Test, build and push image to registry
     runs-on: ubuntu-latest
     env:
