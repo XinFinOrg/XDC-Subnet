@@ -1,16 +1,14 @@
-name: Build and update image
-
+name: Build and publish image 
 on:
   push:
     branches:
       - master
     tags:
       - "*"
-
   workflow_dispatch: #allow manual trigger to workflow
 
 jobs:
-  test_on_pr:
+  test_build_and_push_to_docker_registry:
     name: Test, build and push image to registry
     runs-on: ubuntu-latest
     env:
@@ -24,6 +22,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.GOPATH }}/src/XDC-Subnet
+
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -42,6 +41,7 @@ jobs:
           make test
         env:
           GO111MODULE: auto
+
       - name: Docker login
         env:
           DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
@@ -53,12 +53,13 @@ jobs:
         id: image
         run: |
           if [[ "${{github.ref_name}}" == "master" ]]; then
-            echo "name= xinfinorg/xdcsubnets:latest" >> $GITHUB_OUTPUT
+            echo "name=xinfinorg/xdcsubnets:latest" >> $GITHUB_OUTPUT
           else
-            echo "name= xinfinorg/xdcsubnets:${{github.ref_name}}" >> $GITHUB_OUTPUT
+            echo "name=xinfinorg/xdcsubnets:${{github.ref_name}}" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push image
         run: |
           docker build . --file docker/Dockerfile --tag ${{ steps.image.outputs.name }}
           docker push ${{ steps.image.outputs.name }}
+
