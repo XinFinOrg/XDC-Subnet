@@ -31,8 +31,8 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
-	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
@@ -797,11 +797,10 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 			return result, err
 		}
 		candidatesAddresses := state.GetCandidates(statedb)
+		candidates = make([]utils.Masternode, 0, len(candidatesAddresses))
 		for _, address := range candidatesAddresses {
 			v := state.GetCandidateCap(statedb, address)
-			if address.String() != "0x0000000000000000000000000000000000000000" {
-				candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
-			}
+			candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
 		}
 	}
 	if err != nil || len(candidates) == 0 {
@@ -811,24 +810,19 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 	}
 	maxMasternodes := common.MaxMasternodes
 
-	isTopCandidate := false
-	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top 150 candidates
-	// if it's SLASHED but it's out of top 150, the status should be still PROPOSED
+	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top maxMasternodes candidates.
+	// if it's SLASHED but it's out of top maxMasternodes, the status should be still PROPOSED.
+	isCandidate := false
 	for i := 0; i < len(candidates); i++ {
 		if coinbaseAddress == candidates[i].Address {
-			if i < maxMasternodes {
-				isTopCandidate = true
-			}
+			isCandidate = true
 			result[fieldStatus] = statusProposed
 			result[fieldCapacity] = candidates[i].Stake
 			break
 		}
 	}
-	if !isTopCandidate {
-		return result, nil
-	}
 
-	// Second, Find candidates that have masternode status
+	// Get masternode list
 	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
 		masternodes = engine.GetMasternodesFromCheckpointHeader(header)
 		if len(masternodes) == 0 {
@@ -839,43 +833,67 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 	} else {
 		log.Error("Undefined XDPoS consensus engine")
 	}
-	// Set masternode status
+
+	// Set to statusMasternode if it is masternode
 	for _, masternode := range masternodes {
 		if coinbaseAddress == masternode {
 			result[fieldStatus] = statusMasternode
+			if !isCandidate {
+				result[fieldCapacity] = -1
+				log.Warn("Find non-candidate masternode", "masternode", masternode.String(), "checkpointNumber", checkpointNumber, "epoch", epoch, "epochNumber", epochNumber)
+			}
 			return result, nil
 		}
+	}
+
+	if !isCandidate || len(masternodes) >= maxMasternodes {
+		return result, nil
+	}
+
+	if len(candidates) > maxMasternodes {
+		sort.Slice(candidates, func(i, j int) bool {
+			return candidates[i].Stake.Cmp(candidates[j].Stake) > 0
+		})
 	}
 
 	// Third, Get penalties list
 	penaltyList = append(penalties, header.Penalties...)
 
 	// map slashing status
-	for _, pen := range penaltyList {
-		if coinbaseAddress == pen {
-			result[fieldStatus] = statusSlashed
-			return result, nil
+	total := len(masternodes)
+	for _, candidate := range candidates {
+		for _, pen := range penaltyList {
+			if candidate.Address == pen {
+				if coinbaseAddress == pen {
+					result[fieldStatus] = statusSlashed
+					return result, nil
+				}
+				total++
+				if total >= maxMasternodes {
+					return result, nil
+				}
+			}
 		}
 	}
+
 	return result, nil
 }
 
 // GetCandidates returns status of all candidates at a specified epochNumber
 func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.EpochNumber) (map[string]interface{}, error) {
 	var (
-		block            *types.Block
-		header           *types.Header
-		checkpointNumber rpc.BlockNumber
-		epochNumber      rpc.EpochNumber
-		masternodes      []common.Address
-		candidates       []utils.Masternode
-		penalties        []common.Address
-		err              error
+		block                    *types.Block
+		header                   *types.Header
+		checkpointNumber         rpc.BlockNumber
+		epochNumber              rpc.EpochNumber
+		masternodes, penaltyList []common.Address
+		candidates               []utils.Masternode
+		penalties                []common.Address
+		err                      error
 	)
 	result := map[string]interface{}{
 		fieldSuccess: true,
 	}
-	candidatesStatusMap := map[string]map[string]interface{}{}
 
 	checkpointNumber, epochNumber = s.GetPreviousCheckpointFromEpoch(ctx, epoch)
 	result[fieldEpoch] = epochNumber.Int64()
@@ -904,11 +922,10 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 			return result, err
 		}
 		candidatesAddresses := state.GetCandidates(statedb)
+		candidates = make([]utils.Masternode, 0, len(candidatesAddresses))
 		for _, address := range candidatesAddresses {
 			v := state.GetCandidateCap(statedb, address)
-			if address.String() != "0x0000000000000000000000000000000000000000" {
-				candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
-			}
+			candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
 		}
 	}
 
@@ -917,15 +934,8 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 		result[fieldSuccess] = false
 		return result, err
 	}
-	// First, set all candidate to propose
-	for _, candidate := range candidates {
-		candidatesStatusMap[candidate.Address.String()] = map[string]interface{}{
-			fieldStatus:   statusProposed,
-			fieldCapacity: candidate.Stake,
-		}
-	}
 
-	// Second, Find candidates that have masternode status
+	// Find candidates that have masternode status
 	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
 		masternodes = engine.GetMasternodesFromCheckpointHeader(header)
 		if len(masternodes) == 0 {
@@ -936,36 +946,65 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 	} else {
 		log.Error("Undefined XDPoS consensus engine")
 	}
-	// Set masternode status
-	for _, masternode := range masternodes {
-		if candidatesStatusMap[masternode.String()] != nil {
-			candidatesStatusMap[masternode.String()][fieldStatus] = statusMasternode
+
+	// Set all candidate to statusProposed
+	candidatesStatusMap := make(map[string]map[string]interface{}, len(candidates))
+	for _, candidate := range candidates {
+		candidatesStatusMap[candidate.Address.String()] = map[string]interface{}{
+			fieldStatus:   statusProposed,
+			fieldCapacity: candidate.Stake,
 		}
 	}
 
-	// Third, Get penalties list
-	penalties = append(penalties, header.Penalties...)
+	// Set masternodes to statusMasternode
+	for _, masternode := range masternodes {
+		key := masternode.String()
+		if candidatesStatusMap[key] != nil {
+			candidatesStatusMap[key][fieldStatus] = statusMasternode
+		} else {
+			candidatesStatusMap[key] = map[string]interface{}{
+				fieldStatus:   statusMasternode,
+				fieldCapacity: -1,
+			}
+			log.Warn("Masternode is not candidate", "masternode", key, "checkpointNumber", checkpointNumber, "epoch", epoch, "epochNumber", epochNumber)
+		}
+	}
 
-	// map slashing status
-	if len(penalties) == 0 {
+	maxMasternodes := common.MaxMasternodes
+
+	if len(masternodes) >= maxMasternodes {
 		result[fieldCandidates] = candidatesStatusMap
 		return result, nil
 	}
 
-	var topCandidates []utils.Masternode
-	if len(candidates) > common.MaxMasternodes {
-		topCandidates = candidates[:common.MaxMasternodes]
-	} else {
-		topCandidates = candidates
+	if len(candidates) > maxMasternodes {
+		sort.Slice(candidates, func(i, j int) bool {
+			return candidates[i].Stake.Cmp(candidates[j].Stake) > 0
+		})
 	}
-	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top 150 candidates
-	// if it's SLASHED but it's out of top 150, the status should be still PROPOSED
-	for _, pen := range penalties {
-		for _, candidate := range topCandidates {
-			if candidate.Address == pen && candidatesStatusMap[pen.String()] != nil {
+
+	// Get penalties list
+	penaltyList = append(penalties, header.Penalties...)
+
+	// map slashing status
+	if len(penaltyList) == 0 {
+		result[fieldCandidates] = candidatesStatusMap
+		return result, nil
+	}
+
+	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top maxMasternodes candidates.
+	// if it's SLASHED but it's out of top maxMasternodes, the status should be still PROPOSED.
+	total := len(masternodes)
+	for _, candidate := range candidates {
+		for _, pen := range penaltyList {
+			if candidate.Address == pen {
 				candidatesStatusMap[pen.String()][fieldStatus] = statusSlashed
+				total++
+				if total >= maxMasternodes {
+					result[fieldCandidates] = candidatesStatusMap
+					return result, nil
+				}
 			}
-			penalties = append(penalties, block.Penalties()...)
 		}
 	}
 
@@ -977,24 +1016,23 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 // GetPreviousCheckpointFromEpoch returns header of the previous checkpoint
 func (s *PublicBlockChainAPI) GetPreviousCheckpointFromEpoch(ctx context.Context, epochNum rpc.EpochNumber) (rpc.BlockNumber, rpc.EpochNumber) {
 	var checkpointNumber uint64
+	epoch := s.b.ChainConfig().XDPoS.Epoch
 
-	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
-		if epochNum == rpc.LatestEpochNumber {
-			currentCheckpointNumber, epochNumber, err := engine.GetCurrentEpochSwitchBlock(s.chainReader, s.b.CurrentBlock().Number())
-			if err != nil {
-				log.Error("[GetPreviousCheckpointFromEpoch] Error while trying to get current epoch switch block information", "Block", s.b.CurrentBlock(), "Error", err)
-			}
-			checkpointNumber = currentCheckpointNumber
-			epochNum = rpc.EpochNumber(epochNumber)
-		} else if epochNum < 2 {
-			checkpointNumber = 0
-		} else {
-			checkpointNumber = s.b.ChainConfig().XDPoS.Epoch * (uint64(epochNum) - 1)
+	if epochNum == rpc.LatestEpochNumber {
+		blockNumer := s.b.CurrentBlock().Number().Uint64()
+		diff := blockNumer % epoch
+		// checkpoint number
+		checkpointNumber = blockNumer - diff
+		epochNum = rpc.EpochNumber(checkpointNumber / epoch)
+		if diff > 0 {
+			epochNum += 1
 		}
-		return rpc.BlockNumber(checkpointNumber), epochNum
+	} else if epochNum < 2 {
+		checkpointNumber = 0
 	} else {
-		panic("[GetPreviousCheckpointFromEpoch] Error while trying to get XDPoS consensus engine")
+		checkpointNumber = epoch * (uint64(epochNum) - 1)
 	}
+	return rpc.BlockNumber(checkpointNumber), epochNum
 }
 
 // getCandidatesFromSmartContract returns all candidates with their capacities at the current time
@@ -1016,23 +1054,18 @@ func (s *PublicBlockChainAPI) getCandidatesFromSmartContract() ([]utils.Masterno
 		return []utils.Masternode{}, err
 	}
 
-	var candidatesWithStakeInfo []utils.Masternode
+	candidatesWithStakeInfo := make([]utils.Masternode, 0, len(candidates))
 
 	for _, candidate := range candidates {
-		v, err := validator.GetCandidateCap(opts, candidate)
-		if err != nil {
-			return []utils.Masternode{}, err
-		}
-		if candidate.String() != "0x0000000000000000000000000000000000000000" {
+		if !candidate.IsZero() {
+			v, err := validator.GetCandidateCap(opts, candidate)
+			if err != nil {
+				return []utils.Masternode{}, err
+			}
 			candidatesWithStakeInfo = append(candidatesWithStakeInfo, utils.Masternode{Address: candidate, Stake: v})
 		}
-
-		if len(candidatesWithStakeInfo) > 0 {
-			sort.Slice(candidatesWithStakeInfo, func(i, j int) bool {
-				return candidatesWithStakeInfo[i].Stake.Cmp(candidatesWithStakeInfo[j].Stake) >= 0
-			})
-		}
 	}
+
 	return candidatesWithStakeInfo, nil
 }
 
@@ -1073,7 +1106,7 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 	balanceTokenFee := big.NewInt(0).SetUint64(gas)
 	balanceTokenFee = balanceTokenFee.Mul(balanceTokenFee, gasPrice)
 	// Create new call message
-	msg := types.NewMessage(addr, args.To, 0, args.Value.ToInt(), gas, gasPrice, args.Data, false, balanceTokenFee)
+	msg := types.NewMessage(addr, args.To, 0, args.Value.ToInt(), gas, gasPrice, args.Data, false, balanceTokenFee, header.Number)
 
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered gas, setup a context with a timeout.
@@ -1248,7 +1281,7 @@ func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (h
 			}
 
 			// Otherwise, the specified gas cap is too low
-			return 0, fmt.Errorf("gas required exceeds allowance (%d)", cap)						
+			return 0, fmt.Errorf("gas required exceeds allowance (%d)", cap)
 		}
 	}
 	return hexutil.Uint64(hi), nil
