@@ -262,10 +262,9 @@ func (l *Lending) processOrderList(header *types.Header, coinbase common.Address
 			collateralToken = oldestOrder.CollateralToken
 			borrowFee = lendingstate.GetFee(statedb, oldestOrder.Relayer)
 		}
-		if collateralToken.String() == lendingstate.EmptyAddress {
+		if collateralToken.IsZero() {
 			return nil, nil, nil, fmt.Errorf("empty collateral")
 		}
-		collateralPrice := common.BasePrice
 		depositRate, liquidationRate, recallRate := lendingstate.GetCollateralDetail(statedb, collateralToken)
 		if depositRate == nil || depositRate.Sign() <= 0 {
 			return nil, nil, nil, fmt.Errorf("invalid depositRate %v", depositRate)
@@ -953,11 +952,11 @@ func (l *Lending) GetMediumTradePriceBeforeEpoch(chain consensus.ChainContext, s
 	return nil, nil
 }
 
-//LendToken and CollateralToken must meet at least one of following conditions
-//- Have direct pair in XDCX: lendToken/CollateralToken or CollateralToken/LendToken
-//- Have pairs with XDC:
-//-  lendToken/XDC and CollateralToken/XDC
-//-  XDC/lendToken and XDC/CollateralToken
+// LendToken and CollateralToken must meet at least one of following conditions
+// - Have direct pair in XDCX: lendToken/CollateralToken or CollateralToken/LendToken
+// - Have pairs with XDC:
+// -  lendToken/XDC and CollateralToken/XDC
+// -  XDC/lendToken and XDC/CollateralToken
 func (l *Lending) GetCollateralPrices(header *types.Header, chain consensus.ChainContext, statedb *state.StateDB, tradingStateDb *tradingstate.TradingStateDB, collateralToken common.Address, lendingToken common.Address) (*big.Int, *big.Int, error) {
 	// lendTokenXDCPrice: price of ticker lendToken/XDC
 	// collateralXDCPrice: price of ticker collateralToken/XDC

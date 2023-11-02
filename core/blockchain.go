@@ -39,6 +39,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	contractValidator "github.com/XinFinOrg/XDC-Subnet/contracts/validator/contract"
 	"github.com/XinFinOrg/XDC-Subnet/core/state"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/core/vm"
@@ -986,8 +987,9 @@ func (bc *BlockChain) procFutureBlocks() {
 			if i == len(blocks)-1 && err == nil {
 				engine, ok := bc.Engine().(*XDPoS.XDPoS)
 				if ok {
+					j := i
 					go func() {
-						header := blocks[i].Header()
+						header := blocks[j].Header()
 						err = engine.HandleProposedBlock(bc, header)
 						if err != nil {
 							log.Info("[procFutureBlocks] handle proposed block has error", "err", err, "block hash", header.Hash(), "number", header.Number)
@@ -2199,6 +2201,31 @@ func (bc *BlockChain) reorg(oldBlock, newBlock *types.Block) error {
 			return fmt.Errorf("Invalid new chain")
 		}
 	}
+	// Ensure XDPoS engine committed block will be not reverted
+	if xdpos, ok := bc.Engine().(*XDPoS.XDPoS); ok {
+		latestCommittedBlock := xdpos.EngineV2.GetLatestCommittedBlockInfo()
+		if latestCommittedBlock != nil {
+			currentBlock := bc.CurrentBlock()
+			currentBlock.Number().Cmp(latestCommittedBlock.Number)
+			cmp := commonBlock.Number().Cmp(latestCommittedBlock.Number)
+			if cmp < 0 {
+				for _, oldBlock := range oldChain {
+					if oldBlock.Number().Cmp(latestCommittedBlock.Number) == 0 {
+						if oldBlock.Hash() != latestCommittedBlock.Hash {
+							log.Error("Impossible reorg, please file an issue", "oldnum", oldBlock.Number(), "oldhash", oldBlock.Hash(), "committed hash", latestCommittedBlock.Hash)
+						} else {
+							log.Warn("Stop reorg, blockchain is under forking attack", "old committed num", oldBlock.Number(), "old committed hash", oldBlock.Hash())
+							return fmt.Errorf("stop reorg, blockchain is under forking attack. old committed num %d, hash %x", oldBlock.Number(), oldBlock.Hash())
+						}
+					}
+				}
+			} else if cmp == 0 {
+				if commonBlock.Hash() != latestCommittedBlock.Hash {
+					log.Error("Impossible reorg, please file an issue", "oldnum", commonBlock.Number(), "oldhash", commonBlock.Hash(), "committed hash", latestCommittedBlock.Hash)
+				}
+			}
+		}
+	}
 	// Ensure the user sees large reorgs
 	if len(oldChain) > 0 && len(newChain) > 0 {
 		logFn := log.Warn
@@ -2319,7 +2346,11 @@ func (bc *BlockChain) reportBlock(block *types.Block, receipts types.Receipts, e
 	var roundNumber = types.Round(0)
 	engine, ok := bc.Engine().(*XDPoS.XDPoS)
 	if ok {
+		var err error
 		roundNumber, err = engine.EngineV2.GetRoundNumber(block.Header())
+		if err != nil {
+			log.Error("reportBlock", "GetRoundNumber", err)
+		}
 	}
 
 	var receiptString string
@@ -2428,6 +2459,11 @@ func (bc *BlockChain) HasHeader(hash common.Hash, number uint64) bool {
 	return bc.hc.HasHeader(hash, number)
 }
 
+// GetCanonicalHash returns the canonical hash for a given block number
+func (bc *BlockChain) GetCanonicalHash(number uint64) common.Hash {
+	return bc.hc.GetCanonicalHash(number)
+}
+
 // GetBlockHashesFromHash retrieves a number of block hashes starting at a given
 // hash, fetching towards the genesis block.
 func (bc *BlockChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []common.Hash {
@@ -2498,22 +2534,38 @@ func (bc *BlockChain) UpdateM1() error {
 	}
 	log.Info("It's time to update new set of masternodes for the next epoch...")
 	// get masternodes information from smart contract
+	client, err := bc.GetClient()
+	if err != nil {
+		return err
+	}
+	addr := common.HexToAddress(common.MasternodeVotingSMC)
+	validator, err := contractValidator.NewXDCValidator(addr, client)
+	if err != nil {
+		return err
+	}
+	opts := new(bind.CallOpts)
 
 	var candidates []common.Address
 	// get candidates from slot of stateDB
 	// if can't get anything, request from contracts
 	stateDB, err := bc.State()
 	if err != nil {
-		log.Error("update masternodes has statedb error", "error", err)
-		return err
+		candidates, err = validator.GetCandidates(opts)
+		if err != nil {
+			return err
+		}
+	} else {
+		candidates = state.GetCandidates(stateDB)
 	}
-	candidates = state.GetCandidates(stateDB)
 
 	var ms []utils.Masternode
 	for _, candidate := range candidates {
-		v := state.GetCandidateCap(stateDB, candidate)
-		//TODO: smart contract shouldn't return "0x0000000000000000000000000000000000000000"
-		if candidate.String() != "0x0000000000000000000000000000000000000000" {
+		v, err := validator.GetCandidateCap(opts, candidate)
+		if err != nil {
+			return err
+		}
+		// TODO: smart contract shouldn't return "0x0000000000000000000000000000000000000000"
+		if !candidate.IsZero() {
 			ms = append(ms, utils.Masternode{Address: candidate, Stake: v})
 		}
 	}

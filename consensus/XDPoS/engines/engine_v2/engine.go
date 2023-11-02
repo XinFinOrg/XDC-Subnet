@@ -171,7 +171,7 @@ func (x *XDPoS_v2) Initial(chain consensus.ChainReader, header *types.Header) er
 }
 
 func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) error {
-	log.Info("[initial] initial v2 related parameters")
+	log.Warn("[initial] initial v2 related parameters")
 
 	if x.highestQuorumCert.ProposedBlockInfo.Hash != (common.Hash{}) { // already initialized
 		log.Info("[initial] Already initialized", "x.highestQuorumCert.ProposedBlockInfo.Hash", x.highestQuorumCert.ProposedBlockInfo.Hash)
@@ -234,6 +234,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 			log.Error("[initial] Error while get masternodes", "error", err)
 			return err
 		}
+
 		snap := newSnapshot(lastGapNum, lastGapHeader.Hash(), masternodes, []common.Address{})
 		x.snapshots.Add(snap.Hash, snap)
 		err = storeSnapshot(snap, x.db)
@@ -244,7 +245,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	}
 
 	// Initial timeout
-	log.Info("[initial] miner wait period", "period", x.config.V2.CurrentConfig.MinePeriod)
+	log.Warn("[initial] miner wait period", "period", x.config.V2.CurrentConfig.MinePeriod)
 	// avoid deadlock
 	go func() {
 		x.minePeriodCh <- x.config.V2.CurrentConfig.MinePeriod
@@ -254,7 +255,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	x.timeoutWorker.Reset(chain)
 	x.isInitilised = true
 
-	log.Info("[initial] finish initialisation")
+	log.Warn("[initial] finish initialisation")
 
 	return nil
 }

@@ -5,8 +5,8 @@ on:
       - master
 
 jobs:
-  test_on_pr:
-    name: Run tests on PR
+  test_golang:
+    name: Run golang tests
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
@@ -14,11 +14,48 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.GOPATH }}/src/XDC-Subnet
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: A-B tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[a-b].*")
+          - name: C-[a-m] tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[a-m].*")
+          - name: C-[n-o] tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[n-o].*")
+          - name: C-[p-z] tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[p-z].*")
+          - name: D-I tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[d-i].*")
+          - name: J-N tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[j-n].*")
+          - name: O-R tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[o-r].*")
+          - name: S tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/s.*")
+          - name: T-Z tests
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[t-z].*")
     steps:
       - name: Check out code
         uses: actions/checkout@v3
         with:
           path: ${{ env.GOPATH }}/src/XDC-Subnet
+      - name: Set up Go 1.21.x
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.x" # The Go version to download (if necessary) and use.
+      - name: Run tests
+        run: ${{ matrix.script }}
+        env:
+          GO111MODULE: auto
+    
+  test_nodejs:
+    name: Run nodejs tests
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -28,12 +65,3 @@ jobs:
           cd contracts/validator/src
           yarn 
           npx hardhat test
-      - name: Set up Go 1.21.x
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21.x" # The Go version to download (if necessary) and use.
-      - name: Run tests
-        run: |
-          make test
-        env:
-          GO111MODULE: auto
