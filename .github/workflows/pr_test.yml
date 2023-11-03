@@ -6,7 +6,7 @@ on:
 
 jobs:
   test_on_pr:
-    name: Test on PR
+    name: Run tests on PR
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
