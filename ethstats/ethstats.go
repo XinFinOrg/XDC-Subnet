@@ -628,6 +628,20 @@ func (s *Service) reportBlock(conn *connWrapper, block *types.Block) error {
 	return conn.WriteJSON(report)
 }
 
+// reportForensics forward the forensics repors it to the stats server.
+func (s *Service) reportForensics(conn *connWrapper, forensicsProof *types.ForensicProof) error {
+	log.Info("Sending Forensics report to ethstats", "ForensicsType", forensicsProof.ForensicsType)
+
+	stats := map[string]interface{}{
+		"id":             s.node,
+		"forensicsProof": forensicsProof,
+	}
+	report := map[string][]interface{}{
+		"emit": {"forensics", stats},
+	}
+	return conn.WriteJSON(report)
+}
+
 // assembleBlockStats retrieves any required metadata to report a single block
 // and assembles the block stats. If block is nil, the current head is processed.
 func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
