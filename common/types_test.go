@@ -104,8 +104,8 @@ func TestAddressUnmarshalJSON(t *testing.T) {
 		{`"xdc"`, true, nil},
 		{`"xdc00"`, true, nil},
 		{`"xdcG000000000000000000000000000000000000000"`, true, nil},
-		{`"xdc0000000000000000000000000000000000000000"`, false, big.NewInt(0)},
-		{`"xdc0000000000000000000000000000000000000010"`, false, big.NewInt(16)},
+		{`"xdc0000000000000000000000000000000000000000"`, true, big.NewInt(0)},
+		{`"xdc0000000000000000000000000000000000000010"`, true, big.NewInt(16)}, //xdc prefix removed
 	}
 	for i, test := range tests {
 		var v Address
