@@ -6,7 +6,16 @@ on:
 
 jobs:
   build_and_deploy:
-    if: startsWith(github.head_ref, 'feature') ||  startsWith(github.head_ref, 'fix')
+    if: |
+      ( startsWith(github.head_ref, 'feature') ||  
+        startsWith(github.head_ref, 'fix') ) 
+      && 
+      ( github.actor == 'wanwiset25' || 
+        github.actor == 'GalaxySciTech' || 
+        github.actor == 'liam-lai' || 
+        github.actor == 'wjrjerome' || 
+        github.actor == 'wgr523' )
+    
     name: Deploy on PR 
     runs-on: ubuntu-latest
     steps:
