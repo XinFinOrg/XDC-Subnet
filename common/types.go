@@ -30,17 +30,17 @@ import (
 const (
 	HashLength                       = 32
 	AddressLength                    = 20
-	BlockSigners                     = "xdc0000000000000000000000000000000000000089"
-	MasternodeVotingSMC              = "xdc0000000000000000000000000000000000000088"
-	RandomizeSMC                     = "xdc0000000000000000000000000000000000000090"
-	FoudationAddr                    = "xdc0000000000000000000000000000000000000068"
-	TeamAddr                         = "xdc0000000000000000000000000000000000000099"
-	XDCXAddr                         = "xdc0000000000000000000000000000000000000091"
-	TradingStateAddr                 = "xdc0000000000000000000000000000000000000092"
-	XDCXLendingAddress               = "xdc0000000000000000000000000000000000000093"
-	XDCXLendingFinalizedTradeAddress = "xdc0000000000000000000000000000000000000094"
-	XDCNativeAddress                 = "xdc0000000000000000000000000000000000000001"
-	LendingLockAddress               = "xdc0000000000000000000000000000000000000011"
+	BlockSigners                     = "0x0000000000000000000000000000000000000089"
+	MasternodeVotingSMC              = "0x0000000000000000000000000000000000000088"
+	RandomizeSMC                     = "0x0000000000000000000000000000000000000090"
+	FoudationAddr                    = "0x0000000000000000000000000000000000000068"
+	TeamAddr                         = "0x0000000000000000000000000000000000000099"
+	XDCXAddr                         = "0x0000000000000000000000000000000000000091"
+	TradingStateAddr                 = "0x0000000000000000000000000000000000000092"
+	XDCXLendingAddress               = "0x0000000000000000000000000000000000000093"
+	XDCXLendingFinalizedTradeAddress = "0x0000000000000000000000000000000000000094"
+	XDCNativeAddress                 = "0x0000000000000000000000000000000000000001"
+	LendingLockAddress               = "0x0000000000000000000000000000000000000011"
 	VoteMethod                       = "0x6dd7d8ea"
 	UnvoteMethod                     = "0x02aa9be2"
 	ProposeMethod                    = "0x01267951"
@@ -198,27 +198,38 @@ func (a Address) Hash() Hash    { return BytesToHash(a[:]) }
 
 // Hex returns an EIP55-compliant hex string representation of the address.
 func (a Address) Hex() string {
-	unchecksummed := hex.EncodeToString(a[:])
-	sha := sha3.NewKeccak256()
-	sha.Write([]byte(unchecksummed))
-	hash := sha.Sum(nil)
+	return string(a.checksumHex())
+}
 
-	result := []byte(unchecksummed)
-	for i := 0; i < len(result); i++ {
-		hashByte := hash[i/2]
+func (a *Address) checksumHex() []byte {
+	buf := a.hex()
+
+	// compute checksum
+	sha := sha3.NewKeccak256()
+	sha.Write(buf[2:])
+	hash := sha.Sum(nil)
+	for i := 2; i < len(buf); i++ {
+		hashByte := hash[(i-2)/2]
 		if i%2 == 0 {
 			hashByte = hashByte >> 4
 		} else {
 			hashByte &= 0xf
 		}
-		if result[i] > '9' && hashByte > 7 {
-			result[i] -= 32
+		if buf[i] > '9' && hashByte > 7 {
+			buf[i] -= 32
 		}
 	}
-	return "xdc" + string(result)
+	return buf[:]
 }
 
-// String implements the stringer interface and is used also by the logger.
+func (a Address) hex() []byte {
+	var buf [len(a)*2 + 2]byte
+	copy(buf[:2], "0x")
+	hex.Encode(buf[2:], a[:])
+	return buf[:]
+}
+
+// String implements fmt.Stringer.
 func (a Address) String() string {
 	return a.Hex()
 }
@@ -249,12 +260,7 @@ func (a *Address) Set(other Address) {
 
 // MarshalText returns the hex representation of a.
 func (a Address) MarshalText() ([]byte, error) {
-	// Handle '0x' or 'xdc' prefix here.
-	if Enable0xPrefix {
-		return hexutil.Bytes(a[:]).MarshalText()
-	} else {
-		return hexutil.Bytes(a[:]).MarshalXDCText()
-	}
+	return hexutil.Bytes(a[:]).MarshalText()
 }
 
 // UnmarshalText parses a hash in hex syntax.

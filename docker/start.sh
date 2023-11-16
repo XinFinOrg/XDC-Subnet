@@ -146,5 +146,4 @@ XDC $params \
 --targetgaslimit "420000000" \
 --ws --wsaddr=0.0.0.0 \
 --mine \
---enable-0x-prefix \
 --wsorigins "*" 2>&1 >>$DATA_DIR/xdc.log | tee --append $DATA_DIR/xdc.log

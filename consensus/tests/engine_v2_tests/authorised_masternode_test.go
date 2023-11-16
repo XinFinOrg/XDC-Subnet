@@ -22,13 +22,13 @@ func TestIsAuthorisedMNForConsensusV2(t *testing.T) {
 	err := blockchain.InsertBlock(currentBlock)
 	assert.Nil(t, err)
 	// As long as the address is in the master node list, they are all valid
-	isAuthorisedMN := adaptor.IsAuthorisedAddress(blockchain, currentBlock.Header(), common.HexToAddress("xdc0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
+	isAuthorisedMN := adaptor.IsAuthorisedAddress(blockchain, currentBlock.Header(), common.HexToAddress("0x0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e"))
 	assert.True(t, isAuthorisedMN)
 
-	isAuthorisedMN = adaptor.IsAuthorisedAddress(blockchain, currentBlock.Header(), common.HexToAddress("xdc71562b71999873DB5b286dF957af199Ec94617F7"))
+	isAuthorisedMN = adaptor.IsAuthorisedAddress(blockchain, currentBlock.Header(), common.HexToAddress("0x71562b71999873DB5b286dF957af199Ec94617F7"))
 	assert.True(t, isAuthorisedMN)
 
-	isAuthorisedMN = adaptor.IsAuthorisedAddress(blockchain, currentBlock.Header(), common.HexToAddress("xdcbanana"))
+	isAuthorisedMN = adaptor.IsAuthorisedAddress(blockchain, currentBlock.Header(), common.HexToAddress("0xbanana"))
 	assert.False(t, isAuthorisedMN)
 }
 
