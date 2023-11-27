@@ -6,7 +6,9 @@ on:
 
 jobs:
   build_and_deploy:
-    if: startsWith(github.head_ref, 'feature') ||  startsWith(github.head_ref, 'fix')
+    if: |
+      ( startsWith(github.head_ref, 'feature') ||  
+        startsWith(github.head_ref, 'fix') ) 
     name: Deploy on PR 
     runs-on: ubuntu-latest
     steps:
@@ -15,8 +17,10 @@ jobs:
 
       - name: check out trigger branch
         run: |
-          git fetch origin ${{ github.head_ref }}
-          git checkout ${{ github.head_ref }}
+          git fetch origin $BRANCH
+          git checkout $BRANCH
+        env:
+          BRANCH: ${{ github.head_ref }}
 
       # - name: check envs
       #   run: | 
