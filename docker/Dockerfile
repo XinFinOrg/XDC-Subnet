@@ -1,4 +1,4 @@
-FROM golang:1.14 as builder
+FROM golang:1.21 as builder
 
 RUN apt-get update && apt-get install -y git build-essential
 
@@ -7,7 +7,7 @@ COPY . /builder
 RUN cd /builder && make XDC && make bootnode && make puppeth
 
 # The actual image for subnet containers
-FROM golang:1.14
+FROM golang:1.21
 
 RUN apt-get update && apt-get install -y git build-essential
 
