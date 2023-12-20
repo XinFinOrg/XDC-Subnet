@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"sort"
 	"strings"
 	"time"
 
@@ -37,6 +36,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
 	"github.com/XinFinOrg/XDC-Subnet/common/math"
+	"github.com/XinFinOrg/XDC-Subnet/common/sort"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/ethash"

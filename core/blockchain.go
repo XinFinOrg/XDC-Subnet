@@ -24,7 +24,6 @@ import (
 	"io"
 	"math/big"
 	"os"
-	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -36,6 +35,7 @@ import (
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/mclock"
+	"github.com/XinFinOrg/XDC-Subnet/common/sort"
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
