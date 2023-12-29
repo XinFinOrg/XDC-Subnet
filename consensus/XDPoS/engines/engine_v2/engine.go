@@ -351,7 +351,7 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 		return err
 	}
 	if isEpochSwitchBlock {
-		masterNodes, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
+		masterNodes, _, err := x.calcMasternodes(chain, header.Number, header.ParentHash, currentRound)
 		if err != nil {
 			return err
 		}
@@ -383,7 +383,7 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 	}
 
 	if header.Coinbase != signer {
-		log.Error("[Prepare] The mined blocker header coinbase address mismatch with waller address", "headerCoinbase", header.Coinbase.Hex(), "WalletAddress", signer.Hex())
+		log.Error("[Prepare] The mined blocker header coinbase address mismatch with wallet address", "headerCoinbase", header.Coinbase.Hex(), "WalletAddress", signer.Hex())
 		return consensus.ErrCoinbaseMismatch
 	}
 
@@ -1031,14 +1031,12 @@ func (x *XDPoS_v2) GetStandbynodes(chain consensus.ChainReader, header *types.He
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
-func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, error) {
-	// using new max masterndoes
+func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash, round types.Round) ([]common.Address, []common.Address, error) {
 	maxMasternodes := common.MaxMasternodes
-
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {
 		log.Error("[calcMasternodes] Adaptor v2 getSnapshot has error", "err", err)
-		return nil, err
+		return nil, nil, err
 	}
 	// candidates are masternodes
 	candidates := snap.NextEpochMasterNodes
@@ -1049,7 +1047,7 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 		masternodes = masternodes[:maxMasternodes]
 	}
 
-	return masternodes, nil
+	return masternodes, penalties, nil
 }
 
 // Given hash, get master node from the epoch switch block of the epoch
@@ -1086,7 +1084,7 @@ func (x *XDPoS_v2) allowedToSend(chain consensus.ChainReader, blockHeader *types
 	for _, mn := range masterNodes {
 		log.Debug("[allowedToSend] Master node list", "masterNodeAddress", mn.Hash())
 	}
-	log.Info("[allowedToSend] Not in the Masternode list, not suppose to send message", "sendType", sendType, "MyAddress", signer.Hex())
+	log.Debug("[allowedToSend] Not in the Masternode list, not suppose to send message", "sendType", sendType, "MyAddress", signer.Hex())
 	return false
 }
 
