@@ -564,6 +564,19 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		//FROM XDPOS v1 block: prob don't need in subnet
+		// First v2 block
+		// if (int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()) == 1 {
+		// 	lastv1BlockNumber := block.Header().Number.Uint64() - 1
+		// 	checkpointBlockNumber := lastv1BlockNumber - lastv1BlockNumber%chainConfig.XDPoS.Epoch
+		// 	checkpointHeader := blockchain.GetHeaderByNumber(checkpointBlockNumber)
+		// 	err := engine.EngineV2.Initial(blockchain, checkpointHeader)
+		// 	if err != nil {
+		// 		panic(err)
+		// 	}
+		// }
+
 		currentBlock = block
 	}
 

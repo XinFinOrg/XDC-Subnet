@@ -305,6 +305,10 @@ func (x *XDPoS) GetCurrentEpochSwitchBlock(chain consensus.ChainReader, blockNum
 	return x.EngineV2.GetCurrentEpochSwitchBlock(chain, blockNumber)
 }
 
+func (x *XDPoS) CalculateMissingRounds(chain consensus.ChainReader, header *types.Header) (*utils.PublicApiMissedRoundsMetadata, error) {
+	return x.EngineV2.CalculateMissingRounds(chain, header)
+}
+
 // Same DB across all consensus engines
 func (x *XDPoS) GetDb() ethdb.Database {
 	return x.db
