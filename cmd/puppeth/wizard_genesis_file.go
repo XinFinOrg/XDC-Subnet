@@ -99,12 +99,14 @@ func (w *wizard) makeGenesisFile() {
 	configFile, err := ioutil.ReadFile(w.options.filePath)
 	if err != nil {
 		fmt.Println("read file error ", err)
+		os.Exit(1)
 		return
 	}
 	var input = NewGenesisInput()
 	// Unmarshal our input YAML file
 	if err := yaml.Unmarshal(configFile, &input); err != nil {
 		fmt.Println("parse YAML error  ", err)
+		os.Exit(1)
 		return
 	}
 	SetDefaultAfterInputRead(input)

@@ -25,6 +25,7 @@ RUN chmod +x /usr/bin/puppeth
 # Copy over files
 ADD docker/start.sh /work/start.sh
 ADD docker/start-bootnode.sh /work/start-bootnode.sh
+ADD docker/puppeth.sh /work/puppeth.sh
 
 # Create an empty pwd file
 RUN touch /work/.pwd
