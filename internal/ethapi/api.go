@@ -882,6 +882,7 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 	block, err = s.b.BlockByNumber(ctx, checkpointNumber)
 	if err != nil || block == nil { // || checkpointNumber == 0 {
 		result[fieldSuccess] = false
+		log.Error("[GetCandidates] Error or block not found", "checkpointNumber", checkpointNumber)
 		return result, err
 	}
 
@@ -898,6 +899,7 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 		statedb, _, err := s.b.StateAndHeaderByNumber(ctx, checkpointNumber)
 		if err != nil {
 			result[fieldSuccess] = false
+			log.Error("[GetCandidates] Error when load statedb", "checkpointNumber", checkpointNumber, "err", err)
 			return result, err
 		}
 		candidatesAddresses := state.GetCandidates(statedb)
@@ -910,7 +912,7 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 	}
 
 	if err != nil || len(candidates) == 0 {
-		log.Debug("Candidates list cannot be found", "len(candidates)", len(candidates), "err", err)
+		log.Error("Candidates list cannot be found", "len(candidates)", len(candidates), "err", err)
 		result[fieldSuccess] = false
 		return result, err
 	}
@@ -976,21 +978,17 @@ func (s *PublicBlockChainAPI) GetPreviousCheckpointFromEpoch(ctx context.Context
 	var checkpointNumber uint64
 
 	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
-		currentCheckpointNumber, epochNumber, err := engine.GetCurrentEpochSwitchBlock(s.chainReader, s.b.CurrentBlock().Number())
-		if err != nil {
-			log.Error("[GetPreviousCheckpointFromEpoch] Error while trying to get current epoch switch block information", "Block", s.b.CurrentBlock(), "Error", err)
-		}
 		if epochNum == rpc.LatestEpochNumber {
+			currentCheckpointNumber, epochNumber, err := engine.GetCurrentEpochSwitchBlock(s.chainReader, s.b.CurrentBlock().Number())
+			if err != nil {
+				log.Error("[GetPreviousCheckpointFromEpoch] Error while trying to get current epoch switch block information", "Block", s.b.CurrentBlock(), "Error", err)
+			}
 			checkpointNumber = currentCheckpointNumber
 			epochNum = rpc.EpochNumber(epochNumber)
 		} else if epochNum < 2 {
 			checkpointNumber = 0
 		} else {
-			blockNumberBeforeCurrentEpochSwitch := currentCheckpointNumber - 1
-			checkpointNumber, _, err = engine.GetCurrentEpochSwitchBlock(s.chainReader, big.NewInt(int64(blockNumberBeforeCurrentEpochSwitch)))
-			if err != nil {
-				log.Error("[GetPreviousCheckpointFromEpoch] Error while trying to get last epoch switch block information", "Number", blockNumberBeforeCurrentEpochSwitch, "Error", err)
-			}
+			checkpointNumber = s.b.ChainConfig().XDPoS.Epoch * (uint64(epochNum) - 1)
 		}
 		return rpc.BlockNumber(checkpointNumber), epochNum
 	} else {
