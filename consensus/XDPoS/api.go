@@ -225,8 +225,14 @@ func (api *API) GetV2BlockByNumber(number *rpc.BlockNumber) *V2BlockInfo {
 	if number == nil || *number == rpc.LatestBlockNumber {
 		header = api.chain.CurrentHeader()
 	} else if *number == rpc.CommittedBlockNumber {
-		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
-		header = api.chain.GetHeaderByHash(hash)
+		latestCommittedBlock := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo()
+		if latestCommittedBlock == nil {
+			return &V2BlockInfo{
+				Hash:  header.Hash(),
+				Error: "can not find latest committed block from consensus",
+			}
+		}
+		header = api.chain.GetHeaderByHash(latestCommittedBlock.Hash)
 	} else {
 		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
 	}
