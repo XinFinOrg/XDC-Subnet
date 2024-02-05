@@ -25,7 +25,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -247,7 +246,7 @@ func (s *Server) handleMultipartUpload(req *Request, boundary string, mw *api.Ma
 			reader = part
 		} else {
 			// copy the part to a tmp file to get its size
-			tmp, err := ioutil.TempFile("", "swarm-multipart")
+			tmp, err := os.CreateTemp("", "swarm-multipart")
 			if err != nil {
 				return err
 			}
