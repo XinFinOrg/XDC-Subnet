@@ -23,8 +23,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
@@ -65,7 +65,7 @@ func main() {
 // updated when the contract code is changed.
 const ContractDeployedCode = "%#x"
 `, code)
-	if err := ioutil.WriteFile("contract/code.go", []byte(content), 0644); err != nil {
+	if err := os.WriteFile("contract/code.go", []byte(content), 0644); err != nil {
 		panic(err)
 	}
 }
