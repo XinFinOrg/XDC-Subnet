@@ -420,11 +420,7 @@ func InnerProductVerify(c *big.Int, P, U ECPoint, G, H []ECPoint, ipp InnerProdA
 	Pcalc3 := ux.Mult(ccalc)
 	Pcalc := Pcalc1.Add(Pcalc2).Add(Pcalc3)
 
-	if !Pprime.Equal(Pcalc) {
-		return false
-	}
-
-	return true
+	return Pprime.Equal(Pcalc)
 }
 
 /* Inner Product Verify Fast

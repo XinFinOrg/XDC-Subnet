@@ -21,8 +21,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"path/filepath"
 
 	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
@@ -285,7 +285,7 @@ func (b *EthApiBackend) GetEngine() consensus.Engine {
 func (s *EthApiBackend) GetRewardByHash(hash common.Hash) map[string]map[string]map[string]*big.Int {
 	header := s.eth.blockchain.GetHeaderByHash(hash)
 	if header != nil {
-		data, err := ioutil.ReadFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.Hash().Hex()))
+		data, err := os.ReadFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.Hash().Hex()))
 		if err == nil {
 			rewards := make(map[string]map[string]map[string]*big.Int)
 			err = json.Unmarshal(data, &rewards)
@@ -293,7 +293,7 @@ func (s *EthApiBackend) GetRewardByHash(hash common.Hash) map[string]map[string]
 				return rewards
 			}
 		} else {
-			data, err = ioutil.ReadFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.HashNoValidator().Hex()))
+			data, err = os.ReadFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.HashNoValidator().Hex()))
 			if err == nil {
 				rewards := make(map[string]map[string]map[string]*big.Int)
 				err = json.Unmarshal(data, &rewards)

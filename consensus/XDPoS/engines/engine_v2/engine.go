@@ -3,8 +3,8 @@ package engine_v2
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -408,7 +408,7 @@ func (x *XDPoS_v2) Finalize(chain consensus.ChainReader, header *types.Header, s
 		if len(common.StoreRewardFolder) > 0 {
 			data, err := json.Marshal(rewards)
 			if err == nil {
-				err = ioutil.WriteFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.Hash().Hex()), data, 0644)
+				err = os.WriteFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.Hash().Hex()), data, 0644)
 			}
 			if err != nil {
 				log.Error("Error when save reward info ", "number", header.Number, "hash", header.Hash().Hex(), "err", err)
@@ -1093,8 +1093,10 @@ func (x *XDPoS_v2) allowedToSend(chain consensus.ChainReader, blockHeader *types
 // Periodlly execution(Attached to engine initialisation during "new"). Used for pool cleaning etc
 func (x *XDPoS_v2) periodicJob() {
 	go func() {
+		ticker := time.NewTicker(utils.PeriodicJobPeriod * time.Second)
+		defer ticker.Stop()
 		for {
-			<-time.After(utils.PeriodicJobPeriod * time.Second)
+			<-ticker.C
 			x.hygieneVotePool()
 			x.hygieneTimeoutPool()
 		}
