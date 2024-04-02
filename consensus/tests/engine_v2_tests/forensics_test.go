@@ -66,7 +66,7 @@ func TestProcessQcShallSetForensicsCommittedQc(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Create another vote which is signed by someone not from the master node list
-	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn()
+	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn("")
 	assert.Nil(t, err)
 	randomlySignedHash, err := randomSignFn(accounts.Account{Address: randomSigner}, voteSigningHash.Bytes())
 	assert.Nil(t, err)
