@@ -19,23 +19,23 @@ jobs:
       matrix:
         include:
           - name: A-B tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/[a-b].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[a-b].*")
           - name: C-[a-m] tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/c[a-m].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[a-m].*")
           - name: C-[n-o] tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/c[n-o].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[n-o].*")
           - name: C-[p-z] tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/c[p-z].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[p-z].*")
           - name: D-I tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/[d-i].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[d-i].*")
           - name: J-N tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/[j-n].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[j-n].*")
           - name: O-R tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/[o-r].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[o-r].*")
           - name: S tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/s.*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/s.*")
           - name: T-Z tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDPoSChain/[t-z].*")
+            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[t-z].*")
     steps:
       - name: Check out code
         uses: actions/checkout@v3
