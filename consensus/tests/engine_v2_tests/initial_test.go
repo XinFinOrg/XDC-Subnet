@@ -1,8 +1,6 @@
 package engine_v2_tests
 
 import (
-	"encoding/json"
-	"math/big"
 	"testing"
 
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
