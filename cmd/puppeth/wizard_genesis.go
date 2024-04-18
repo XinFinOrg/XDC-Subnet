@@ -126,7 +126,7 @@ func (w *wizard) makeGenesis() {
 
 	// We also need the initial list of signers
 	fmt.Println()
-	fmt.Printf("Which accounts are initial masternodes? (mandatory at least %d)\n", minCandidateThreshold)
+	fmt.Printf("Which accounts are initial masternodes? (mandatory at least %f)\n", minCandidateThreshold)
 
 	var candidates []common.Address
 	for {
