@@ -96,28 +96,28 @@ var (
 	UnitTestV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        3,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        10,
 			MinePeriod:           2,
 		},
 		10: {
 			SwitchRound:          10,
-			CertThreshold:        5,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        4,
 			MinePeriod:           3,
 		},
 		899: {
 			SwitchRound:          899,
-			CertThreshold:        3,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 4,
 			TimeoutPeriod:        5,
 			MinePeriod:           2,
 		},
 		910: {
 			SwitchRound:          915,
-			CertThreshold:        5,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 4,
 			TimeoutPeriod:        5,
 			MinePeriod:           2,
