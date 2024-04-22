@@ -100,8 +100,8 @@ func (w *wizard) makeGenesis() {
 	genesis.Config.XDPoS.V2.CurrentConfig.TimeoutSyncThreshold = w.readDefaultInt(3)
 
 	fmt.Println()
-	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %f)\n", 0.666)
-	minCandidateThreshold := w.readDefaultFloat(0.666) //TODO: change input style to cover for float threshold
+	fmt.Printf("Proportion of total masternodes v2 vote collection to generate a QC (float value), should be two thirds of masternodes? (default = %f)\n", 0.667)
+	minCandidateThreshold := w.readDefaultFloat(0.667) 
 	genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = minCandidateThreshold
 
 	genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
