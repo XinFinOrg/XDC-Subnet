@@ -1,6 +1,7 @@
 package engine_v2_tests
 
 import (
+	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/engines/engine_v2"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/XinFinOrg/XDC-Subnet/params"
@@ -143,13 +145,28 @@ func TestTimeoutPeriodAndThreadholdConfigChange(t *testing.T) {
 	assert.Less(t, timediff, float64(26))
 }
 
+var count = 0
+
+func printTimeoutTest(engineV2 *engine_v2.XDPoS_v2) {
+	count++
+	fmt.Println("		printTimeoutTest", count)
+	currentRound, _, highestQC, highestTC, _, _ := engineV2.GetPropertiesFaker()
+	fmt.Println("currentRound", currentRound)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQC.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQC.ProposedBlockInfo.Number)
+	fmt.Println("highestTC.Round", highestTC.Round)
+	fmt.Println("highestTC.Signatures", highestTC.Signatures)
+}
+
 // Timeout handler
 func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
-	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	params.TestXDPoSMockChainConfig.XDPoS.V2.CurrentConfig = params.UnitTestV2Configs[0]
+	blockchain, _, _, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, 1, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 1
 	engineV2.SetNewRoundFaker(blockchain, types.Round(5), false)
+	printTimeoutTest(engineV2)
 	// Create two timeout message which will not reach timeout pool threshold
 	timeoutMsg := &types.Timeout{
 		Round:     types.Round(5),
@@ -160,6 +177,7 @@ func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
 	err := engineV2.TimeoutHandler(blockchain, timeoutMsg)
 	assert.Nil(t, err)
 	currentRound, _, _, _, _, _ := engineV2.GetPropertiesFaker()
+	printTimeoutTest(engineV2)
 	assert.Equal(t, types.Round(5), currentRound)
 	timeoutMsg = &types.Timeout{
 		Round:     types.Round(5),
@@ -176,6 +194,7 @@ func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
 	err = engineV2.TimeoutHandler(blockchain, timeoutMsg)
 	assert.Nil(t, err)
 	currentRound, _, _, _, _, _ = engineV2.GetPropertiesFaker()
+	printTimeoutTest(engineV2)
 	assert.Equal(t, types.Round(5), currentRound)
 
 	// Send a timeout with different gap number, it shall not trigger timeout pool hook
@@ -187,6 +206,7 @@ func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
 	err = engineV2.TimeoutHandler(blockchain, timeoutMsg)
 	assert.Nil(t, err)
 	currentRound, _, _, _, _, _ = engineV2.GetPropertiesFaker()
+	printTimeoutTest(engineV2)
 	assert.Equal(t, types.Round(5), currentRound)
 
 	// Create a timeout message that should trigger timeout pool hook
@@ -198,13 +218,24 @@ func TestTimeoutMessageHandlerSuccessfullyGenerateTCandSyncInfo(t *testing.T) {
 
 	err = engineV2.TimeoutHandler(blockchain, timeoutMsg)
 	assert.Nil(t, err)
+	printTimeoutTest(engineV2)
 
 	syncInfoMsg := <-engineV2.BroadcastCh
 
 	currentRound, _, _, _, _, _ = engineV2.GetPropertiesFaker()
+	printTimeoutTest(engineV2)
 
 	assert.NotNil(t, syncInfoMsg)
+	fmt.Println("syncInfoMsg", syncInfoMsg)
+	switch syncInfoMsg.(type) {
+	case *types.SyncInfo:
+		fmt.Println("found syncInfoMsg is *types.SyncInfo")
+		fmt.Println(syncInfoMsg.(*types.SyncInfo).HighestQuorumCert.ProposedBlockInfo.Round)
 
+	case *types.Timeout:
+		fmt.Println("found syncInfoMsg is *types.Timeout")
+		fmt.Println(syncInfoMsg.(*types.Timeout).Round, syncInfoMsg.(*types.Timeout).GapNumber)
+	}
 	// Shouldn't have QC, however, we did not inilise it, hence will show default empty value
 	qc := syncInfoMsg.(*types.SyncInfo).HighestQuorumCert
 	assert.Equal(t, types.Round(0), qc.ProposedBlockInfo.Round)

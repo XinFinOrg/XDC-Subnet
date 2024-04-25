@@ -12,6 +12,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind/backends"
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS"
+	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/engines/engine_v2"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/stretchr/testify/assert"
@@ -34,6 +35,11 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	voteSigningHash := types.VoteSigHash(voteForSign)
 
 	// Set round to 1
+	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
+	fmt.Println("currentRound", currentRound, "currentBlock.Number()", currentBlock.Number())
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQuorumCert.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQuorumCert.ProposedBlockInfo.Number)
+	fmt.Println("lockQuorumCert", lockQuorumCert)
 	engineV2.SetNewRoundFaker(blockchain, types.Round(1), false)
 	// Create three vote messages which will not reach vote pool threshold
 	signedHash, err := signFn(accounts.Account{Address: signer}, voteSigningHash.Bytes())
@@ -45,8 +51,12 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
+	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ = engineV2.GetPropertiesFaker()
+	fmt.Println("currentRound", currentRound, "currentBlock.Number()", currentBlock.Number())
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQuorumCert.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQuorumCert.ProposedBlockInfo.Number)
+	fmt.Println("lockQuorumCert", lockQuorumCert)
 	assert.Nil(t, err)
-	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
 	// initialised with nil and 0 round
 	assert.Nil(t, lockQuorumCert)
 	assert.Equal(t, types.Round(0), highestQuorumCert.ProposedBlockInfo.Round)
@@ -56,7 +66,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -87,6 +97,10 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ = engineV2.GetPropertiesFaker()
+	fmt.Println("currentRound", currentRound, "currentBlock.Number()", currentBlock.Number())
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQuorumCert.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQuorumCert.ProposedBlockInfo.Number)
+	fmt.Println("lockQuorumCert", lockQuorumCert)
 	// The lockQC shall be the parent's QC round number
 	assert.Equal(t, types.Round(0), lockQuorumCert.ProposedBlockInfo.Round)
 	// The highestQC proposedBlockInfo shall be the same as the one from its votes
@@ -140,7 +154,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -150,7 +164,6 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 
 	assert.Equal(t, types.Round(5), currentRound)
-
 	// Create another vote which is signed by someone not from the master node list
 
 	randomSigner, randomSignFn, err := backends.SimulateWalletAddressAndSignFn("")
@@ -165,12 +178,16 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 
-	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ = engineV2.GetPropertiesFaker()
+	currentRound, lockQuorumCert, highestQuorumCert, _, _, highestCommitBlock := engineV2.GetPropertiesFaker()
+	fmt.Println("currentRound", currentRound, "currentBlock.Number()", currentBlock.Number())
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQuorumCert.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQuorumCert.ProposedBlockInfo.Number)
+	fmt.Println("highestCommitBlock.Number", highestCommitBlock.Number)
+	fmt.Println("lockQuorumCert", lockQuorumCert)
 	// Still using the initlised value because we did not yet go to the next round
 	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
 	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 	assert.Equal(t, types.Round(5), currentRound)
-
 	// Create a vote message that should trigger vote pool hook and increment the round to 6
 	signedHash = SignHashByPK(acc3Key, voteSigningHash.Bytes())
 	voteMsg = &types.Vote{
@@ -181,7 +198,12 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
-	currentRound, lockQuorumCert, highestQuorumCert, _, _, highestCommitBlock := engineV2.GetPropertiesFaker()
+	currentRound, lockQuorumCert, highestQuorumCert, _, _, highestCommitBlock = engineV2.GetPropertiesFaker()
+	fmt.Println("currentRound", currentRound, "currentBlock.Number()", currentBlock.Number())
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQuorumCert.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQuorumCert.ProposedBlockInfo.Number)
+	fmt.Println("highestCommitBlock.Number", highestCommitBlock.Number)
+	fmt.Println("lockQuorumCert", lockQuorumCert)
 	// The lockQC shall be the parent's QC round number
 	assert.Equal(t, types.Round(4), lockQuorumCert.ProposedBlockInfo.Round)
 	// The highestQC proposedBlockInfo shall be the same as the one from its votes
@@ -191,6 +213,22 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	// Should trigger ProcessQC and trying to commit from blockNum of 16's grandgrandparent which is blockNum 3 with round 3
 	assert.Equal(t, types.Round(3), highestCommitBlock.Round)
 	assert.Equal(t, big.NewInt(3), highestCommitBlock.Number)
+}
+//MARK: printPropertiesFaker
+func printPropertiesFaker(engineV2 *engine_v2.XDPoS_v2, currentBlock *types.Block) {
+
+	currentRound, lockQuorumCert, highestQuorumCert, highestTimeoutCert, highestVotedRound, highestCommitBlock := engineV2.GetPropertiesFaker()
+
+	fmt.Println("currentRound", currentRound, "currentBlock.Number()", currentBlock.Number())
+	if highestCommitBlock != nil {
+		fmt.Println("highestCommitBlock.Number", highestCommitBlock.Number)
+	}
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Round", highestQuorumCert.ProposedBlockInfo.Round)
+	fmt.Println("highestQuorumCert.ProposedBlockInfo.Number", highestQuorumCert.ProposedBlockInfo.Number)
+	fmt.Println("highestTimeoutCert.Round", highestTimeoutCert.Round)
+	fmt.Println("highestVotedRound", highestVotedRound)
+	fmt.Println("lockQuorumCert", lockQuorumCert)
+
 }
 
 func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testing.T) {
@@ -215,12 +253,10 @@ func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testi
 	err := engineV2.VoteHandler(blockchain, voteMsg)
 	assert.NotNil(t, err)
 	assert.Equal(t, "vote message round number: 6 is too far away from currentRound: 7", err.Error())
-
 	// Set round to 5, it's 1 round away, should not trigger failure
 	engineV2.SetNewRoundFaker(blockchain, types.Round(5), false)
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
-
 	engineV2.SetNewRoundFaker(blockchain, types.Round(4), false)
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.NotNil(t, err)
@@ -229,11 +265,12 @@ func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testi
 }
 
 func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 5
 	engineV2.SetNewRoundFaker(blockchain, types.Round(5), false)
+	printPropertiesFaker(engineV2, currentBlock)
 
 	// Start with vote messages
 	blockInfo := &types.BlockInfo{
@@ -263,17 +300,19 @@ func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
 	currentRound, lockQuorumCert, highestQuorumCert, _, _, _ := engineV2.GetPropertiesFaker()
+	printPropertiesFaker(engineV2, currentBlock)
 	// initialised with nil and 0 round
 	assert.Equal(t, types.Round(3), lockQuorumCert.ProposedBlockInfo.Round)
 	assert.Equal(t, types.Round(4), highestQuorumCert.ProposedBlockInfo.Round)
 
 	assert.Equal(t, types.Round(5), currentRound)
+
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc2Key, voteSigningHash.Bytes()),
@@ -488,7 +527,7 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc3Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -499,7 +538,7 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(voterKey, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)

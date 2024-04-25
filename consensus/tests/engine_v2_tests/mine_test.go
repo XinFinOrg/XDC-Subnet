@@ -28,7 +28,7 @@ func TestYourTurnInitialV2(t *testing.T) {
 	t.Logf("Inserting block with propose at 11...")
 	blockCoinbaseA := "0xaaa0000000000000000000000000000000000011"
 	//Get from block validator error message
-	merkleRoot := "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+	merkleRoot := "dcd8c0551ccc086594ad552dfd2c2fae99dc51ef5a4de6c84fe8dcd5c48b5883"
 	extraInBytes := generateV2Extra(11, parentBlock, signer, signFn, nil)
 
 	header := &types.Header{
@@ -55,10 +55,12 @@ func TestYourTurnInitialV2(t *testing.T) {
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 
 	// YourTurn is called before mine first v2 block
-	b, err := adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003031"))
+	// b, err := adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003031"))
+	b, err := adaptor.YourTurn(blockchain, block11.Header(), acc1Addr)
 	assert.Nil(t, err)
 	assert.False(t, b)
-	b, err = adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003132"))
+	// b, err = adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003132"))
+	b, err = adaptor.YourTurn(blockchain, block11.Header(), acc2Addr)
 	assert.Nil(t, err)
 	// round=1, so masternode[1] has YourTurn = True
 	assert.True(t, b)
@@ -128,7 +130,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	merkleRoot := "42970e0f2265db7d85d0d9cd7328d58bd53bdb54d85d7997e95a1c3f60845602"
+	merkleRoot := "9a6581d720171de875e57b76ec70bebc5973229b35faf9597e2d6a56b5887200"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(1350)),
@@ -209,7 +211,7 @@ func TestPrepareFail(t *testing.T) {
 	err = adaptor.Prepare(blockchain, notReadyToMine)
 	assert.Equal(t, consensus.ErrNotReadyToMine, err)
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(19), false)
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(18), false)
 	header901WithoutCoinbase := &types.Header{
 		ParentHash: currentBlock.ParentHash(),
 		Number:     big.NewInt(int64(901)),
@@ -247,7 +249,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	}
 	// process QC for passing prepare verification
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(919), false) // round 919 is this signer's turn to mine
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(916), false) // round 916 is this signer's turn to mine
 	err = adaptor.Prepare(blockchain, header900)
 	assert.Nil(t, err)
 
@@ -256,7 +258,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	var decodedExtraField types.ExtraFields_v2
 	err = utils.DecodeBytesExtraFields(header900.Extra, &decodedExtraField)
 	assert.Nil(t, err)
-	assert.Equal(t, types.Round(919), decodedExtraField.Round)
+	assert.Equal(t, types.Round(916), decodedExtraField.Round)
 	assert.Equal(t, types.Round(899), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
 }
 

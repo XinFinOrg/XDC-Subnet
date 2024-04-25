@@ -80,6 +80,12 @@ func (x *XDPoS_v2) voteHandler(chain consensus.ChainReader, voteMsg *types.Vote)
 	go x.ForensicsProcessor.ProcessVoteEquivocation(chain, x, voteMsg)
 
 	epochInfo, err := x.getEpochSwitchInfo(chain, chain.CurrentHeader(), chain.CurrentHeader().Hash())
+	//MARK: PRINT EPOCHINFO
+	fmt.Println("epochInfo.Masternodes", epochInfo.Masternodes)
+	for i := 0; i < epochInfo.MasternodesLen; i++ {
+		fmt.Println(epochInfo.Masternodes[i].Hex())
+	}
+	fmt.Println("epochInfo.MasternodesLen", epochInfo.MasternodesLen)
 	if err != nil {
 		log.Error("[voteHandler] Error when getting epoch switch Info", "error", err)
 		return fmt.Errorf("Fail on voteHandler due to failure in getting epoch switch info")

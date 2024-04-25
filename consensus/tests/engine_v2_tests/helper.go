@@ -143,6 +143,11 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
 	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
+	candidates = append([]common.Address{}, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
+	fmt.Println("initial setup candidates", candidates)
+	for i := 0; i < len(candidates); i++ {
+		fmt.Println(candidates[i].Hex())
+	}
 	// initial helper backend
 	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
@@ -609,7 +614,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+		merkleRoot = "dcd8c0551ccc086594ad552dfd2c2fae99dc51ef5a4de6c84fe8dcd5c48b5883"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()
@@ -748,6 +753,7 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		index := uint64(round) % config.XDPoS.Epoch % uint64(len(masterNodes))
 		// index 0 to 2 are acc1Addr, acc2Addr, acc3Addr
 		addressToSign = masterNodes[index]
+		// fmt.Println("[findSignerAndSignFn] index", index, "len(masterNodes)", len(masterNodes), "masterNodes[index]", masterNodes[index].Hex())
 		if index == 0 {
 			_, signFn, err = getSignerAndSignFn(acc1Key)
 		} else if index == 1 {
@@ -755,9 +761,14 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		} else if index == 2 {
 			_, signFn, err = getSignerAndSignFn(acc3Key)
 		} else if index == 3 {
-			// Skip signing anything for voterAddress to simulate penalty
 			return signer, signFn
+		} else if index == 4 {
+			_, signFn, err = getSignerAndSignFn(voterKey)
 		}
+		// 	// Skip signing anything for voterAddress to simulate penalty
+		// 	return signer, signFn
+		// }
+
 		addressedSignFn = signFn
 		if err != nil {
 			panic(fmt.Errorf("Error trying to use one of the pre-defined private key to sign"))
@@ -781,7 +792,7 @@ func sealHeader(bc *BlockChain, header *types.Header, signer common.Address, sig
 func getMasternodesList(signer common.Address) []common.Address {
 	var masternodes []common.Address
 	// Place the test's signer address to the last
-	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer)
+	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
 	return masternodes
 }
 
