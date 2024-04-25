@@ -143,6 +143,11 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
 	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
+	candidates = append([]common.Address{}, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
+	fmt.Println("initial setup candidates", candidates)
+	for i := 0; i < len(candidates); i++ {
+		fmt.Println(candidates[i].Hex())
+	}
 	// initial helper backend
 	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
@@ -232,7 +237,6 @@ func getMultiCandidatesBackend(t *testing.T, chainConfig *params.ChainConfig, n 
 	voterCap.SetString("2000000000", 10) // give voter the highest cap to make it win the masternode selection
 
 	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap)
-	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr)
 
 	// initial helper backend, give a very large gas limit
 	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
@@ -609,7 +613,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+		merkleRoot = "5658f4800d32dcf4e82ec393c1b4d90d3efb46959eb69ea0f5920bc50da2fd51"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()

@@ -28,6 +28,7 @@ func (x *XDPoS_v2) timeoutHandler(blockChainReader consensus.ChainReader, timeou
 	log.Debug("[timeoutHandler] collect timeout", "number", numberOfTimeoutsInPool)
 
 	epochInfo, err := x.getEpochSwitchInfo(blockChainReader, blockChainReader.CurrentHeader(), blockChainReader.CurrentHeader().Hash())
+	fmt.Println("timeoutHandler epochInfo", epochInfo.Masternodes, epochInfo.MasternodesLen)
 	if err != nil {
 		log.Error("[timeoutHandler] Error when getting epoch switch Info", "error", err)
 		return fmt.Errorf("fail on timeoutHandler due to failure in getting epoch switch info, %s", err)
