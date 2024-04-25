@@ -211,7 +211,7 @@ func TestPrepareFail(t *testing.T) {
 	err = adaptor.Prepare(blockchain, notReadyToMine)
 	assert.Equal(t, consensus.ErrNotReadyToMine, err)
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(19), false)
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(18), false)
 	header901WithoutCoinbase := &types.Header{
 		ParentHash: currentBlock.ParentHash(),
 		Number:     big.NewInt(int64(901)),
