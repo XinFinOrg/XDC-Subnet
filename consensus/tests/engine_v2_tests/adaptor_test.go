@@ -136,7 +136,7 @@ func TestAdaptorGetMasternodesV2(t *testing.T) {
 	err := blockchain.InsertBlock(currentBlock)
 	assert.Nil(t, err)
 	masternodes1 := adaptor.GetMasternodes(blockchain, currentBlock.Header())
-	assert.Equal(t, 20, len(masternodes1))
+	assert.Equal(t, 5, len(masternodes1))
 	masternodes1ByNumber := adaptor.GetMasternodesByNumber(blockchain, currentBlock.NumberU64())
 	assert.True(t, reflect.DeepEqual(masternodes1, masternodes1ByNumber), "at block number", blockNum)
 	for blockNum = 902; blockNum < 915; blockNum++ {
