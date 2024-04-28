@@ -55,10 +55,10 @@ func TestYourTurnInitialV2(t *testing.T) {
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 
 	// YourTurn is called before mine first v2 block
-	b, err := adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003031"))
+	b, err := adaptor.YourTurn(blockchain, block11.Header(), acc1Addr)
 	assert.Nil(t, err)
 	assert.False(t, b)
-	b, err = adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003132"))
+	b, err = adaptor.YourTurn(blockchain, block11.Header(), acc2Addr)
 	assert.Nil(t, err)
 	// round=1, so masternode[1] has YourTurn = True
 	assert.True(t, b)
@@ -209,7 +209,7 @@ func TestPrepareFail(t *testing.T) {
 	err = adaptor.Prepare(blockchain, notReadyToMine)
 	assert.Equal(t, consensus.ErrNotReadyToMine, err)
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(19), false)
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(18), false)
 	header901WithoutCoinbase := &types.Header{
 		ParentHash: currentBlock.ParentHash(),
 		Number:     big.NewInt(int64(901)),
@@ -247,7 +247,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	}
 	// process QC for passing prepare verification
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(919), false) // round 919 is this signer's turn to mine
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(916), false) // round 916 is this signer's turn to mine
 	err = adaptor.Prepare(blockchain, header900)
 	assert.Nil(t, err)
 
@@ -256,7 +256,7 @@ func TestPrepareHappyPath(t *testing.T) {
 	var decodedExtraField types.ExtraFields_v2
 	err = utils.DecodeBytesExtraFields(header900.Extra, &decodedExtraField)
 	assert.Nil(t, err)
-	assert.Equal(t, types.Round(919), decodedExtraField.Round)
+	assert.Equal(t, types.Round(916), decodedExtraField.Round)
 	assert.Equal(t, types.Round(899), decodedExtraField.QuorumCert.ProposedBlockInfo.Round)
 }
 

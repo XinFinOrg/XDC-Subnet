@@ -124,14 +124,6 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	var candidates []common.Address
 	var caps []*big.Int
-	defalutCap := new(big.Int)
-	defalutCap.SetString("1000000000", 10)
-
-	for i := 1; i <= 15; i++ {
-		addr := fmt.Sprintf("%02d", i)
-		candidates = append(candidates, common.StringToAddress(addr)) // StringToAddress does not exist
-		caps = append(caps, defalutCap)
-	}
 
 	acc1Cap, acc2Cap, acc3Cap, voterCap, signerCap := new(big.Int), new(big.Int), new(big.Int), new(big.Int), new(big.Int)
 
@@ -141,8 +133,9 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 	voterCap.SetString("10000002", 10)
 	signerCap.SetString("10000001", 10)
 
-	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
-	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
+	caps = append(caps, acc1Cap, acc2Cap, acc3Cap, signerCap, voterCap)
+	candidates = append(candidates, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
+
 	// initial helper backend
 	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
@@ -757,6 +750,8 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		} else if index == 3 {
 			// Skip signing anything for voterAddress to simulate penalty
 			return signer, signFn
+		} else if index == 4 {
+			_, signFn, err = getSignerAndSignFn(voterKey)
 		}
 		addressedSignFn = signFn
 		if err != nil {
@@ -781,7 +776,7 @@ func sealHeader(bc *BlockChain, header *types.Header, signer common.Address, sig
 func getMasternodesList(signer common.Address) []common.Address {
 	var masternodes []common.Address
 	// Place the test's signer address to the last
-	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer)
+	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
 	return masternodes
 }
 
