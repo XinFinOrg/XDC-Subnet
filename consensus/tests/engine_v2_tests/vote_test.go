@@ -56,7 +56,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQCForFistV2Round(t *te
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -140,7 +140,7 @@ func TestVoteMessageHandlerSuccessfullyGeneratedAndProcessQC(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -229,7 +229,7 @@ func TestThrowErrorIfVoteMsgRoundIsMoreThanOneRoundAwayFromCurrentRound(t *testi
 }
 
 func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
-	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 905, params.TestXDPoSMockChainConfig, nil)
+	blockchain, _, currentBlock, signer, signFn, _ := PrepareXDCTestBlockChainForV2Engine(t, 5, params.TestXDPoSMockChainConfig, nil)
 	engineV2 := blockchain.Engine().(*XDPoS.XDPoS).EngineV2
 
 	// Set round to 5
@@ -263,7 +263,7 @@ func TestProcessVoteMsgThenTimeoutMsg(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         signedHash,
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)
@@ -488,7 +488,7 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(acc3Key, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 	err = engineV2.VoteHandler(blockchain, voteMsg)
 	assert.Nil(t, err)
@@ -499,7 +499,7 @@ func TestProcessVoteMsgFailIfVerifyBlockInfoFail(t *testing.T) {
 	voteMsg = &types.Vote{
 		ProposedBlockInfo: blockInfo,
 		Signature:         SignHashByPK(voterKey, voteSigningHash.Bytes()),
-		GapNumber:         450,
+		GapNumber:         0,
 	}
 
 	err = engineV2.VoteHandler(blockchain, voteMsg)

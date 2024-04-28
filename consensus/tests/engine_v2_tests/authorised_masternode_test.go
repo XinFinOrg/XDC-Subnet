@@ -1,7 +1,6 @@
 package engine_v2_tests
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -47,21 +46,21 @@ func TestIsYourTurnConsensusV2(t *testing.T) {
 	err := blockchain.InsertBlock(currentBlock)
 	assert.Nil(t, err)
 	// Less then Mine Period
-	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.StringToAddress(fmt.Sprintf("%02d", 2)))
+	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, acc2Addr)
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
 
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 	// The second address is valid as the round starting from 1
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, common.StringToAddress(fmt.Sprintf("%02d", 2)))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc2Addr)
 	assert.Nil(t, err)
 	assert.True(t, isYourTurn)
 
 	// The first and third address are not valid
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 1)))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc1Addr)
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 3)))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc3Addr)
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
 
@@ -73,13 +72,13 @@ func TestIsYourTurnConsensusV2(t *testing.T) {
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 
 	adaptor.EngineV2.SetNewRoundFaker(blockchain, 2, false)
-	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 2)))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc2Addr)
 	assert.False(t, isYourTurn)
 
-	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 3)))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc3Addr)
 	assert.True(t, isYourTurn)
 
-	isYourTurn, _ = adaptor.YourTurn(blockchain, currentBlock.Header(), common.StringToAddress(fmt.Sprintf("%02d", 1)))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc1Addr)
 	assert.False(t, isYourTurn)
 
 }
@@ -100,7 +99,7 @@ func TestIsYourTurnConsensusV2CrossConfig(t *testing.T) {
 	assert.Nil(t, err)
 	// after first mine period
 	time.Sleep(time.Duration(firstMinePeriod) * time.Second)
-	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0000000000000000000000000000000000003131"))
+	isYourTurn, err := adaptor.YourTurn(blockchain, currentBlockHeader, acc1Addr)
 	assert.Nil(t, err)
 	assert.False(t, isYourTurn)
 
@@ -110,7 +109,7 @@ func TestIsYourTurnConsensusV2CrossConfig(t *testing.T) {
 	secondMinePeriod := blockchain.Config().XDPoS.V2.CurrentConfig.MinePeriod
 
 	time.Sleep(time.Duration(secondMinePeriod-firstMinePeriod) * time.Second)
-	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, common.HexToAddress("xdc0000000000000000000000000000000000003131"))
+	isYourTurn, err = adaptor.YourTurn(blockchain, currentBlockHeader, acc1Addr)
 	assert.Nil(t, err)
 	assert.True(t, isYourTurn)
 }

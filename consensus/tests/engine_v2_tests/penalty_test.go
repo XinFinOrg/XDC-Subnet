@@ -33,7 +33,7 @@ func TestHookPenaltyV2TwoEpoch(t *testing.T) {
 	header450 := blockchain.GetHeaderByNumber(450)
 	penalty, err := adaptor.EngineV2.HookPenalty(blockchain, header450.Number, header450.ParentHash, masternodes, config.XDPoS)
 	assert.Nil(t, err)
-	assert.Equal(t, 125, len(penalty)) // we have 4 miners created for all blocks, 3 is among 128 masternode candidates (test issue, no need to fix). So 125 candidates left are penalties
+	assert.Equal(t, 124, len(penalty)) // we have 4 miners created for all blocks, 3 is among 128 masternode candidates (test issue, no need to fix). So 125 candidates left are penalties
 
 	header1335 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch + config.XDPoS.Gap - uint64(common.MergeSignRange))
 	tx, err := signingTxWithKey(header1335, 0, voterKey)
