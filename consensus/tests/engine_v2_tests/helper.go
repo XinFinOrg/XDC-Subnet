@@ -753,6 +753,7 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		index := uint64(round) % config.XDPoS.Epoch % uint64(len(masterNodes))
 		// index 0 to 2 are acc1Addr, acc2Addr, acc3Addr
 		addressToSign = masterNodes[index]
+		// fmt.Println("[findSignerAndSignFn] index", index, "len(masterNodes)", len(masterNodes), "masterNodes[index]", masterNodes[index].Hex())
 		if index == 0 {
 			_, signFn, err = getSignerAndSignFn(acc1Key)
 		} else if index == 1 {
@@ -760,9 +761,14 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		} else if index == 2 {
 			_, signFn, err = getSignerAndSignFn(acc3Key)
 		} else if index == 3 {
-			// Skip signing anything for voterAddress to simulate penalty
 			return signer, signFn
+		} else if index == 4 {
+			_, signFn, err = getSignerAndSignFn(voterKey)
 		}
+		// 	// Skip signing anything for voterAddress to simulate penalty
+		// 	return signer, signFn
+		// }
+
 		addressedSignFn = signFn
 		if err != nil {
 			panic(fmt.Errorf("Error trying to use one of the pre-defined private key to sign"))
@@ -786,7 +792,7 @@ func sealHeader(bc *BlockChain, header *types.Header, signer common.Address, sig
 func getMasternodesList(signer common.Address) []common.Address {
 	var masternodes []common.Address
 	// Place the test's signer address to the last
-	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer)
+	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
 	return masternodes
 }
 

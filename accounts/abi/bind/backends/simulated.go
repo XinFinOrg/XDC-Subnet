@@ -89,21 +89,27 @@ func SimulateWalletAddressAndSignFn(path string) (common.Address, func(account a
 	if err != nil {
 		a1, err = ks.NewAccount(pass)
 		if err != nil {
+			fmt.Println("[SimulateWalletAddressAndSignFn] return 1")
 			return common.Address{}, nil, fmt.Errorf(err.Error())
 		}
 	} else {
 		a1, err = ks.Import(jsonData, pass, pass)
 		if err != nil {
+			fmt.Println("[SimulateWalletAddressAndSignFn] return 2")
 			return common.Address{}, nil, fmt.Errorf(err.Error())
 		}
 	}
 
 	if err != nil {
+		fmt.Println("[SimulateWalletAddressAndSignFn] return 3")
 		return common.Address{}, nil, fmt.Errorf(err.Error())
 	}
 	if err := ks.Unlock(a1, ""); err != nil {
+		fmt.Println("[SimulateWalletAddressAndSignFn] return 4")
 		return a1.Address, nil, fmt.Errorf(err.Error())
 	}
+	fmt.Println("[SimulateWalletAddressAndSignFn] return 5")
+	_ = ks.Unlock(a1, "")
 	return a1.Address, ks.SignHash, nil
 }
 
