@@ -7,10 +7,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto"
+	"github.com/XinFinOrg/XDC-Subnet/crypto"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/XinFinOrg/XDPoSChain/crypto/secp256k1"
+	"github.com/XinFinOrg/XDC-Subnet/crypto/secp256k1"
 )
 
 func TestSign(t *testing.T) {
@@ -318,7 +318,7 @@ func TestNilPointerDereferencePanic(t *testing.T) {
 		t.Error("Failed to Serialize input Ring signature")
 	}
 
-	_ , err = Deserialize(sig)
+	_, err = Deserialize(sig)
 	// Should failed to verify Ring signature as the signature is invalid
 	assert.EqualError(t, err, "failed to deserialize, invalid ring signature")
 }
