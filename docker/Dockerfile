@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y git build-essential
 COPY . /builder
 
 RUN go env -w GOFLAGS="-buildvcs=false"
+RUN mv /builder/common/constants/constants.go.custom /builder/common/constants.go
 RUN cd /builder && make XDC && make bootnode && make puppeth
 
 # The actual image for subnet containers
