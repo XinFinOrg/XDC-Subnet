@@ -20,8 +20,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 	"math/big"
+
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/common/hexutil"
@@ -143,7 +144,6 @@ func (t *VMTest) newEVM(statedb *state.StateDB, vmconfig vm.Config) *vm.EVM {
 		Difficulty:  t.json.Env.Difficulty,
 		GasPrice:    t.json.Exec.GasPrice,
 	}
-	vmconfig.NoRecursion = true
 	return vm.NewEVM(context, statedb, nil, params.MainnetChainConfig, vmconfig)
 }
 
