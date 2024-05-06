@@ -565,7 +565,7 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 			t.Fatal(err)
 		}
 
-		//FROM XDPOS v1 block: prob don't need in subnet
+		//FROM XDPOS: find v2 switch block, don't need in subnet
 		// First v2 block
 		// if (int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()) == 1 {
 		// 	lastv1BlockNumber := block.Header().Number.Uint64() - 1
