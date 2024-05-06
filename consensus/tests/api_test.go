@@ -25,7 +25,6 @@ func TestConfigApi(t *testing.T) {
 	engine := bc.GetBlockChain().Engine().(*XDPoS.XDPoS)
 
 	info := engine.APIs(bc.GetBlockChain())[0].Service.(*XDPoS.API).NetworkInformation()
-
 	assert.Equal(t, info.NetworkId, big.NewInt(1337))
 	assert.Equal(t, info.ConsensusConfigs.V2.CurrentConfig.CertThreshold, 0.667)
 	assert.Equal(t, info.ConsensusConfigs.V2.CurrentConfig.MinePeriod, 2)
