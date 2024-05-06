@@ -261,6 +261,7 @@ func (api *API) NetworkInformation() NetworkInformation {
 	info.XDCValidatorAddress = common.HexToAddress(common.MasternodeVotingSMC)
 	info.Denom = api.chain.Config().XDPoS.Denom
 	info.NetworkName = api.chain.Config().XDPoS.NetworkName
+	info.ConsensusConfigs = *api.XDPoS.config
 	return info
 }
 
