@@ -22,23 +22,23 @@ jobs:
       matrix:
         include:
           - name: A-B tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[a-b].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[a-b].*")
           - name: C-[a-m] tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[a-m].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[a-m].*")
           - name: C-[n-o] tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[n-o].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[n-o].*")
           - name: C-[p-z] tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[p-z].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/c[p-z].*")
           - name: D-I tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[d-i].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[d-i].*")
           - name: J-N tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[j-n].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[j-n].*")
           - name: O-R tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[o-r].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[o-r].*")
           - name: S tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/s.*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/s.*")
           - name: T-Z tests
-            script: go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[t-z].*")
+            script: mv common/constants/constants.go.unittest common/constants.go; go run build/ci.go test -coverage $(go list ./... | grep "github.com/XinFinOrg/XDC-Subnet/[t-z].*")
     steps:
       - name: Check out code
         uses: actions/checkout@v3
