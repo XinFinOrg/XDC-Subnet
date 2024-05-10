@@ -19,7 +19,6 @@ package main
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"runtime"
@@ -504,7 +503,7 @@ func decryptStoreAccount(ks *keystore.KeyStore, account string, passwords []stri
 	if err != nil {
 		utils.Fatalf("Can't find swarm account key: %v - Is the provided bzzaccount(%s) from the right datadir/Path?", err, account)
 	}
-	keyjson, err := ioutil.ReadFile(a.URL.Path)
+	keyjson, err := os.ReadFile(a.URL.Path)
 	if err != nil {
 		utils.Fatalf("Can't load swarm account key: %v", err)
 	}

@@ -30,6 +30,10 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet"
 )
 
+var (
+	errNoEventSignature = errors.New("no event signature")
+)
+
 // SignerFn is a signer function callback when a contract requires a method to
 // sign the transaction before submission.
 type SignerFn func(types.Signer, common.Address, *types.Transaction) (*types.Transaction, error)
@@ -128,7 +132,7 @@ func (c *BoundContract) Call(opts *CallOpts, result interface{}, method string, 
 		return err
 	}
 	var (
-		msg    = XDPoSChain.CallMsg{From: opts.From, To: &c.address, Data: input, GasPrice: common.MinGasPrice, Gas: uint64(4200000)}
+		msg    = XDPoSChain.CallMsg{From: opts.From, To: &c.address, Data: input, GasPrice: common.MinGasPrice50x, Gas: uint64(4200000)}
 		ctx    = ensureContext(opts.Context)
 		code   []byte
 		output []byte
@@ -326,6 +330,13 @@ func (c *BoundContract) WatchLogs(opts *WatchOpts, name string, query ...[]inter
 
 // UnpackLog unpacks a retrieved log into the provided output structure.
 func (c *BoundContract) UnpackLog(out interface{}, event string, log types.Log) error {
+	// Anonymous events are not supported.
+	if len(log.Topics) == 0 {
+		return errNoEventSignature
+	}
+	if log.Topics[0] != c.abi.Events[event].Id() {
+		return fmt.Errorf("event signature mismatch")
+	}
 	if len(log.Data) > 0 {
 		if err := c.abi.Unpack(out, event, log.Data); err != nil {
 			return err

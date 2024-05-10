@@ -23,6 +23,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
+	"github.com/XinFinOrg/XDC-Subnet/params"
 	"github.com/XinFinOrg/XDC-Subnet/rlp"
 	"github.com/XinFinOrg/XDC-Subnet/rpc"
 )
@@ -52,6 +53,7 @@ type NetworkInformation struct {
 	RelayerRegistrationAddress common.Address
 	Denom                      string
 	NetworkName                string
+	ConsensusConfigs           params.XDPoSConfig
 }
 
 type SignerTypes struct {
@@ -221,22 +223,7 @@ func (api *API) GetV2BlockByHeader(header *types.Header, uncle bool) *V2BlockInf
 }
 
 func (api *API) GetV2BlockByNumber(number *rpc.BlockNumber) *V2BlockInfo {
-	var header *types.Header
-	if number == nil || *number == rpc.LatestBlockNumber {
-		header = api.chain.CurrentHeader()
-	} else if *number == rpc.CommittedBlockNumber {
-		latestCommittedBlock := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo()
-		if latestCommittedBlock == nil {
-			return &V2BlockInfo{
-				Hash:  header.Hash(),
-				Error: "can not find latest committed block from consensus",
-			}
-		}
-		header = api.chain.GetHeaderByHash(latestCommittedBlock.Hash)
-	} else {
-		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
-	}
-
+	header := api.getHeaderFromApiBlockNum(number)
 	if header == nil {
 		return &V2BlockInfo{
 			Number: big.NewInt(number.Int64()),
@@ -274,7 +261,28 @@ func (api *API) NetworkInformation() NetworkInformation {
 	info.XDCValidatorAddress = common.HexToAddress(common.MasternodeVotingSMC)
 	info.Denom = api.chain.Config().XDPoS.Denom
 	info.NetworkName = api.chain.Config().XDPoS.NetworkName
+	info.ConsensusConfigs = *api.XDPoS.config
 	return info
+}
+
+/*
+An API exclusively for V2 consensus, designed to assist in troubleshooting miners by identifying who mined during their allocated term.
+*/
+func (api *API) GetMissedRoundsInEpochByBlockNum(number *rpc.BlockNumber) (*utils.PublicApiMissedRoundsMetadata, error) {
+	return api.XDPoS.CalculateMissingRounds(api.chain, api.getHeaderFromApiBlockNum(number))
+}
+
+func (api *API) getHeaderFromApiBlockNum(number *rpc.BlockNumber) *types.Header {
+	var header *types.Header
+	if number == nil || *number == rpc.LatestBlockNumber {
+		header = api.chain.CurrentHeader()
+	} else if *number == rpc.CommittedBlockNumber {
+		hash := api.XDPoS.EngineV2.GetLatestCommittedBlockInfo().Hash
+		header = api.chain.GetHeaderByHash(hash)
+	} else {
+		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
+	}
+	return header
 }
 
 func calculateSigners(message map[string]SignerTypes, pool map[string]map[common.Hash]utils.PoolObj, masternodes []common.Address) {

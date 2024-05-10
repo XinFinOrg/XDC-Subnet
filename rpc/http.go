@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net"
 	"net/http"
@@ -32,6 +31,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/XinFinOrg/XDC-Subnet/log"
 	"github.com/rs/cors"
 )
 
@@ -170,6 +170,9 @@ func (c *Client) sendBatchHTTP(ctx context.Context, op *requestOp, msgs []*jsonr
 	if err := json.NewDecoder(respBody).Decode(&respmsgs); err != nil {
 		return err
 	}
+	if len(respmsgs) != len(msgs) {
+		return fmt.Errorf("batch has %d requests but response has %d: %w", len(msgs), len(respmsgs), ErrBadResult)
+	}
 	for i := 0; i < len(respmsgs); i++ {
 		op.resp <- &respmsgs[i]
 	}
@@ -181,7 +184,7 @@ func (hc *httpConn) doRequest(ctx context.Context, msg interface{}) (io.ReadClos
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", hc.url, ioutil.NopCloser(bytes.NewReader(body)))
+	req, err := http.NewRequestWithContext(ctx, "POST", hc.url, io.NopCloser(bytes.NewReader(body)))
 	if err != nil {
 		return nil, err
 	}
@@ -230,14 +233,16 @@ func (t *httpServerConn) SetWriteDeadline(time.Time) error { return nil }
 // NewHTTPServer creates a new HTTP RPC server around an API provider.
 //
 // Deprecated: Server implements http.Handler
-func NewHTTPServer(cors []string, vhosts []string, srv *Server) *http.Server {
+func NewHTTPServer(cors []string, vhosts []string, srv *Server, writeTimeout time.Duration) *http.Server {
 	// Wrap the CORS-handler within a host-handler
 	handler := newCorsHandler(srv, cors)
 	handler = newVHostHandler(vhosts, handler)
+	handler = http.TimeoutHandler(handler, writeTimeout, `{"error":"http server timeout"}`)
+	log.Info("NewHTTPServer", "writeTimeout", writeTimeout)
 	return &http.Server{
 		Handler:      handler,
 		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: writeTimeout + time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 }

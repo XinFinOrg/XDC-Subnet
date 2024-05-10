@@ -3,8 +3,8 @@ package engine_v2
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -171,7 +171,7 @@ func (x *XDPoS_v2) Initial(chain consensus.ChainReader, header *types.Header) er
 }
 
 func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) error {
-	log.Info("[initial] initial v2 related parameters")
+	log.Warn("[initial] initial v2 related parameters")
 
 	if x.highestQuorumCert.ProposedBlockInfo.Hash != (common.Hash{}) { // already initialized
 		log.Info("[initial] Already initialized", "x.highestQuorumCert.ProposedBlockInfo.Hash", x.highestQuorumCert.ProposedBlockInfo.Hash)
@@ -234,6 +234,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 			log.Error("[initial] Error while get masternodes", "error", err)
 			return err
 		}
+
 		snap := newSnapshot(lastGapNum, lastGapHeader.Hash(), masternodes, []common.Address{})
 		x.snapshots.Add(snap.Hash, snap)
 		err = storeSnapshot(snap, x.db)
@@ -244,7 +245,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	}
 
 	// Initial timeout
-	log.Info("[initial] miner wait period", "period", x.config.V2.CurrentConfig.MinePeriod)
+	log.Warn("[initial] miner wait period", "period", x.config.V2.CurrentConfig.MinePeriod)
 	// avoid deadlock
 	go func() {
 		x.minePeriodCh <- x.config.V2.CurrentConfig.MinePeriod
@@ -254,7 +255,7 @@ func (x *XDPoS_v2) initial(chain consensus.ChainReader, header *types.Header) er
 	x.timeoutWorker.Reset(chain)
 	x.isInitilised = true
 
-	log.Info("[initial] finish initialisation")
+	log.Warn("[initial] finish initialisation")
 
 	return nil
 }
@@ -350,7 +351,7 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 		return err
 	}
 	if isEpochSwitchBlock {
-		masterNodes, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
+		masterNodes, _, err := x.calcMasternodes(chain, header.Number, header.ParentHash, currentRound)
 		if err != nil {
 			return err
 		}
@@ -382,7 +383,7 @@ func (x *XDPoS_v2) Prepare(chain consensus.ChainReader, header *types.Header) er
 	}
 
 	if header.Coinbase != signer {
-		log.Error("[Prepare] The mined blocker header coinbase address mismatch with waller address", "headerCoinbase", header.Coinbase.Hex(), "WalletAddress", signer.Hex())
+		log.Error("[Prepare] The mined blocker header coinbase address mismatch with wallet address", "headerCoinbase", header.Coinbase.Hex(), "WalletAddress", signer.Hex())
 		return consensus.ErrCoinbaseMismatch
 	}
 
@@ -407,7 +408,7 @@ func (x *XDPoS_v2) Finalize(chain consensus.ChainReader, header *types.Header, s
 		if len(common.StoreRewardFolder) > 0 {
 			data, err := json.Marshal(rewards)
 			if err == nil {
-				err = ioutil.WriteFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.Hash().Hex()), data, 0644)
+				err = os.WriteFile(filepath.Join(common.StoreRewardFolder, header.Number.String()+"."+header.Hash().Hex()), data, 0644)
 			}
 			if err != nil {
 				log.Error("Error when save reward info ", "number", header.Number, "hash", header.Hash().Hex(), "err", err)
@@ -803,17 +804,6 @@ func (x *XDPoS_v2) VerifyBlockInfo(blockChainReader consensus.ChainReader, block
 }
 
 func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *types.QuorumCert, parentHeader *types.Header) error {
-	/*
-		1. Check if num of QC signatures is >= x.config.v2.CertThreshold
-		2. Get epoch master node list by hash
-		3. Verify signer signatures: (List of signatures)
-					- Use ecRecover to get the public key
-					- Use the above public key to find out the xdc address
-					- Use the above xdc address to check against the master node list from step 1(For the received QC epoch)
-		4. Verify gapNumber = epochSwitchNumber - epochSwitchNumber%Epoch - Gap
-		5. Verify blockInfo
-	*/
-
 	if quorumCert == nil {
 		log.Warn("[verifyQC] QC is Nil")
 		return utils.ErrInvalidQC
@@ -834,9 +824,9 @@ func (x *XDPoS_v2) verifyQC(blockChainReader consensus.ChainReader, quorumCert *
 
 	qcRound := quorumCert.ProposedBlockInfo.Round
 	certThreshold := x.config.V2.Config(uint64(qcRound)).CertThreshold
-	if (qcRound > 0) && (signatures == nil || (len(signatures) < certThreshold)) {
+	if (qcRound > 0) && (signatures == nil || float64(len(signatures)) < float64(epochInfo.MasternodesLen)*certThreshold) {
 		//First V2 Block QC, QC Signatures is initial nil
-		log.Warn("[verifyHeader] Invalid QC Signature is nil or less then config", "QC", quorumCert, "QCNumber", quorumCert.ProposedBlockInfo.Number, "Signatures len", len(signatures), "CertThreshold", certThreshold)
+		log.Warn("[verifyHeader] Invalid QC Signature is nil or less then config", "QC", quorumCert, "QCNumber", quorumCert.ProposedBlockInfo.Number, "Signatures len", len(signatures), "CertThreshold", float64(epochInfo.MasternodesLen)*certThreshold)
 		return utils.ErrInvalidQCSignatures
 	}
 	start := time.Now()
@@ -1041,14 +1031,12 @@ func (x *XDPoS_v2) GetStandbynodes(chain consensus.ChainReader, header *types.He
 }
 
 // Calculate masternodes for a block number and parent hash. In V2, truncating candidates[:MaxMasternodes] is done in this function.
-func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash) ([]common.Address, error) {
-	// using new max masterndoes
+func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.Int, parentHash common.Hash, round types.Round) ([]common.Address, []common.Address, error) {
 	maxMasternodes := common.MaxMasternodes
-
 	snap, err := x.getSnapshot(chain, blockNum.Uint64(), false)
 	if err != nil {
 		log.Error("[calcMasternodes] Adaptor v2 getSnapshot has error", "err", err)
-		return nil, err
+		return nil, nil, err
 	}
 	// candidates are masternodes
 	candidates := snap.NextEpochMasterNodes
@@ -1058,16 +1046,8 @@ func (x *XDPoS_v2) calcMasternodes(chain consensus.ChainReader, blockNum *big.In
 	if len(masternodes) > maxMasternodes {
 		masternodes = masternodes[:maxMasternodes]
 	}
-	if len(masternodes) < x.config.V2.CurrentConfig.CertThreshold {
-		log.Warn("[calcMasternodes] Current epoch masternodes less than threshold", "number", blockNum, "masternodes", len(masternodes), "threshold", x.config.V2.CurrentConfig.CertThreshold)
-		for i, a := range masternodes {
-			log.Warn("final masternode", "i", i, "addr", a)
-		}
-		for i, a := range penalties {
-			log.Warn("penalty", "i", i, "addr", a)
-		}
-	}
-	return masternodes, nil
+
+	return masternodes, penalties, nil
 }
 
 // Given hash, get master node from the epoch switch block of the epoch
@@ -1104,15 +1084,17 @@ func (x *XDPoS_v2) allowedToSend(chain consensus.ChainReader, blockHeader *types
 	for _, mn := range masterNodes {
 		log.Debug("[allowedToSend] Master node list", "masterNodeAddress", mn.Hash())
 	}
-	log.Info("[allowedToSend] Not in the Masternode list, not suppose to send message", "sendType", sendType, "MyAddress", signer.Hex())
+	log.Debug("[allowedToSend] Not in the Masternode list, not suppose to send message", "sendType", sendType, "MyAddress", signer.Hex())
 	return false
 }
 
 // Periodlly execution(Attached to engine initialisation during "new"). Used for pool cleaning etc
 func (x *XDPoS_v2) periodicJob() {
 	go func() {
+		ticker := time.NewTicker(utils.PeriodicJobPeriod * time.Second)
+		defer ticker.Stop()
 		for {
-			<-time.After(utils.PeriodicJobPeriod * time.Second)
+			<-ticker.C
 			x.hygieneVotePool()
 			x.hygieneTimeoutPool()
 		}

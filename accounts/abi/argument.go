@@ -18,6 +18,7 @@ package abi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -98,6 +99,17 @@ func (arguments Arguments) Unpack(v interface{}, data []byte) error {
 		return arguments.unpackTuple(v, marshalledValues)
 	}
 	return arguments.unpackAtomic(v, marshalledValues)
+}
+
+// Unpack2 performs the operation hexdata -> Go format.
+func (arguments Arguments) Unpack2(data []byte) ([]interface{}, error) {
+	if len(data) == 0 {
+		if len(arguments.NonIndexed()) != 0 {
+			return nil, errors.New("abi: attempting to unmarshall an empty string while arguments are expected")
+		}
+		return make([]interface{}, 0), nil
+	}
+	return arguments.UnpackValues(data)
 }
 
 func (arguments Arguments) unpackTuple(v interface{}, marshalledValues []interface{}) error {
@@ -278,7 +290,7 @@ func capitalise(input string) string {
 	return strings.ToUpper(input[:1]) + input[1:]
 }
 
-//unpackStruct extracts each argument into its corresponding struct field
+// unpackStruct extracts each argument into its corresponding struct field
 func unpackStruct(value, reflectValue reflect.Value, arg Argument) error {
 	name := capitalise(arg.Name)
 	typ := value.Type()

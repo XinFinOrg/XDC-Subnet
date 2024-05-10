@@ -2,14 +2,15 @@ package lendingstate
 
 import (
 	"fmt"
+	"math/big"
+	"strconv"
+	"time"
+
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/core/state"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
 	"github.com/globalsign/mgo/bson"
-	"math/big"
-	"strconv"
-	"time"
 )
 
 const (
@@ -26,6 +27,13 @@ const (
 	LendingStatusCancelled     = "CANCELLED"
 	Market                     = "MO"
 	Limit                      = "LO"
+	/*
+		Based on all structs that were used to encode into extraData, we can see the liquidationData is likely be the one with max length in payload.
+		A assumptions was made that each numeric value (RecallAmount, LiquidationAmount, CollateralPrice) is up to 30 digits long and the Reason field is 20 characters long, the estimated maximum size of the ExtraData JSON string in the ProcessLiquidationData function would be approximately 185 bytes.
+		Hence the value of 200 has been chosen to safeguard the block/tx in XDC in terms of sizes.
+
+	*/
+	MaxLendingExtraDataSize = 200
 )
 
 var ValidInputLendingStatus = map[string]bool{
@@ -232,6 +240,9 @@ func (l *LendingItem) VerifyLendingItem(state *state.StateDB) error {
 	if err := l.VerifyLendingSignature(); err != nil {
 		return err
 	}
+	if err := l.VerifyLendingExtraData(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -243,11 +254,11 @@ func (l *LendingItem) VerifyLendingSide() error {
 }
 
 func (l *LendingItem) VerifyCollateral(state *state.StateDB) error {
-	if l.CollateralToken.String() == EmptyAddress || l.CollateralToken.String() == l.LendingToken.String() {
+	if l.CollateralToken.IsZero() || l.CollateralToken == l.LendingToken {
 		return fmt.Errorf("invalid collateral %s", l.CollateralToken.Hex())
 	}
 	validCollateral := false
-	collateralList, _ := GetCollaterals(state, l.Relayer, l.LendingToken, l.Term)
+	collateralList := GetCollaterals(state, l.Relayer, l.LendingToken, l.Term)
 	for _, collateral := range collateralList {
 		if l.CollateralToken.String() == collateral.String() {
 			validCollateral = true
@@ -277,6 +288,13 @@ func (l *LendingItem) VerifyLendingQuantity() error {
 func (l *LendingItem) VerifyLendingType() error {
 	if valid, ok := ValidInputLendingType[l.Type]; !ok && !valid {
 		return fmt.Errorf("VerifyLendingType: invalid lending type. Type: %s", l.Type)
+	}
+	return nil
+}
+
+func (l *LendingItem) VerifyLendingExtraData() error {
+	if len(l.ExtraData) > MaxLendingExtraDataSize {
+		return fmt.Errorf("VerifyLendingExtraData: invalid lending extraData size. Size: %v", len(l.ExtraData))
 	}
 	return nil
 }
@@ -329,7 +347,7 @@ func (l *LendingItem) EncodedSide() *big.Int {
 	return big.NewInt(1)
 }
 
-//verify signatures
+// verify signatures
 func (l *LendingItem) VerifyLendingSignature() error {
 	V := big.NewInt(int64(l.Signature.V))
 	R := l.Signature.R.Big()

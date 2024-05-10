@@ -56,4 +56,11 @@ profile.cov
 
 **/yarn-error.log
 coverage.txt
+<<<<<<< HEAD
 go.sum
+=======
+go.sum
+**/.terraform*
+cicd/devnet/tmp
+cicd/devnet/terraform/node-config.json
+>>>>>>> fd8e7c9d624a085c70178ec7c8de7da274fe0a7c

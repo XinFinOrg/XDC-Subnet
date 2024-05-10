@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"sync"
@@ -73,7 +72,7 @@ type SimulatedBackend struct {
 func SimulateWalletAddressAndSignFn(path string) (common.Address, func(account accounts.Account, hash []byte) ([]byte, error), error) {
 	veryLightScryptN := 2
 	veryLightScryptP := 1
-	dir, _ := ioutil.TempDir("", "eth-SimulateWalletAddressAndSignFn-test")
+	dir, _ := os.MkdirTemp("", "eth-SimulateWalletAddressAndSignFn-test")
 
 	new := func(kd string) *keystore.KeyStore {
 		return keystore.NewKeyStore(kd, veryLightScryptN, veryLightScryptP)
@@ -85,7 +84,7 @@ func SimulateWalletAddressAndSignFn(path string) (common.Address, func(account a
 	var a1 accounts.Account
 
 	// Read the JSON file
-	jsonData, err := ioutil.ReadFile(path) // currently only for v2 test
+	jsonData, err := os.ReadFile(path) // currently only for v2 test
 	if err != nil {
 		a1, err = ks.NewAccount(pass)
 		if err != nil {
@@ -363,7 +362,7 @@ func (b *SimulatedBackend) EstimateGas(ctx context.Context, call XDPoSChain.Call
 
 // callContract implements common code between normal and pending contract calls.
 // state is modified during execution, make sure to copy it if necessary.
-func (b *SimulatedBackend) callContract(ctx context.Context, call XDPoSChain.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
+func (b *SimulatedBackend) callContract(ctx context.Context, call XDPoSChain.CallMsg, block *types.Block, statedb *state.StateDB) (ret []byte, usedGas uint64, failed bool, err error) {
 	// Ensure message is initialized properly.
 	if call.GasPrice == nil {
 		call.GasPrice = big.NewInt(1)
@@ -391,7 +390,8 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call XDPoSChain.Cal
 	vmenv := vm.NewEVM(evmContext, statedb, nil, b.config, vm.Config{})
 	gaspool := new(core.GasPool).AddGas(math.MaxUint64)
 	owner := common.Address{}
-	return core.NewStateTransition(vmenv, msg, gaspool).TransitionDb(owner)
+	ret, usedGas, failed, err, _ = core.NewStateTransition(vmenv, msg, gaspool).TransitionDb(owner)
+	return
 }
 
 // SendTransaction updates the pending block to include the given transaction.
@@ -427,18 +427,24 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 //
 // TODO(karalabe): Deprecate when the subscription one can return past data too.
 func (b *SimulatedBackend) FilterLogs(ctx context.Context, query XDPoSChain.FilterQuery) ([]types.Log, error) {
-	// Initialize unset filter boundaried to run from genesis to chain head
-	from := int64(0)
-	if query.FromBlock != nil {
-		from = query.FromBlock.Int64()
+	var filter *filters.Filter
+	if query.BlockHash != nil {
+		// Block filter requested, construct a single-shot filter
+		filter = filters.NewBlockFilter(&filterBackend{b.database, b.blockchain}, *query.BlockHash, query.Addresses, query.Topics)
+	} else {
+		// Initialize unset filter boundaried to run from genesis to chain head
+		from := int64(0)
+		if query.FromBlock != nil {
+			from = query.FromBlock.Int64()
+		}
+		to := int64(-1)
+		if query.ToBlock != nil {
+			to = query.ToBlock.Int64()
+		}
+		// Construct the range filter
+		filter = filters.NewRangeFilter(&filterBackend{b.database, b.blockchain}, from, to, query.Addresses, query.Topics)
 	}
-	to := int64(-1)
-	if query.ToBlock != nil {
-		to = query.ToBlock.Int64()
-	}
-	// Construct and execute the filter
-	filter := filters.New(&filterBackend{b.database, b.blockchain}, from, to, query.Addresses, query.Topics)
-
+	// Run the filter and return all the logs
 	logs, err := filter.Logs(ctx)
 	if err != nil {
 		return nil, err
@@ -537,6 +543,10 @@ func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumb
 		return fb.bc.CurrentHeader(), nil
 	}
 	return fb.bc.GetHeaderByNumber(uint64(block.Int64())), nil
+}
+
+func (fb *filterBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
+	return fb.bc.GetHeaderByHash(hash), nil
 }
 
 func (fb *filterBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {

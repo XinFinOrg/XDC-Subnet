@@ -42,19 +42,19 @@ var (
 	MainnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        5, // To be confirmed once mainnet is ready
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 3,
 			TimeoutPeriod:        60,
-			MinePeriod:           10,
+			MinePeriod:           2,
 		},
 	}
 
 	TestnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        3,
-			TimeoutSyncThreshold: 2,
-			TimeoutPeriod:        4,
+			CertThreshold:        0.667,
+			TimeoutSyncThreshold: 3,
+			TimeoutPeriod:        60,
 			MinePeriod:           2,
 		},
 	}
@@ -62,10 +62,24 @@ var (
 	DevnetV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        2,
-			TimeoutSyncThreshold: 5,
-			TimeoutPeriod:        25,
-			MinePeriod:           10,
+			CertThreshold:        0.667,
+			TimeoutSyncThreshold: 3,
+			TimeoutPeriod:        30,
+			MinePeriod:           2,
+		},
+		7956000: { // 2024.01.17 Devnet Deplyment Issue
+			SwitchRound:          7956000,
+			CertThreshold:        0.4,
+			TimeoutSyncThreshold: 3,
+			TimeoutPeriod:        30,
+			MinePeriod:           2,
+		},
+		7974000: {
+			SwitchRound:          7974000,
+			CertThreshold:        0.667,
+			TimeoutSyncThreshold: 3,
+			TimeoutPeriod:        30,
+			MinePeriod:           2,
 		},
 	}
 
@@ -96,28 +110,28 @@ var (
 	UnitTestV2Configs = map[uint64]*V2Config{
 		Default: {
 			SwitchRound:          0,
-			CertThreshold:        3,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        10,
 			MinePeriod:           2,
 		},
 		10: {
 			SwitchRound:          10,
-			CertThreshold:        5,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 2,
 			TimeoutPeriod:        4,
 			MinePeriod:           3,
 		},
 		899: {
 			SwitchRound:          899,
-			CertThreshold:        3,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 4,
 			TimeoutPeriod:        5,
 			MinePeriod:           2,
 		},
 		910: {
 			SwitchRound:          915,
-			CertThreshold:        5,
+			CertThreshold:        0.667,
 			TimeoutSyncThreshold: 4,
 			TimeoutPeriod:        5,
 			MinePeriod:           2,
@@ -159,10 +173,9 @@ var (
 			Gap:                 450,
 			FoudationWalletAddr: common.HexToAddress("xdc746249c61f5832c5eed53172776b460491bdcd5c"),
 			V2: &V2{
-				SwitchBlock:      common.TIPV2SwitchBlock,
-				CurrentConfig:    TestnetV2Configs[0],
-				AllConfigs:       TestnetV2Configs,
-				SkipV2Validation: true,
+				SwitchBlock:   common.TIPV2SwitchBlock,
+				CurrentConfig: TestnetV2Configs[0],
+				AllConfigs:    TestnetV2Configs,
 			},
 		},
 	}
@@ -196,31 +209,74 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil}
+	AllEthashProtocolChanges = &ChainConfig{
+		ChainId:             big.NewInt(1337),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      false,
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: nil,
+		Ethash:              new(EthashConfig),
+		Clique:              nil,
+		XDPoS:               nil,
+	}
 
 	// AllXDPoSProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the XDPoS consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllXDPoSProtocolChanges  = &ChainConfig{big.NewInt(89), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, &XDPoSConfig{Period: 0, Epoch: 30000}}
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}, nil}
+	AllXDPoSProtocolChanges = &ChainConfig{
+		ChainId:             big.NewInt(89),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      false,
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: nil,
+		Ethash:              nil,
+		Clique:              nil,
+		XDPoS:               &XDPoSConfig{Period: 0, Epoch: 900},
+	}
+
+	AllCliqueProtocolChanges = &ChainConfig{
+		ChainId:             big.NewInt(1337),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      false,
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: nil,
+		Ethash:              nil,
+		Clique:              &CliqueConfig{Period: 0, Epoch: 900},
+		XDPoS:               nil,
+	}
 
 	// XDPoS config with v2 engine after block 0
 	TestXDPoSMockChainConfig = &ChainConfig{
-		big.NewInt(1337),
-		big.NewInt(0),
-		nil,
-		false,
-		big.NewInt(0),
-		common.Hash{},
-		big.NewInt(0),
-		big.NewInt(0),
-		big.NewInt(0),
-		nil,
-		new(EthashConfig),
-		nil,
-		&XDPoSConfig{
+		ChainId:             big.NewInt(1337),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      false,
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: nil,
+		Ethash:              new(EthashConfig),
+		Clique:              nil,
+		XDPoS: &XDPoSConfig{
 			Epoch:               900,
 			Gap:                 450,
 			SkipV1Validation:    true,
@@ -237,8 +293,22 @@ var (
 		},
 	}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil}
-	TestRules       = TestChainConfig.Rules(new(big.Int))
+	TestChainConfig = &ChainConfig{
+		ChainId:             big.NewInt(1),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      false,
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: nil,
+		Ethash:              new(EthashConfig),
+		Clique:              nil,
+		XDPoS:               nil,
+	}
+	TestRules = TestChainConfig.Rules(new(big.Int))
 )
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -315,11 +385,11 @@ type V2 struct {
 }
 
 type V2Config struct {
-	SwitchRound          uint64 `json:"switchRound"`          // v1 to v2 switch block number
-	MinePeriod           int    `json:"minePeriod"`           // Miner mine period to mine a block
-	TimeoutSyncThreshold int    `json:"timeoutSyncThreshold"` // send syncInfo after number of timeout
-	TimeoutPeriod        int    `json:"timeoutPeriod"`        // Duration in ms
-	CertThreshold        int    `json:"certificateThreshold"` // Necessary number of messages from master nodes to form a certificate
+	SwitchRound          uint64  `json:"switchRound"`          // v1 to v2 switch block number
+	MinePeriod           int     `json:"minePeriod"`           // Miner mine period to mine a block
+	TimeoutSyncThreshold int     `json:"timeoutSyncThreshold"` // send syncInfo after number of timeout
+	TimeoutPeriod        int     `json:"timeoutPeriod"`        // Duration in ms
+	CertThreshold        float64 `json:"certificateThreshold"` // Necessary number of messages from master nodes to form a certificate
 }
 
 func (c *XDPoSConfig) String() string {
@@ -340,7 +410,7 @@ func (v *V2) UpdateConfig(round uint64) {
 		}
 	}
 	// update to current config
-	log.Info("[updateV2Config] Update config", "index", index, "round", round, "SwitchRound", v.AllConfigs[index].SwitchRound)
+	log.Warn("[updateV2Config] Update config", "index", index, "round", round, "SwitchRound", v.AllConfigs[index].SwitchRound)
 	v.CurrentConfig = v.AllConfigs[index]
 }
 
@@ -393,7 +463,7 @@ func (c *ChainConfig) String() string {
 	default:
 		engine = "unknown"
 	}
-	return fmt.Sprintf("{ChainID: %v Homestead: %v DAO: %v DAOSupport: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Engine: %v}",
+	return fmt.Sprintf("{ChainID: %v Homestead: %v DAO: %v DAOSupport: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Istanbul: %v  BerlinBlock: %v LondonBlock: %v MergeBlock: %v ShanghaiBlock: %v Engine: %v}",
 		c.ChainId,
 		c.HomesteadBlock,
 		c.DAOForkBlock,
@@ -403,6 +473,11 @@ func (c *ChainConfig) String() string {
 		c.EIP158Block,
 		c.ByzantiumBlock,
 		c.ConstantinopleBlock,
+		common.TIPXDCXCancellationFee,
+		common.BerlinBlock,
+		common.LondonBlock,
+		common.MergeBlock,
+		common.ShanghaiBlock,
 		engine,
 	)
 }
@@ -449,6 +524,27 @@ func (c *ChainConfig) IsIstanbul(num *big.Int) bool {
 	return isForked(common.TIPXDCXCancellationFee, num)
 }
 
+// IsBerlin returns whether num is either equal to the Berlin fork block or greater.
+func (c *ChainConfig) IsBerlin(num *big.Int) bool {
+	return isForked(common.BerlinBlock, num)
+}
+
+// IsLondon returns whether num is either equal to the London fork block or greater.
+func (c *ChainConfig) IsLondon(num *big.Int) bool {
+	return isForked(common.LondonBlock, num)
+}
+
+// IsMerge returns whether num is either equal to the Merge fork block or greater.
+// Different from Geth which uses `block.difficulty != nil`
+func (c *ChainConfig) IsMerge(num *big.Int) bool {
+	return isForked(common.MergeBlock, num)
+}
+
+// IsShanghai returns whether num is either equal to the Shanghai fork block or greater.
+func (c *ChainConfig) IsShanghai(num *big.Int) bool {
+	return isForked(common.ShanghaiBlock, num)
+}
+
 func (c *ChainConfig) IsTIP2019(num *big.Int) bool {
 	return isForked(common.TIP2019Block, num)
 }
@@ -465,11 +561,11 @@ func (c *ChainConfig) IsTIPNoHalvingMNReward(num *big.Int) bool {
 	return isForked(common.TIPNoHalvingMNReward, num)
 }
 func (c *ChainConfig) IsTIPXDCX(num *big.Int) bool {
-	if common.IsTestnet {
-		return isForked(common.TIPXDCXTestnet, num)
-	} else {
-		return isForked(common.TIPXDCX, num)
-	}
+	return isForked(common.TIPXDCX, num)
+}
+
+func (c *ChainConfig) IsTIPXDCXMiner(num *big.Int) bool {
+	return isForked(common.TIPXDCX, num) && !isForked(common.TIPXDCXDISABLE, num)
 }
 
 func (c *ChainConfig) IsTIPXDCXLending(num *big.Int) bool {
@@ -610,6 +706,8 @@ type Rules struct {
 	ChainId                                                 *big.Int
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158               bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
+	IsBerlin, IsLondon                                      bool
+	IsMerge, IsShanghai                                     bool
 }
 
 func (c *ChainConfig) Rules(num *big.Int) Rules {
@@ -627,5 +725,9 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsConstantinople: c.IsConstantinople(num),
 		IsPetersburg:     c.IsPetersburg(num),
 		IsIstanbul:       c.IsIstanbul(num),
+		IsBerlin:         c.IsBerlin(num),
+		IsLondon:         c.IsLondon(num),
+		IsMerge:          c.IsMerge(num),
+		IsShanghai:       c.IsShanghai(num),
 	}
 }

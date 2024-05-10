@@ -19,14 +19,14 @@ package core
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/XinFinOrg/XDC-Subnet/consensus"
-	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
-	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
+	"github.com/XinFinOrg/XDC-Subnet/core/rawdb"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/core/state"
@@ -1543,7 +1543,7 @@ func testTransactionJournaling(t *testing.T, nolocals bool) {
 	t.Parallel()
 
 	// Create a temporary file for the journal
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("failed to create temporary journal: %v", err)
 	}

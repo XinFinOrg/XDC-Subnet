@@ -36,7 +36,8 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 	}
 
 	if len(header.Validator) == 0 {
-		return consensus.ErrNoValidatorSignature
+		// This should never happen, if it does, then it means the peer is sending us invalid data.
+		return consensus.ErrNoValidatorSignatureV2
 	}
 
 	if fullVerify {
@@ -112,7 +113,7 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 			return utils.ErrEmptyEpochSwitchValidators
 		}
 
-		localMasterNodes, err := x.calcMasternodes(chain, header.Number, header.ParentHash)
+		localMasterNodes, _, err := x.calcMasternodes(chain, header.Number, header.ParentHash, round)
 		masterNodes = localMasterNodes
 		if err != nil {
 			log.Error("[verifyHeader] Fail to calculate master nodes list with penalty", "Number", header.Number, "Hash", header.Hash())
@@ -168,7 +169,6 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		return err
 	}
 
-	// Check its validator
 	verified, validatorAddress, err := x.verifyMsgSignature(sigHash(header), header.Validator, masterNodes)
 	if err != nil {
 		for index, mn := range masterNodes {
@@ -178,11 +178,11 @@ func (x *XDPoS_v2) verifyHeader(chain consensus.ChainReader, header *types.Heade
 		return err
 	}
 	if !verified {
-		log.Warn("[verifyHeader] Fail to verify the block validator as the validator address not within the masternode list", header.Number, "Hash", header.Hash().Hex(), "validatorAddress", validatorAddress.Hex())
+		log.Warn("[verifyHeader] Fail to verify the block validator as the validator address not within the masternode list", "BlockNumber", header.Number, "Hash", header.Hash().Hex(), "validatorAddress", validatorAddress.Hex())
 		return utils.ErrValidatorNotWithinMasternodes
 	}
 	if validatorAddress != header.Coinbase {
-		log.Warn("[verifyHeader] Header validator and coinbase address not match", header.Number, "Hash", header.Hash().Hex(), "validatorAddress", validatorAddress.Hex(), "coinbase", header.Coinbase.Hex())
+		log.Warn("[verifyHeader] Header validator and coinbase address not match", "BlockNumber", header.Number, "Hash", header.Hash().Hex(), "validatorAddress", validatorAddress.Hex(), "coinbase", header.Coinbase.Hex())
 		return utils.ErrCoinbaseAndValidatorMismatch
 	}
 	// Check the proposer is the leader

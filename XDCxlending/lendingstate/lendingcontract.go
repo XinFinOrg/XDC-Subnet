@@ -142,12 +142,11 @@ func IsValidPair(statedb *state.StateDB, coinbase common.Address, baseToken comm
 // @param baseToken: address of baseToken
 // @param terms: term
 // @return:
-//		- collaterals []common.Address  : list of addresses of collateral
-//		- isSpecialCollateral			: TRUE if collateral is a token which is NOT available for trading in XDCX, otherwise FALSE
-func GetCollaterals(statedb *state.StateDB, coinbase common.Address, baseToken common.Address, term uint64) (collaterals []common.Address, isSpecialCollateral bool) {
+//   - collaterals []common.Address  : list of addresses of collateral
+func GetCollaterals(statedb *state.StateDB, coinbase common.Address, baseToken common.Address, term uint64) (collaterals []common.Address) {
 	validPair, _ := IsValidPair(statedb, coinbase, baseToken, term)
 	if !validPair {
-		return []common.Address{}, false
+		return []common.Address{}
 	}
 
 	//TODO: ILO Collateral is not supported in release 2.2.0
@@ -171,7 +170,7 @@ func GetCollaterals(statedb *state.StateDB, coinbase common.Address, baseToken c
 			collaterals = append(collaterals, addr)
 		}
 	}
-	return collaterals, false
+	return collaterals
 }
 
 // @function GetCollateralDetail
