@@ -1,6 +1,7 @@
 package engine_v2_tests
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"testing"
@@ -24,7 +25,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
 
 	// Happy path
-	happyPathHeader := blockchain.GetBlockByNumber(919).Header()
+	happyPathHeader := blockchain.GetBlockByNumber(920).Header()
 	err := adaptor.VerifyHeader(blockchain, happyPathHeader, true)
 	assert.Nil(t, err)
 
@@ -38,7 +39,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	noValidatorBlock := blockchain.GetBlockByNumber(902).Header()
 	noValidatorBlock.Validator = []byte{}
 	err = adaptor.VerifyHeader(blockchain, noValidatorBlock, true)
-	assert.Equal(t, consensus.ErrNoValidatorSignature, err)
+	assert.Equal(t, consensus.ErrNoValidatorSignatureV2, err)
 
 	blockFromFuture := blockchain.GetBlockByNumber(902).Header()
 	blockFromFuture.Time = big.NewInt(time.Now().Unix() + 10000)
@@ -77,7 +78,7 @@ func TestShouldVerifyBlock(t *testing.T) {
 	err = adaptor.VerifyHeader(blockchain, invalidPenaltiesExistBlock, true)
 	assert.Equal(t, utils.ErrInvalidFieldInNonGapPlusOneSwitch, err)
 
-	merkleRoot := "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+	merkleRoot := "711be05c0b9d89bd511dd4c20ade1820b2c1fb13343ee0cedd3869150eb2d377"
 	parentNotExistBlock := blockchain.GetBlockByNumber(901).Header()
 	parentNotExistBlock.ParentHash = common.HexToHash(merkleRoot)
 	err = adaptor.VerifyHeader(blockchain, parentNotExistBlock, true)
@@ -216,9 +217,10 @@ func TestConfigSwitchOnDifferentCertThreshold(t *testing.T) {
 	acc1SignedHash = SignHashByPK(acc1Key, types.VoteSigHash(voteForSign).Bytes())
 	acc2SignedHash = SignHashByPK(acc2Key, types.VoteSigHash(voteForSign).Bytes())
 	acc3SignedHash = SignHashByPK(acc3Key, types.VoteSigHash(voteForSign).Bytes())
+	voteSignedHash := SignHashByPK(voterKey, types.VoteSigHash(voteForSign).Bytes())
 
 	var signaturesThr []types.Signature
-	signaturesThr = append(signaturesThr, acc1SignedHash, acc2SignedHash, acc3SignedHash)
+	signaturesThr = append(signaturesThr, acc1SignedHash, acc2SignedHash, acc3SignedHash, voteSignedHash)
 	quorumCert = &types.QuorumCert{
 		ProposedBlockInfo: proposedBlockInfo,
 		Signatures:        signaturesThr,
@@ -235,6 +237,50 @@ func TestConfigSwitchOnDifferentCertThreshold(t *testing.T) {
 	block911 := blockchain.GetBlockByNumber(911).Header()
 	block911.Extra = extraInBytes
 	err = adaptor.VerifyHeader(blockchain, block911, true)
+
+	// error ErrValidatorNotWithinMasternodes means verifyQC is passed and move to next verification process
+	assert.Equal(t, utils.ErrValidatorNotWithinMasternodes, err)
+}
+
+/*
+ 1. Insert 20 masternode before gap block
+ 2. Prepare 20 masternode block header with round 9000
+ 3. verify this header while node is on round 899,
+    This is to simulate node is syncing from remote during config switch
+*/
+func TestConfigSwitchOnDifferentMasternodeCount(t *testing.T) {
+	b, err := json.Marshal(params.TestXDPoSMockChainConfig)
+	assert.Nil(t, err)
+	configString := string(b)
+
+	var config params.ChainConfig
+	err = json.Unmarshal([]byte(configString), &config)
+	assert.Nil(t, err)
+	// Enable verify
+	config.XDPoS.V2.SkipV2Validation = false
+	// Block 901 is the first v2 block with round of 1
+	blockchain, _, currentBlock, _, _, _ := PrepareXDCTestBlockChainForV2Engine(t, int(config.XDPoS.Epoch)*2, &config, nil)
+	adaptor := blockchain.Engine().(*XDPoS.XDPoS)
+	x := adaptor.EngineV2
+
+	// Generate round 900 header, num 1800
+	header1800 := blockchain.GetBlockByNumber(1800).Header()
+
+	snap, err := x.GetSnapshot(blockchain, currentBlock.Header())
+	assert.Nil(t, err)
+	assert.Equal(t, len(snap.NextEpochMasterNodes), 5)
+	header1800.Validators = []common.Address{}
+	for i := 0; i < len(snap.NextEpochMasterNodes); i++ {
+		header1800.Validators = append(header1800.Validators, []common.Address{snap.NextEpochMasterNodes[i]}...)
+	}
+
+	round, err := x.GetRoundNumber(header1800)
+	assert.Nil(t, err)
+	assert.Equal(t, round, types.Round(1800))
+
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, 1799, false)
+
+	err = adaptor.VerifyHeader(blockchain, header1800, true)
 
 	// error ErrValidatorNotWithinMasternodes means verifyQC is passed and move to next verification process
 	assert.Equal(t, utils.ErrValidatorNotWithinMasternodes, err)

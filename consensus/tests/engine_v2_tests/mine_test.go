@@ -28,7 +28,7 @@ func TestYourTurnInitialV2(t *testing.T) {
 	t.Logf("Inserting block with propose at 11...")
 	blockCoinbaseA := "0xaaa0000000000000000000000000000000000011"
 	//Get from block validator error message
-	merkleRoot := "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+	merkleRoot := "711be05c0b9d89bd511dd4c20ade1820b2c1fb13343ee0cedd3869150eb2d377"
 	extraInBytes := generateV2Extra(11, parentBlock, signer, signFn, nil)
 
 	header := &types.Header{
@@ -55,10 +55,10 @@ func TestYourTurnInitialV2(t *testing.T) {
 	time.Sleep(time.Duration(minePeriod) * time.Second)
 
 	// YourTurn is called before mine first v2 block
-	b, err := adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003031"))
+	b, err := adaptor.YourTurn(blockchain, block11.Header(), acc1Addr)
 	assert.Nil(t, err)
 	assert.False(t, b)
-	b, err = adaptor.YourTurn(blockchain, block11.Header(), common.HexToAddress("xdc0000000000000000000000000000000000003132"))
+	b, err = adaptor.YourTurn(blockchain, block11.Header(), acc2Addr)
 	assert.Nil(t, err)
 	// round=1, so masternode[1] has YourTurn = True
 	assert.True(t, b)
@@ -79,7 +79,7 @@ func TestShouldMineOncePerRound(t *testing.T) {
 	_, err := adaptor.Seal(blockchain, block910, nil)
 	assert.Nil(t, err)
 	time.Sleep(time.Duration(minePeriod) * time.Second)
-	merkleRoot := "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+	merkleRoot := "711be05c0b9d89bd511dd4c20ade1820b2c1fb13343ee0cedd3869150eb2d377"
 
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
@@ -128,7 +128,7 @@ func TestUpdateMasterNodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	//Get from block validator error message
-	merkleRoot := "42970e0f2265db7d85d0d9cd7328d58bd53bdb54d85d7997e95a1c3f60845602"
+	merkleRoot := "2f34d88e4afb95a51b5dd3b157bdec944790c033bbf6e990cc7f946ad07d47c4"
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
 		Number:     big.NewInt(int64(1350)),
@@ -209,7 +209,7 @@ func TestPrepareFail(t *testing.T) {
 	err = adaptor.Prepare(blockchain, notReadyToMine)
 	assert.Equal(t, consensus.ErrNotReadyToMine, err)
 
-	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(19), false)
+	adaptor.EngineV2.SetNewRoundFaker(blockchain, types.Round(18), false)
 	header901WithoutCoinbase := &types.Header{
 		ParentHash: currentBlock.ParentHash(),
 		Number:     big.NewInt(int64(901)),
