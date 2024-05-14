@@ -21,8 +21,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -393,7 +393,7 @@ func (api *PrivateDebugAPI) TraceBlock(ctx context.Context, blob []byte, config 
 // TraceBlockFromFile returns the structured logs created during the execution of
 // EVM and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceBlockFromFile(ctx context.Context, file string, config *TraceConfig) ([]*txTraceResult, error) {
-	blob, err := ioutil.ReadFile(file)
+	blob, err := os.ReadFile(file)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file: %v", err)
 	}
@@ -468,6 +468,10 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 		jobs <- &txTraceTask{statedb: statedb.Copy(), index: i}
 		var balacne *big.Int
 		if tx.To() != nil {
+			// Bypass the validation for trading and lending transactions as their nonce are not incremented
+			if tx.IsSkipNonceTransaction() {
+				continue
+			}
 			if value, ok := feeCapacity[*tx.To()]; ok {
 				balacne = value
 			}
@@ -478,7 +482,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 
 		vmenv := vm.NewEVM(vmctx, statedb, XDCxState, api.config, vm.Config{})
 		owner := common.Address{}
-		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(msg.Gas()), owner); err != nil {
+		if _, _, _, err, _ := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(msg.Gas()), owner); err != nil {
 			failed = err
 			break
 		}
@@ -634,7 +638,7 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 	vmenv := vm.NewEVM(vmctx, statedb, nil, api.config, vm.Config{Debug: true, Tracer: tracer})
 
 	owner := common.Address{}
-	ret, gas, failed, err := core.ApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()), owner)
+	ret, gas, failed, err, _ := core.ApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()), owner)
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %v", err)
 	}
@@ -704,10 +708,7 @@ func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, ree
 		}
 
 		if tokenFeeUsed {
-			fee := new(big.Int).SetUint64(gas)
-			if block.Header().Number.Cmp(common.TIPTRC21Fee) > 0 {
-				fee = fee.Mul(fee, common.TRC21GasPrice)
-			}
+			fee := common.GetGasFee(block.Header().Number.Uint64(), gas)
 			feeCapacity[*tx.To()] = new(big.Int).Sub(feeCapacity[*tx.To()], fee)
 			balanceUpdated[*tx.To()] = feeCapacity[*tx.To()]
 			totalFeeUsed = totalFeeUsed.Add(totalFeeUsed, fee)

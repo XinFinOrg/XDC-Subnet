@@ -563,7 +563,7 @@ func (self *worker) commitNewWork() {
 		tstamp = parent.Time().Int64() + 1
 	}
 	// this will ensure we're not going off too far in the future
-	if now := time.Now().Unix(); tstamp > now+1 {
+	if now := time.Now().Unix(); tstamp > now {
 		wait := time.Duration(tstamp-now) * time.Second
 		log.Info("Mining too far in the future", "wait", common.PrettyDuration(wait))
 		time.Sleep(wait)
@@ -652,7 +652,7 @@ func (self *worker) commitNewWork() {
 			log.Warn("Can't find coinbase account wallet", "coinbase", self.coinbase, "err", err)
 			return
 		}
-		if self.config.XDPoS != nil && self.chain.Config().IsTIPXDCX(header.Number) {
+		if self.config.XDPoS != nil && self.chain.Config().IsTIPXDCXMiner(header.Number) {
 			XDCX := self.eth.GetXDCX()
 			XDCXLending := self.eth.GetXDCXLending()
 			if XDCX != nil && header.Number.Uint64() > self.config.XDPoS.Epoch {
@@ -710,8 +710,13 @@ func (self *worker) commitNewWork() {
 						if XDCX.IsSDKNode() {
 							self.chain.AddMatchingResult(tradingTransaction.Hash(), tradingMatchingResults)
 						}
+						// force adding trading, lending transaction to this block
+						if tradingTransaction != nil {
+							specialTxs = append(specialTxs, tradingTransaction)
+						}
 					}
 				}
+
 				if len(lendingInput) > 0 {
 					// lending transaction
 					lendingBatch := &lendingstate.TxLendingBatch{
@@ -735,6 +740,9 @@ func (self *worker) commitNewWork() {
 						if XDCX.IsSDKNode() {
 							self.chain.AddLendingResult(lendingTransaction.Hash(), lendingMatchingResults)
 						}
+						if lendingTransaction != nil {
+							specialTxs = append(specialTxs, lendingTransaction)
+						}
 					}
 				}
 
@@ -756,32 +764,23 @@ func (self *worker) commitNewWork() {
 						if XDCX.IsSDKNode() {
 							self.chain.AddFinalizedTrades(lendingFinalizedTradeTransaction.Hash(), updatedTrades)
 						}
+						if lendingFinalizedTradeTransaction != nil {
+							specialTxs = append(specialTxs, lendingFinalizedTradeTransaction)
+						}
 					}
 				}
 			}
+			XDCxStateRoot := work.tradingState.IntermediateRoot()
+			LendingStateRoot := work.lendingState.IntermediateRoot()
+			txData := append(XDCxStateRoot.Bytes(), LendingStateRoot.Bytes()...)
+			tx := types.NewTransaction(work.state.GetNonce(self.coinbase), common.HexToAddress(common.TradingStateAddr), big.NewInt(0), txMatchGasLimit, big.NewInt(0), txData)
+			txStateRoot, err := wallet.SignTx(accounts.Account{Address: self.coinbase}, tx, self.config.ChainId)
+			if err != nil {
+				log.Error("Fail to create tx state root", "error", err)
+				return
+			}
+			specialTxs = append(specialTxs, txStateRoot)
 		}
-
-		// force adding trading, lending transaction to this block
-		if tradingTransaction != nil {
-			specialTxs = append(specialTxs, tradingTransaction)
-		}
-		if lendingTransaction != nil {
-			specialTxs = append(specialTxs, lendingTransaction)
-		}
-		if lendingFinalizedTradeTransaction != nil {
-			specialTxs = append(specialTxs, lendingFinalizedTradeTransaction)
-		}
-
-		XDCxStateRoot := work.tradingState.IntermediateRoot()
-		LendingStateRoot := work.lendingState.IntermediateRoot()
-		txData := append(XDCxStateRoot.Bytes(), LendingStateRoot.Bytes()...)
-		tx := types.NewTransaction(work.state.GetNonce(self.coinbase), common.HexToAddress(common.TradingStateAddr), big.NewInt(0), txMatchGasLimit, big.NewInt(0), txData)
-		txStateRoot, err := wallet.SignTx(accounts.Account{Address: self.coinbase}, tx, self.config.ChainId)
-		if err != nil {
-			log.Error("Fail to create tx state root", "error", err)
-			return
-		}
-		specialTxs = append(specialTxs, txStateRoot)
 	}
 	work.commitTransactions(self.mux, feeCapacity, txs, specialTxs, self.chain, self.coinbase)
 	// compute uncles for the new block.
@@ -931,10 +930,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, balanceFee map[common.Ad
 			log.Debug("Add Special Transaction failed, account skipped", "hash", tx.Hash(), "sender", from, "nonce", tx.Nonce(), "to", tx.To(), "err", err)
 		}
 		if tokenFeeUsed {
-			fee := new(big.Int).SetUint64(gas)
-			if env.header.Number.Cmp(common.TIPTRC21Fee) > 0 {
-				fee = fee.Mul(fee, common.TRC21GasPrice)
-			}
+			fee := common.GetGasFee(env.header.Number.Uint64(), gas)
 			balanceFee[*tx.To()] = new(big.Int).Sub(balanceFee[*tx.To()], fee)
 			balanceUpdated[*tx.To()] = balanceFee[*tx.To()]
 			totalFeeUsed = totalFeeUsed.Add(totalFeeUsed, fee)
@@ -1049,10 +1045,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, balanceFee map[common.Ad
 			txs.Shift()
 		}
 		if tokenFeeUsed {
-			fee := new(big.Int).SetUint64(gas)
-			if env.header.Number.Cmp(common.TIPTRC21Fee) > 0 {
-				fee = fee.Mul(fee, common.TRC21GasPrice)
-			}
+			fee := common.GetGasFee(env.header.Number.Uint64(), gas)
 			balanceFee[*tx.To()] = new(big.Int).Sub(balanceFee[*tx.To()], fee)
 			balanceUpdated[*tx.To()] = balanceFee[*tx.To()]
 			totalFeeUsed = totalFeeUsed.Add(totalFeeUsed, fee)

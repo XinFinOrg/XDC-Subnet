@@ -420,11 +420,7 @@ func InnerProductVerify(c *big.Int, P, U ECPoint, G, H []ECPoint, ipp InnerProdA
 	Pcalc3 := ux.Mult(ccalc)
 	Pcalc := Pcalc1.Add(Pcalc2).Add(Pcalc3)
 
-	if !Pprime.Equal(Pcalc) {
-		return false
-	}
-
-	return true
+	return Pprime.Equal(Pcalc)
 }
 
 /* Inner Product Verify Fast
@@ -834,7 +830,7 @@ func (ipp *InnerProdArg) Deserialize(proof []byte, numChallenges int) error {
 	if len(proof) <= (offset + 32*numChallenges) {
 		return errors.New("input data too short")
 	}
-	for i := 0; i < int(numChallenges); i++ {
+	for i := 0; i < numChallenges; i++ {
 		ipp.Challenges = append(ipp.Challenges, new(big.Int).SetBytes(proof[offset:offset+32]))
 		offset += 32
 	}

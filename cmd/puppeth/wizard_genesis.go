@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -100,8 +100,8 @@ func (w *wizard) makeGenesis() {
 	genesis.Config.XDPoS.V2.CurrentConfig.TimeoutSyncThreshold = w.readDefaultInt(3)
 
 	fmt.Println()
-	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodes/3*2+1)
-	minCandidateThreshold := w.readDefaultInt(common.MaxMasternodes/3*2 + 1)
+	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %f)\n", 0.666)
+	minCandidateThreshold := w.readDefaultFloat(0.666) //TODO: change input style to cover for float threshold
 	genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = minCandidateThreshold
 
 	genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
@@ -126,16 +126,15 @@ func (w *wizard) makeGenesis() {
 
 	// We also need the initial list of signers
 	fmt.Println()
-	fmt.Printf("Which accounts are initial masternodes? (mandatory at least %d)\n", minCandidateThreshold)
+	fmt.Printf("Which accounts are initial masternodes? (mandatory at least %f)\n", minCandidateThreshold)
 
 	var candidates []common.Address
 	for {
 		if address := w.readAddress(); address != nil {
 			candidates = append(candidates, *address)
 			continue
-		}
-		if len(candidates) >= minCandidateThreshold {
-			break
+		} else {
+			break //TODO: check empty input can pass this step
 		}
 	}
 	// Sort the signers and embed into the extra-data section
@@ -297,7 +296,7 @@ func (w *wizard) manageGenesis() {
 		fmt.Println()
 		fmt.Printf("Which file to save the genesis into? (default = %s.json)\n", w.network)
 		out, _ := json.MarshalIndent(w.conf.Genesis, "", "  ")
-		if err := ioutil.WriteFile(w.readDefaultString(fmt.Sprintf("%s.json", w.network)), out, 0644); err != nil {
+		if err := os.WriteFile(w.readDefaultString(fmt.Sprintf("%s.json", w.network)), out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
 		}
 		log.Info("Exported existing genesis block")

@@ -40,6 +40,11 @@ var TIPXDCX = big.NewInt(0)
 var TIPXDCXLending = big.NewInt(0)
 var TIPXDCXCancellationFee = big.NewInt(0)
 var TIPXDCXCancellationFeeTestnet = big.NewInt(0)
+var TIPXDCXDISABLE = big.NewInt(0)
+var BerlinBlock = big.NewInt(0)
+var LondonBlock = big.NewInt(0)
+var MergeBlock = big.NewInt(0)
+var ShanghaiBlock = big.NewInt(0)
 
 var TIPXDCXTestnet = big.NewInt(0)
 var IsTestnet bool = false
@@ -69,8 +74,8 @@ var TRC21GasPrice = big.NewInt(250000000)
 var RateTopUp = big.NewInt(90) // 90%
 var BaseTopUp = big.NewInt(100)
 var BaseRecall = big.NewInt(100)
-var TIPTRC21Fee = big.NewInt(13523400)
-var TIPTRC21FeeTestnet = big.NewInt(225000)
+var TIPTRC21Fee = big.NewInt(0)
+var TIPTRC21FeeTestnet = big.NewInt(0)
 var LimitTimeFinality = uint64(30) // limit in 30 block
 
 var IgnoreSignerCheckBlockArray = map[uint64]bool{

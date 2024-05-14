@@ -31,6 +31,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/XDCx/tradingstate"
 
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
+	"github.com/XinFinOrg/XDC-Subnet/accounts/abi"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/abi/bind"
 	"github.com/XinFinOrg/XDC-Subnet/accounts/keystore"
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -526,8 +527,8 @@ func (s *PublicBlockChainAPI) GetRewardByHash(hash common.Hash) map[string]map[s
 // GetBalance returns the amount of wei for the given address in the state of the
 // given block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta
 // block numbers are also allowed.
-func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (*hexutil.Big, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (*hexutil.Big, error) {
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
 		return nil, err
 	}
@@ -658,8 +659,8 @@ func (s *PublicBlockChainAPI) GetUncleCountByBlockHash(ctx context.Context, bloc
 }
 
 // GetCode returns the code stored at the given address in the state for the given block number.
-func (s *PublicBlockChainAPI) GetCode(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (hexutil.Bytes, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+func (s *PublicBlockChainAPI) GetCode(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (hexutil.Bytes, error) {
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
 		return nil, err
 	}
@@ -667,11 +668,29 @@ func (s *PublicBlockChainAPI) GetCode(ctx context.Context, address common.Addres
 	return code, state.Error()
 }
 
+// GetAccountInfo returns the information at the given address in the state for the given block number.
+func (s *PublicBlockChainAPI) GetAccountInfo(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (map[string]interface{}, error) {
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	info := state.GetAccountInfo(address)
+	result := map[string]interface{}{
+		"address":     address,
+		"balance":     (*hexutil.Big)(info.Balance),
+		"codeSize":    info.CodeSize,
+		"codeHash":    info.CodeHash,
+		"nonce":       info.Nonce,
+		"storageHash": info.StorageHash,
+	}
+	return result, nil
+}
+
 // GetStorageAt returns the storage from the state at the given address, key and
 // block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta block
 // numbers are also allowed.
-func (s *PublicBlockChainAPI) GetStorageAt(ctx context.Context, address common.Address, key string, blockNr rpc.BlockNumber) (hexutil.Bytes, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+func (s *PublicBlockChainAPI) GetStorageAt(ctx context.Context, address common.Address, key string, blockNrOrHash rpc.BlockNumberOrHash) (hexutil.Bytes, error) {
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
 		return nil, err
 	}
@@ -796,11 +815,10 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 			return result, err
 		}
 		candidatesAddresses := state.GetCandidates(statedb)
+		candidates = make([]utils.Masternode, 0, len(candidatesAddresses))
 		for _, address := range candidatesAddresses {
 			v := state.GetCandidateCap(statedb, address)
-			if address.String() != "0x0000000000000000000000000000000000000000" {
-				candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
-			}
+			candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
 		}
 	}
 	if err != nil || len(candidates) == 0 {
@@ -810,24 +828,19 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 	}
 	maxMasternodes := common.MaxMasternodes
 
-	isTopCandidate := false
-	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top 150 candidates
-	// if it's SLASHED but it's out of top 150, the status should be still PROPOSED
+	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top maxMasternodes candidates.
+	// if it's SLASHED but it's out of top maxMasternodes, the status should be still PROPOSED.
+	isCandidate := false
 	for i := 0; i < len(candidates); i++ {
 		if coinbaseAddress == candidates[i].Address {
-			if i < maxMasternodes {
-				isTopCandidate = true
-			}
+			isCandidate = true
 			result[fieldStatus] = statusProposed
 			result[fieldCapacity] = candidates[i].Stake
 			break
 		}
 	}
-	if !isTopCandidate {
-		return result, nil
-	}
 
-	// Second, Find candidates that have masternode status
+	// Get masternode list
 	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
 		masternodes = engine.GetMasternodesFromCheckpointHeader(header)
 		if len(masternodes) == 0 {
@@ -838,43 +851,67 @@ func (s *PublicBlockChainAPI) GetCandidateStatus(ctx context.Context, coinbaseAd
 	} else {
 		log.Error("Undefined XDPoS consensus engine")
 	}
-	// Set masternode status
+
+	// Set to statusMasternode if it is masternode
 	for _, masternode := range masternodes {
 		if coinbaseAddress == masternode {
 			result[fieldStatus] = statusMasternode
+			if !isCandidate {
+				result[fieldCapacity] = -1
+				log.Warn("Find non-candidate masternode", "masternode", masternode.String(), "checkpointNumber", checkpointNumber, "epoch", epoch, "epochNumber", epochNumber)
+			}
 			return result, nil
 		}
+	}
+
+	if !isCandidate || len(masternodes) >= maxMasternodes {
+		return result, nil
+	}
+
+	if len(candidates) > maxMasternodes {
+		sort.Slice(candidates, func(i, j int) bool {
+			return candidates[i].Stake.Cmp(candidates[j].Stake) > 0
+		})
 	}
 
 	// Third, Get penalties list
 	penaltyList = append(penalties, header.Penalties...)
 
 	// map slashing status
-	for _, pen := range penaltyList {
-		if coinbaseAddress == pen {
-			result[fieldStatus] = statusSlashed
-			return result, nil
+	total := len(masternodes)
+	for _, candidate := range candidates {
+		for _, pen := range penaltyList {
+			if candidate.Address == pen {
+				if coinbaseAddress == pen {
+					result[fieldStatus] = statusSlashed
+					return result, nil
+				}
+				total++
+				if total >= maxMasternodes {
+					return result, nil
+				}
+			}
 		}
 	}
+
 	return result, nil
 }
 
 // GetCandidates returns status of all candidates at a specified epochNumber
 func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.EpochNumber) (map[string]interface{}, error) {
 	var (
-		block            *types.Block
-		header           *types.Header
-		checkpointNumber rpc.BlockNumber
-		epochNumber      rpc.EpochNumber
-		masternodes      []common.Address
-		candidates       []utils.Masternode
-		penalties        []common.Address
-		err              error
+		block                    *types.Block
+		header                   *types.Header
+		checkpointNumber         rpc.BlockNumber
+		epochNumber              rpc.EpochNumber
+		masternodes, penaltyList []common.Address
+		candidates               []utils.Masternode
+		penalties                []common.Address
+		err                      error
 	)
 	result := map[string]interface{}{
 		fieldSuccess: true,
 	}
-	candidatesStatusMap := map[string]map[string]interface{}{}
 
 	checkpointNumber, epochNumber = s.GetPreviousCheckpointFromEpoch(ctx, epoch)
 	result[fieldEpoch] = epochNumber.Int64()
@@ -903,11 +940,10 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 			return result, err
 		}
 		candidatesAddresses := state.GetCandidates(statedb)
+		candidates = make([]utils.Masternode, 0, len(candidatesAddresses))
 		for _, address := range candidatesAddresses {
 			v := state.GetCandidateCap(statedb, address)
-			if address.String() != "0x0000000000000000000000000000000000000000" {
-				candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
-			}
+			candidates = append(candidates, utils.Masternode{Address: address, Stake: v})
 		}
 	}
 
@@ -916,15 +952,8 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 		result[fieldSuccess] = false
 		return result, err
 	}
-	// First, set all candidate to propose
-	for _, candidate := range candidates {
-		candidatesStatusMap[candidate.Address.String()] = map[string]interface{}{
-			fieldStatus:   statusProposed,
-			fieldCapacity: candidate.Stake,
-		}
-	}
 
-	// Second, Find candidates that have masternode status
+	// Find candidates that have masternode status
 	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
 		masternodes = engine.GetMasternodesFromCheckpointHeader(header)
 		if len(masternodes) == 0 {
@@ -935,36 +964,65 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 	} else {
 		log.Error("Undefined XDPoS consensus engine")
 	}
-	// Set masternode status
-	for _, masternode := range masternodes {
-		if candidatesStatusMap[masternode.String()] != nil {
-			candidatesStatusMap[masternode.String()][fieldStatus] = statusMasternode
+
+	// Set all candidate to statusProposed
+	candidatesStatusMap := make(map[string]map[string]interface{}, len(candidates))
+	for _, candidate := range candidates {
+		candidatesStatusMap[candidate.Address.String()] = map[string]interface{}{
+			fieldStatus:   statusProposed,
+			fieldCapacity: candidate.Stake,
 		}
 	}
 
-	// Third, Get penalties list
-	penalties = append(penalties, header.Penalties...)
+	// Set masternodes to statusMasternode
+	for _, masternode := range masternodes {
+		key := masternode.String()
+		if candidatesStatusMap[key] != nil {
+			candidatesStatusMap[key][fieldStatus] = statusMasternode
+		} else {
+			candidatesStatusMap[key] = map[string]interface{}{
+				fieldStatus:   statusMasternode,
+				fieldCapacity: -1,
+			}
+			log.Warn("Masternode is not candidate", "masternode", key, "checkpointNumber", checkpointNumber, "epoch", epoch, "epochNumber", epochNumber)
+		}
+	}
 
-	// map slashing status
-	if len(penalties) == 0 {
+	maxMasternodes := common.MaxMasternodes
+
+	if len(masternodes) >= maxMasternodes {
 		result[fieldCandidates] = candidatesStatusMap
 		return result, nil
 	}
 
-	var topCandidates []utils.Masternode
-	if len(candidates) > common.MaxMasternodes {
-		topCandidates = candidates[:common.MaxMasternodes]
-	} else {
-		topCandidates = candidates
+	if len(candidates) > maxMasternodes {
+		sort.Slice(candidates, func(i, j int) bool {
+			return candidates[i].Stake.Cmp(candidates[j].Stake) > 0
+		})
 	}
-	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top 150 candidates
-	// if it's SLASHED but it's out of top 150, the status should be still PROPOSED
-	for _, pen := range penalties {
-		for _, candidate := range topCandidates {
-			if candidate.Address == pen && candidatesStatusMap[pen.String()] != nil {
+
+	// Get penalties list
+	penaltyList = append(penalties, header.Penalties...)
+
+	// map slashing status
+	if len(penaltyList) == 0 {
+		result[fieldCandidates] = candidatesStatusMap
+		return result, nil
+	}
+
+	// check penalties from checkpoint headers and modify status of a node to SLASHED if it's in top maxMasternodes candidates.
+	// if it's SLASHED but it's out of top maxMasternodes, the status should be still PROPOSED.
+	total := len(masternodes)
+	for _, candidate := range candidates {
+		for _, pen := range penaltyList {
+			if candidate.Address == pen {
 				candidatesStatusMap[pen.String()][fieldStatus] = statusSlashed
+				total++
+				if total >= maxMasternodes {
+					result[fieldCandidates] = candidatesStatusMap
+					return result, nil
+				}
 			}
-			penalties = append(penalties, block.Penalties()...)
 		}
 	}
 
@@ -976,24 +1034,23 @@ func (s *PublicBlockChainAPI) GetCandidates(ctx context.Context, epoch rpc.Epoch
 // GetPreviousCheckpointFromEpoch returns header of the previous checkpoint
 func (s *PublicBlockChainAPI) GetPreviousCheckpointFromEpoch(ctx context.Context, epochNum rpc.EpochNumber) (rpc.BlockNumber, rpc.EpochNumber) {
 	var checkpointNumber uint64
+	epoch := s.b.ChainConfig().XDPoS.Epoch
 
-	if engine, ok := s.b.GetEngine().(*XDPoS.XDPoS); ok {
-		if epochNum == rpc.LatestEpochNumber {
-			currentCheckpointNumber, epochNumber, err := engine.GetCurrentEpochSwitchBlock(s.chainReader, s.b.CurrentBlock().Number())
-			if err != nil {
-				log.Error("[GetPreviousCheckpointFromEpoch] Error while trying to get current epoch switch block information", "Block", s.b.CurrentBlock(), "Error", err)
-			}
-			checkpointNumber = currentCheckpointNumber
-			epochNum = rpc.EpochNumber(epochNumber)
-		} else if epochNum < 2 {
-			checkpointNumber = 0
-		} else {
-			checkpointNumber = s.b.ChainConfig().XDPoS.Epoch * (uint64(epochNum) - 1)
+	if epochNum == rpc.LatestEpochNumber {
+		blockNumer := s.b.CurrentBlock().Number().Uint64()
+		diff := blockNumer % epoch
+		// checkpoint number
+		checkpointNumber = blockNumer - diff
+		epochNum = rpc.EpochNumber(checkpointNumber / epoch)
+		if diff > 0 {
+			epochNum += 1
 		}
-		return rpc.BlockNumber(checkpointNumber), epochNum
+	} else if epochNum < 2 {
+		checkpointNumber = 0
 	} else {
-		panic("[GetPreviousCheckpointFromEpoch] Error while trying to get XDPoS consensus engine")
+		checkpointNumber = epoch * (uint64(epochNum) - 1)
 	}
+	return rpc.BlockNumber(checkpointNumber), epochNum
 }
 
 // getCandidatesFromSmartContract returns all candidates with their capacities at the current time
@@ -1015,23 +1072,18 @@ func (s *PublicBlockChainAPI) getCandidatesFromSmartContract() ([]utils.Masterno
 		return []utils.Masternode{}, err
 	}
 
-	var candidatesWithStakeInfo []utils.Masternode
+	candidatesWithStakeInfo := make([]utils.Masternode, 0, len(candidates))
 
 	for _, candidate := range candidates {
-		v, err := validator.GetCandidateCap(opts, candidate)
-		if err != nil {
-			return []utils.Masternode{}, err
-		}
-		if candidate.String() != "0x0000000000000000000000000000000000000000" {
+		if !candidate.IsZero() {
+			v, err := validator.GetCandidateCap(opts, candidate)
+			if err != nil {
+				return []utils.Masternode{}, err
+			}
 			candidatesWithStakeInfo = append(candidatesWithStakeInfo, utils.Masternode{Address: candidate, Stake: v})
 		}
-
-		if len(candidatesWithStakeInfo) > 0 {
-			sort.Slice(candidatesWithStakeInfo, func(i, j int) bool {
-				return candidatesWithStakeInfo[i].Stake.Cmp(candidatesWithStakeInfo[j].Stake) >= 0
-			})
-		}
 	}
+
 	return candidatesWithStakeInfo, nil
 }
 
@@ -1045,12 +1097,12 @@ type CallArgs struct {
 	Data     hexutil.Bytes   `json:"data"`
 }
 
-func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber, vmCfg vm.Config, timeout time.Duration) ([]byte, uint64, bool, error) {
+func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash, vmCfg vm.Config, timeout time.Duration) ([]byte, uint64, bool, error, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
 
-	statedb, header, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	statedb, header, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if statedb == nil || err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, err, nil
 	}
 	// Set sender address or use a default if none specified
 	addr := args.From
@@ -1072,7 +1124,7 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 	balanceTokenFee := big.NewInt(0).SetUint64(gas)
 	balanceTokenFee = balanceTokenFee.Mul(balanceTokenFee, gasPrice)
 	// Create new call message
-	msg := types.NewMessage(addr, args.To, 0, args.Value.ToInt(), gas, gasPrice, args.Data, false, balanceTokenFee)
+	msg := types.NewMessage(addr, args.To, 0, args.Value.ToInt(), gas, gasPrice, args.Data, false, balanceTokenFee, header.Number)
 
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered gas, setup a context with a timeout.
@@ -1086,22 +1138,22 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 	// this makes sure resources are cleaned up.
 	defer cancel()
 
-	block, err := s.b.BlockByNumber(ctx, blockNr)
+	block, err := s.b.BlockByNumberOrHash(ctx, blockNrOrHash)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, err, nil
 	}
 	author, err := s.b.GetEngine().Author(block.Header())
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, err, nil
 	}
 	XDCxState, err := s.b.XDCxService().GetTradingState(block, author)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, err, nil
 	}
 	// Get a new instance of the EVM.
 	evm, vmError, err := s.b.GetEVM(ctx, msg, statedb, XDCxState, header, vmCfg)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, err, nil
 	}
 	// Wait for the context to be done and cancel the evm. Even if the
 	// EVM has finished, cancelling may be done (repeatedly)
@@ -1114,23 +1166,77 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 	// and apply the message.
 	gp := new(core.GasPool).AddGas(math.MaxUint64)
 	owner := common.Address{}
-	res, gas, failed, err := core.ApplyMessage(evm, msg, gp, owner)
+	res, gas, failed, err, vmErr := core.ApplyMessage(evm, msg, gp, owner)
 	if err := vmError(); err != nil {
-		return nil, 0, false, err
+		return nil, 0, false, err, nil
 	}
-	return res, gas, failed, err
+
+	// If the timer caused an abort, return an appropriate error message
+	if evm.Cancelled() {
+		return nil, 0, false, fmt.Errorf("execution aborted (timeout = %v)", timeout), nil
+	}
+	if err != nil {
+		return res, 0, false, fmt.Errorf("err: %w (supplied gas %d)", err, msg.Gas()), nil
+	}
+	return res, gas, failed, err, vmErr
+}
+
+func newRevertError(res []byte) *revertError {
+	reason, errUnpack := abi.UnpackRevert(res)
+	err := errors.New("execution reverted")
+	if errUnpack == nil {
+		err = fmt.Errorf("execution reverted: %v", reason)
+	}
+	return &revertError{
+		error:  err,
+		reason: hexutil.Encode(res),
+	}
+}
+
+// revertError is an API error that encompasses an EVM revertal with JSON error
+// code and a binary data blob.
+type revertError struct {
+	error
+	reason string // revert reason hex encoded
+}
+
+// ErrorCode returns the JSON error code for a revertal.
+// See: https://github.com/ethereum/wiki/wiki/JSON-RPC-Error-Codes-Improvement-Proposal
+func (e *revertError) ErrorCode() int {
+	return 3
+}
+
+// ErrorData returns the hex encoded revert reason.
+func (e *revertError) ErrorData() interface{} {
+	return e.reason
 }
 
 // Call executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/blockchain and is useful to execute and retrieve values.
-func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber) (hexutil.Bytes, error) {
-	result, _, _, err := s.doCall(ctx, args, blockNr, vm.Config{}, 5*time.Second)
-	return (hexutil.Bytes)(result), err
+func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNrOrHash *rpc.BlockNumberOrHash) (hexutil.Bytes, error) {
+	if blockNrOrHash == nil {
+		latest := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
+		blockNrOrHash = &latest
+	}
+	result, _, failed, err, vmErr := s.doCall(ctx, args, *blockNrOrHash, vm.Config{}, 5*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	// If the result contains a revert reason, try to unpack and return it.
+	if failed && len(result) > 0 {
+		return nil, newRevertError(result)
+	}
+
+	return (hexutil.Bytes)(result), vmErr
 }
 
-// EstimateGas returns an estimate of the amount of gas needed to execute the
-// given transaction against the current pending block.
-func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (hexutil.Uint64, error) {
+func (s *PublicBlockChainAPI) doEstimateGas(ctx context.Context, args CallArgs, blockNrOrHash rpc.BlockNumberOrHash) (hexutil.Uint64, error) {
+	// Retrieve the base state and mutate it with any overrides
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+	if state == nil || err != nil {
+		return 0, err
+	}
+
 	// Binary search the gas requirement, as it may be higher than the amount used
 	var (
 		lo  uint64 = params.TxGas - 1
@@ -1150,32 +1256,90 @@ func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (h
 	cap = hi
 
 	// Create a helper to check if a gas allowance results in an executable transaction
-	executable := func(gas uint64) bool {
+	executable := func(gas uint64) (bool, []byte, error, error) {
 		args.Gas = hexutil.Uint64(gas)
 
-		_, _, failed, err := s.doCall(ctx, args, rpc.LatestBlockNumber, vm.Config{}, 0)
-		if err != nil || failed {
-			log.Warn("[EstimateGas] api", "err", err)
-			return false
+		res, _, failed, err, vmErr := s.doCall(ctx, args, blockNrOrHash, vm.Config{}, 0)
+		if err != nil {
+			if errors.Is(err, vm.ErrOutOfGas) || errors.Is(err, core.ErrIntrinsicGas) {
+				return false, nil, nil, nil // Special case, raise gas limit
+			}
+			return false, nil, err, nil // Bail out
 		}
-		return true
+		if failed {
+			return false, res, nil, vmErr
+		}
+
+		return true, nil, nil, nil
 	}
+
+	// If the transaction is a plain value transfer, short circuit estimation and
+	// directly try 21000. Returning 21000 without any execution is dangerous as
+	// some tx field combos might bump the price up even for plain transfers (e.g.
+	// unused access list items). Ever so slightly wasteful, but safer overall.
+	if len(args.Data) == 0 && args.To != nil {
+		statedb, _, err := s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
+		if statedb == nil || err != nil {
+			return 0, err
+		}
+
+		if statedb.GetCodeSize(*args.To) == 0 {
+			ok, _, err, _ := executable(params.TxGas)
+			if ok && err == nil {
+				return hexutil.Uint64(params.TxGas), nil
+			}
+		}
+	}
+
 	// Execute the binary search and hone in on an executable gas limit
 	for lo+1 < hi {
 		mid := (hi + lo) / 2
-		if !executable(mid) {
+		ok, _, err, _ := executable(mid)
+
+		// If the error is not nil(consensus error), it means the provided message
+		// call or transaction will never be accepted no matter how much gas it is
+		// assigned. Return the error directly, don't struggle any more.
+		if err != nil {
+			return 0, err
+		}
+
+		if !ok {
 			lo = mid
 		} else {
 			hi = mid
 		}
 	}
+
 	// Reject the transaction as invalid if it still fails at the highest allowance
 	if hi == cap {
-		if !executable(hi) {
-			return 0, fmt.Errorf("gas required exceeds allowance or always failing transaction")
+		ok, res, err, vmErr := executable(hi)
+		if err != nil {
+			return 0, err
+		}
+
+		if !ok {
+			if vmErr != vm.ErrOutOfGas {
+				if len(res) > 0 {
+					return 0, newRevertError(res)
+				}
+				return 0, vmErr
+			}
+
+			// Otherwise, the specified gas cap is too low
+			return 0, fmt.Errorf("gas required exceeds allowance (%d)", cap)
 		}
 	}
 	return hexutil.Uint64(hi), nil
+}
+
+// EstimateGas returns an estimate of the amount of gas needed to execute the
+// given transaction against the current pending block.
+func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs, blockNrOrHash *rpc.BlockNumberOrHash) (hexutil.Uint64, error) {
+	bNrOrHash := rpc.BlockNumberOrHashWithNumber(rpc.LatestBlockNumber)
+	if blockNrOrHash != nil {
+		bNrOrHash = *blockNrOrHash
+	}
+	return s.doEstimateGas(ctx, args, bNrOrHash)
 }
 
 // ExecutionResult groups all structured logs emitted by the EVM
@@ -1604,8 +1768,17 @@ func (s *PublicTransactionPoolAPI) GetRawTransactionByBlockHashAndIndex(ctx cont
 }
 
 // GetTransactionCount returns the number of transactions the given address has sent for the given block number
-func (s *PublicTransactionPoolAPI) GetTransactionCount(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (*hexutil.Uint64, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+func (s *PublicTransactionPoolAPI) GetTransactionCount(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (*hexutil.Uint64, error) {
+	// Ask transaction pool for the nonce which includes pending transactions
+	if blockNr, ok := blockNrOrHash.Number(); ok && blockNr == rpc.PendingBlockNumber {
+		nonce, err := s.b.GetPoolNonce(ctx, address)
+		if err != nil {
+			return nil, err
+		}
+		return (*hexutil.Uint64)(&nonce), nil
+	}
+	// Resolve block number and use its state to ask for the nonce
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
 	if state == nil || err != nil {
 		return nil, err
 	}
@@ -2967,6 +3140,9 @@ func GetSignersFromBlocks(b Backend, blockNumber uint64, blockHash common.Hash, 
 				return addrs, err
 			}
 			blockData, err := b.BlockByNumber(nil, rpc.BlockNumber(i))
+			if err != nil {
+				return addrs, err
+			}
 			signTxs := engine.CacheSigningTxs(header.Hash(), blockData.Transactions())
 			for _, signtx := range signTxs {
 				blkHash := common.BytesToHash(signtx.Data()[len(signtx.Data())-32:])

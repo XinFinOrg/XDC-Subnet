@@ -431,11 +431,11 @@ func (pool *LendingPool) validateNewLending(cloneStateDb *state.StateDB, cloneLe
 		return ErrInvalidLendingType
 	}
 	if tx.Side() == lendingstate.Borrowing {
-		if tx.CollateralToken().String() == lendingstate.EmptyAddress || tx.CollateralToken().String() == tx.LendingToken().String() {
+		if tx.CollateralToken().IsZero() || tx.CollateralToken() == tx.LendingToken() {
 			return ErrInvalidLendingCollateral
 		}
 		validCollateral := false
-		collateralList, _ := lendingstate.GetCollaterals(cloneStateDb, tx.RelayerAddress(), tx.LendingToken(), tx.Term())
+		collateralList := lendingstate.GetCollaterals(cloneStateDb, tx.RelayerAddress(), tx.LendingToken(), tx.Term())
 		for _, collateral := range collateralList {
 			if tx.CollateralToken().String() == collateral.String() {
 				validCollateral = true
@@ -541,7 +541,7 @@ func (pool *LendingPool) validateBalance(cloneStateDb *state.StateDB, cloneLendi
 	// collateralPrice = BTC/USD (eg: 8000 USD)
 	// lendTokenXDCPrice: price of lendingToken in XDC quote
 	var lendTokenXDCPrice, collateralPrice, collateralTokenDecimal *big.Int
-	if collateralToken.String() != lendingstate.EmptyAddress {
+	if !collateralToken.IsZero() {
 		collateralTokenDecimal, err = XDCXServ.GetTokenDecimal(pool.chain, cloneStateDb, collateralToken)
 		if err != nil {
 			return fmt.Errorf("validateOrder: failed to get collateralTokenDecimal. err: %v", err)
@@ -944,9 +944,10 @@ func (pool *LendingPool) removeTx(hash common.Hash) {
 // future queue to the set of pending transactions. During this process, all
 // invalidated transactions (low nonce, low balance) are deleted.
 func (pool *LendingPool) promoteExecutables(accounts []common.Address) {
-	start := time.Now()
 	log.Debug("start promoteExecutables")
-	defer log.Debug("end promoteExecutables", "time", common.PrettyDuration(time.Since(start)))
+	defer func(start time.Time) {
+		log.Debug("end promoteExecutables", "time", common.PrettyDuration(time.Since(start)))
+	}(time.Now())
 	// Gather all the accounts potentially needing updates
 	if accounts == nil {
 		accounts = make([]common.Address, 0, len(pool.queue))

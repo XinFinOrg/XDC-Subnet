@@ -172,12 +172,13 @@ func (w *wizard) makeGenesisFile() {
 	genesis.Config.XDPoS.V2.CurrentConfig.TimeoutSyncThreshold = input.TimeoutSyncThreshold
 
 	fmt.Println()
-	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodes/3*2+1)
-	// genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = w.readDefaultInt(common.MaxMasternodes/3*2 + 1)
-	fmt.Println(input.CertThreshold)
-	minCandidateThreshold := input.CertThreshold
+	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %f)\n", 0.666)
+	fmt.Println(0.666)
+	// fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodes/3*2+1)
+	// fmt.Println(input.CertThreshold)
+	// minCandidateThreshold := input.CertThreshold
+	minCandidateThreshold := 0.666	//TODO: change input style to cover for float threshold
 	genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = minCandidateThreshold
-
 	genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
 
 	// We also need the grand master address

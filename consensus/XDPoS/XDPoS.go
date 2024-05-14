@@ -17,6 +17,7 @@
 package XDPoS
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/XinFinOrg/XDC-Subnet/common"
@@ -88,7 +89,11 @@ func New(chainConfig *params.ChainConfig, db ethdb.Database) *XDPoS {
 		}
 	}
 
-	log.Info("xdc config loading", "config", config)
+	if config.V2.SwitchBlock.Uint64()%config.Epoch != 0 {
+		panic(fmt.Sprintf("v2 switch number is not epoch switch block %d, epoch %d", config.V2.SwitchBlock.Uint64(), config.Epoch))
+	}
+
+	log.Info("xdc config loading", "v2 config", config.V2)
 
 	minePeriodCh := make(chan int)
 
@@ -300,6 +305,10 @@ func (x *XDPoS) GetCurrentEpochSwitchBlock(chain consensus.ChainReader, blockNum
 	return x.EngineV2.GetCurrentEpochSwitchBlock(chain, blockNumber)
 }
 
+func (x *XDPoS) CalculateMissingRounds(chain consensus.ChainReader, header *types.Header) (*utils.PublicApiMissedRoundsMetadata, error) {
+	return x.EngineV2.CalculateMissingRounds(chain, header)
+}
+
 // Same DB across all consensus engines
 func (x *XDPoS) GetDb() ethdb.Database {
 	return x.db
@@ -315,8 +324,7 @@ func (x *XDPoS) GetSnapshot(chain consensus.ChainReader, header *types.Header) (
 }
 
 func (x *XDPoS) GetAuthorisedSignersFromSnapshot(chain consensus.ChainReader, header *types.Header) ([]common.Address, error) {
-	// Legacy V1 function
-	return []common.Address{}, nil
+	return x.EngineV2.GetSignersFromSnapshot(chain, header)
 }
 
 func (x *XDPoS) FindParentBlockToAssign(chain consensus.ChainReader, currentBlock *types.Block) *types.Block {

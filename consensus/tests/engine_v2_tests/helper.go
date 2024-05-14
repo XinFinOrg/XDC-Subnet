@@ -6,7 +6,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
@@ -78,7 +77,7 @@ func RandStringBytes(n int) string {
 func getSignerAndSignFn(pk *ecdsa.PrivateKey) (common.Address, func(account accounts.Account, hash []byte) ([]byte, error), error) {
 	veryLightScryptN := 2
 	veryLightScryptP := 1
-	dir, _ := ioutil.TempDir("", fmt.Sprintf("eth-getSignerAndSignFn-test-%v", RandStringBytes(5)))
+	dir, _ := os.MkdirTemp("", fmt.Sprintf("eth-getSignerAndSignFn-test-%v", RandStringBytes(5)))
 
 	new := func(kd string) *keystore.KeyStore {
 		return keystore.NewKeyStore(kd, veryLightScryptN, veryLightScryptP)
@@ -124,14 +123,6 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 
 	var candidates []common.Address
 	var caps []*big.Int
-	defalutCap := new(big.Int)
-	defalutCap.SetString("1000000000", 10)
-
-	for i := 1; i <= 15; i++ {
-		addr := fmt.Sprintf("%02d", i)
-		candidates = append(candidates, common.StringToAddress(addr)) // StringToAddress does not exist
-		caps = append(caps, defalutCap)
-	}
 
 	acc1Cap, acc2Cap, acc3Cap, voterCap, signerCap := new(big.Int), new(big.Int), new(big.Int), new(big.Int), new(big.Int)
 
@@ -141,8 +132,9 @@ func getCommonBackend(t *testing.T, chainConfig *params.ChainConfig, signer comm
 	voterCap.SetString("10000002", 10)
 	signerCap.SetString("10000001", 10)
 
-	caps = append(caps, voterCap, acc1Cap, acc2Cap, acc3Cap, signerCap)
-	candidates = append(candidates, voterAddr, acc1Addr, acc2Addr, acc3Addr, signer)
+	caps = append(caps, acc1Cap, acc2Cap, acc3Cap, signerCap, voterCap)
+	candidates = append(candidates, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
+
 	// initial helper backend
 	contractBackendForSC := backends.NewXDCSimulatedBackend(core.GenesisAlloc{
 		voterAddr: {Balance: new(big.Int).SetUint64(10000000000)},
@@ -572,6 +564,19 @@ func PrepareXDCTestBlockChainWith128Candidates(t *testing.T, numOfBlocks int, ch
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		//FROM XDPOS: find v2 switch block, don't need in subnet
+		// First v2 block
+		// if (int64(i) - chainConfig.XDPoS.V2.SwitchBlock.Int64()) == 1 {
+		// 	lastv1BlockNumber := block.Header().Number.Uint64() - 1
+		// 	checkpointBlockNumber := lastv1BlockNumber - lastv1BlockNumber%chainConfig.XDPoS.Epoch
+		// 	checkpointHeader := blockchain.GetHeaderByNumber(checkpointBlockNumber)
+		// 	err := engine.EngineV2.Initial(blockchain, checkpointHeader)
+		// 	if err != nil {
+		// 		panic(err)
+		// 	}
+		// }
+
 		currentBlock = block
 	}
 
@@ -609,7 +614,7 @@ func PrepareQCandProcess(t *testing.T, blockchain *BlockChain, currentBlock *typ
 func CreateBlock(blockchain *BlockChain, chainConfig *params.ChainConfig, startingBlock *types.Block, blockNumber int, roundNumber int64, blockCoinBase string, signer common.Address, signFn func(account accounts.Account, hash []byte) ([]byte, error), penalties []common.Address, signersKey []*ecdsa.PrivateKey, merkleRoot string) *types.Block {
 	currentBlock := startingBlock
 	if len(merkleRoot) == 0 {
-		merkleRoot = "b3e34cf1d3d80bcd2c5add880842892733e45979ddaf16e531f660fdf7ca5787"
+		merkleRoot = "711be05c0b9d89bd511dd4c20ade1820b2c1fb13343ee0cedd3869150eb2d377"
 	}
 	var header *types.Header
 	statedb, err := blockchain.State()
@@ -757,6 +762,8 @@ func findSignerAndSignFn(bc *BlockChain, header *types.Header, signer common.Add
 		} else if index == 3 {
 			// Skip signing anything for voterAddress to simulate penalty
 			return signer, signFn
+		} else if index == 4 {
+			_, signFn, err = getSignerAndSignFn(voterKey)
 		}
 		addressedSignFn = signFn
 		if err != nil {
@@ -781,7 +788,7 @@ func sealHeader(bc *BlockChain, header *types.Header, signer common.Address, sig
 func getMasternodesList(signer common.Address) []common.Address {
 	var masternodes []common.Address
 	// Place the test's signer address to the last
-	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer)
+	masternodes = append(masternodes, acc1Addr, acc2Addr, acc3Addr, signer, voterAddr)
 	return masternodes
 }
 

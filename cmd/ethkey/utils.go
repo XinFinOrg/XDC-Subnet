@@ -19,7 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
@@ -35,7 +35,7 @@ func getPassPhrase(ctx *cli.Context, confirmation bool) string {
 	// Look for the --passphrase flag.
 	passphraseFile := ctx.String(passphraseFlag.Name)
 	if passphraseFile != "" {
-		content, err := ioutil.ReadFile(passphraseFile)
+		content, err := os.ReadFile(passphraseFile)
 		if err != nil {
 			utils.Fatalf("Failed to read passphrase file '%s': %v",
 				passphraseFile, err)

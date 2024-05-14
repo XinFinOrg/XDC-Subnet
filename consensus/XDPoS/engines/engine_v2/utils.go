@@ -6,6 +6,7 @@ import (
 	"github.com/XinFinOrg/XDC-Subnet/accounts"
 	"github.com/XinFinOrg/XDC-Subnet/common"
 	"github.com/XinFinOrg/XDC-Subnet/consensus/XDPoS/utils"
+	"github.com/XinFinOrg/XDC-Subnet/consensus"
 	"github.com/XinFinOrg/XDC-Subnet/core/types"
 	"github.com/XinFinOrg/XDC-Subnet/crypto"
 	"github.com/XinFinOrg/XDC-Subnet/crypto/sha3"
@@ -156,4 +157,63 @@ func (x *XDPoS_v2) GetRoundNumber(header *types.Header) (types.Round, error) {
 		}
 		return decodedExtraField.Round, nil
 	}
+}
+
+func (x *XDPoS_v2) GetSignersFromSnapshot(chain consensus.ChainReader, header *types.Header) ([]common.Address, error) {
+	snap, err := x.getSnapshot(chain, header.Number.Uint64(), false)
+	if err != nil {
+		return nil, err
+	}
+	return snap.NextEpochMasterNodes, err
+}
+
+func (x *XDPoS_v2) CalculateMissingRounds(chain consensus.ChainReader, header *types.Header) (*utils.PublicApiMissedRoundsMetadata, error) {
+	var missedRounds []utils.MissedRoundInfo
+	switchInfo, err := x.getEpochSwitchInfo(chain, header, header.Hash())
+	if err != nil {
+		return nil, err
+	}
+	masternodes := switchInfo.Masternodes
+
+	// Loop through from the epoch switch block to the current "header" block
+	nextHeader := header
+	for nextHeader.Number.Cmp(switchInfo.EpochSwitchBlockInfo.Number) > 0 {
+		parentHeader := chain.GetHeaderByHash(nextHeader.ParentHash)
+		parentRound, err := x.GetRoundNumber(parentHeader)
+		if err != nil {
+			return nil, err
+		}
+		currRound, err := x.GetRoundNumber(nextHeader)
+		if err != nil {
+			return nil, err
+		}
+		// This indicates that an increment in the round number is missing during the block production process.
+		if parentRound+1 != currRound {
+			// We need to iterate from the parentRound to the currRound to determine which miner did not perform mining.
+			for i := parentRound + 1; i < currRound; i++ {
+				leaderIndex := uint64(i) % x.config.Epoch % uint64(len(masternodes))
+				whosTurn := masternodes[leaderIndex]
+				missedRounds = append(
+					missedRounds,
+					utils.MissedRoundInfo{
+						Round:            i,
+						Miner:            whosTurn,
+						CurrentBlockHash: nextHeader.Hash(),
+						CurrentBlockNum:  nextHeader.Number,
+						ParentBlockHash:  parentHeader.Hash(),
+						ParentBlockNum:   parentHeader.Number,
+					},
+				)
+			}
+		}
+		// Assign the pointer to the next one
+		nextHeader = parentHeader
+	}
+	missedRoundsMetadata := &utils.PublicApiMissedRoundsMetadata{
+		EpochRound:       switchInfo.EpochSwitchBlockInfo.Round,
+		EpochBlockNumber: switchInfo.EpochSwitchBlockInfo.Number,
+		MissedRounds:     missedRounds,
+	}
+
+	return missedRoundsMetadata, nil
 }
