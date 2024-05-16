@@ -3,10 +3,6 @@ on:
   pull_request:
     branches:
       - master
-  #TODO: remove push trigger
-  push:   #temporary trigger tests this way 
-    branches:
-      - '*'
 
 jobs:
   test_golang:
