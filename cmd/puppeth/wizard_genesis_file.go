@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,7 +48,7 @@ type GenesisInput struct {
 	Reward               uint64
 	TimeoutPeriod        int
 	TimeoutSyncThreshold int
-	CertThreshold        int
+	CertThreshold        float64
 	Grandmasters         []common.Address
 	Masternodes          []common.Address
 	Epoch                uint64
@@ -66,17 +65,10 @@ func NewGenesisInput() *GenesisInput {
 		Reward:               2,
 		TimeoutPeriod:        10,
 		TimeoutSyncThreshold: 3,
-		CertThreshold:        common.MaxMasternodes*2/3 + 1,
+		CertThreshold:        0.667,
 		Epoch:                900,
 		Gap:                  450,
 		ChainId:              112,
-	}
-}
-
-func SetDefaultAfterInputRead(input *GenesisInput) {
-	//if no cert threshold provided, use 2/3 of masternode len
-	if input.CertThreshold == common.MaxMasternodes*2/3+1 {
-		input.CertThreshold = int(math.Ceil(float64(len(input.Masternodes)) * 2.0 / 3.0))
 	}
 }
 
@@ -109,7 +101,6 @@ func (w *wizard) makeGenesisFile() {
 		os.Exit(1)
 		return
 	}
-	SetDefaultAfterInputRead(input)
 	fmt.Println("Generating genesis file with the below input  ", err)
 	fmt.Printf("%+v\n", input)
 
@@ -172,12 +163,9 @@ func (w *wizard) makeGenesisFile() {
 	genesis.Config.XDPoS.V2.CurrentConfig.TimeoutSyncThreshold = input.TimeoutSyncThreshold
 
 	fmt.Println()
-	fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %f)\n", 0.666)
-	fmt.Println(0.666)
-	// fmt.Printf("How many v2 vote collection to generate a QC, should be two thirds of masternodes? (default = %d)\n", common.MaxMasternodes/3*2+1)
-	// fmt.Println(input.CertThreshold)
-	// minCandidateThreshold := input.CertThreshold
-	minCandidateThreshold := 0.666	//TODO: change input style to cover for float threshold
+	fmt.Printf("Proportion of total masternodes v2 vote collection to generate a QC (float value), should be two thirds of masternodes? (default = %f)\n", 0.667)
+	fmt.Println(input.CertThreshold)
+	minCandidateThreshold := input.CertThreshold
 	genesis.Config.XDPoS.V2.CurrentConfig.CertThreshold = minCandidateThreshold
 	genesis.Config.XDPoS.V2.AllConfigs[0] = genesis.Config.XDPoS.V2.CurrentConfig
 

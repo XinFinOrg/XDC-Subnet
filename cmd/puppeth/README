@@ -2,7 +2,6 @@ Genesis generation by file input can be done by using 'puppeth --file <file_path
 The input file should be in YAML format as the following example.
 ---
 name: testsubnet
-certthreshold: 4
 grandmasters:
   - '0x2A5300279D134f7bee1A7ab1930B70d9473eAB8b'
 masternodes:
@@ -22,7 +21,7 @@ period: 2
 reward: 2
 timeoutperiod: 10
 timeoutsyncthreshold: 3
-certthrehold: len(masternodes) * 2/3
+certthreshold: 0.667
 grandmasters:	(default empty)
   - '0x0000000000000000000000000000000000000000'
 masternodes: (default empty)
