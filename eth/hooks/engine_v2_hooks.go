@@ -20,6 +20,7 @@ import (
 )
 
 func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConfig *params.ChainConfig) {
+	
 	// Hook scans for bad masternodes and decide to penalty them
 	// Subnet penalty is triggered at gap block, and stopped at previous gap block
 	adaptor.EngineV2.HookPenalty = func(chain consensus.ChainReader, number *big.Int, currentHash common.Hash, candidates []common.Address, config *params.XDPoSConfig) ([]common.Address, error) {
