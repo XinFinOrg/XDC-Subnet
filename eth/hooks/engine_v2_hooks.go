@@ -20,6 +20,7 @@ import (
 )
 
 func AttachConsensusV2Hooks(adaptor *XDPoS.XDPoS, bc *core.BlockChain, chainConfig *params.ChainConfig) {
+	
 	// Hook scans for bad masternodes and decide to penalty them
 	// Subnet penalty is triggered at gap block, and stopped at previous gap block
 	adaptor.EngineV2.HookPenalty = func(chain consensus.ChainReader, number *big.Int, currentHash common.Hash, candidates []common.Address, config *params.XDPoSConfig) ([]common.Address, error) {
@@ -221,7 +222,7 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 	signers := make(map[common.Address]*contracts.RewardLog)
 	mapBlkHash := map[uint64]common.Hash{}
 
-	// avoid overflow
+	// prevent overflow
 	if number == 0 {
 		return signers, nil
 	}
@@ -261,7 +262,7 @@ func GetSigningTxCount(c *XDPoS.XDPoS, chain consensus.ChainReader, header *type
 			from := *tx.From()
 			data[blkHash] = append(data[blkHash], from)
 		}
-		// avoid overflow
+		// prevent overflow
 		if i == 0 {
 			return signers, nil
 		}

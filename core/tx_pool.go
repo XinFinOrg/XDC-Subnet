@@ -597,7 +597,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 
 	// Heuristic limit, reject transactions over 32KB to prevent DOS attacks
-	if tx.Size() > 32*1024 {
+	// test size increase TODO: bring over EIP2464 from XDPoS to allow actual 128KB
+	if tx.Size() > 128*1024 {
 		return ErrOversizedData
 	}
 	// Transactions can't be negative. This may never happen using RLP decoded
