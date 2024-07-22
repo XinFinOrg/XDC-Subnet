@@ -60,7 +60,7 @@ type GenesisInput struct {
 func NewGenesisInput() *GenesisInput {
 	return &GenesisInput{
 		Name:                 "xdc-subnet",
-		Denom:                "0x",
+		Denom:                "sdc",
 		Period:               2,
 		Reward:               2,
 		TimeoutPeriod:        10,
