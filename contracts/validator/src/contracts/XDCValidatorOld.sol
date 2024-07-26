@@ -26,106 +26,95 @@ contract XDCValidator {
         uint256[] blockNumbers;
     }
 
-    mapping(address => WithdrawState) withdrawsState;
+    mapping(address => WithdrawState) private withdrawsState;
 
     mapping(address => ValidatorState) public validatorsState;
     mapping(address => address[]) public voters;
 
     // Mapping structures added for KYC feature.
-    mapping(address => uint) public invalidKYCCount;
+    mapping(address => string[]) public kycString;
+    mapping(address => uint256) public invalidKYCCount;
     mapping(address => mapping(address => bool)) public hasVotedInvalid;
     mapping(address => address[]) public ownerToCandidate;
     address[] public owners;
 
     address[] public candidates;
 
-    uint256 public candidateCount = 0;
-    uint256 public ownerCount = 0;
+    uint256 public minCandidateNum;
     uint256 public minCandidateCap;
     uint256 public minVoterCap;
     uint256 public maxValidatorNumber;
     uint256 public candidateWithdrawDelay;
     uint256 public voterWithdrawDelay;
-    // owner => invalid
-    mapping(address => bool) public invalidOwner;
-    // candaite => invalid
-    mapping(address => bool) public invalidCandidate;
 
     address[] public grandMasters;
-
     mapping(address => bool) public grandMasterMap;
 
     modifier onlyValidCandidateCap() {
         // anyone can deposit X XDC to become a candidate
-        require(msg.value >= minCandidateCap, "Invalid Candidate Cap");
+        require(msg.value >= minCandidateCap, "Low Candidate Cap");
         _;
     }
 
     modifier onlyValidVoterCap() {
-        require(msg.value >= minVoterCap, "Invalid Voter Cap");
+        require(msg.value >= minVoterCap, "Low Voter Cap");
+        _;
+    }
+
+    modifier onlyKYCWhitelisted() {
+        require(
+            kycString[msg.sender].length != 0 ||
+                ownerToCandidate[msg.sender].length > 0,
+            "Not KYC Whitelisted"
+        );
         _;
     }
 
     modifier onlyOwner(address _candidate) {
-        require(
-            validatorsState[_candidate].owner == msg.sender,
-            "Only owner can call this function"
-        );
+        require(validatorsState[_candidate].owner == msg.sender, "Not Owner");
         _;
     }
 
     modifier onlyCandidate(address _candidate) {
-        require(
-            validatorsState[_candidate].isCandidate,
-            "Only candidate can call this function"
-        );
+        require(validatorsState[_candidate].isCandidate, "Not Candidate");
         _;
     }
 
     modifier onlyValidCandidate(address _candidate) {
-        require(!invalidCandidate[_candidate], "Invalid Candidate");
-        require(validatorsState[_candidate].isCandidate, "Invalid Candidate");
+        require(validatorsState[_candidate].isCandidate, "Not Valid Candidate");
         _;
     }
 
     modifier onlyNotCandidate(address _candidate) {
-        require(!invalidCandidate[_candidate], "Invalid Candidate");
-        require(
-            !validatorsState[_candidate].isCandidate,
-            "Already a candidate"
-        );
+        require(!validatorsState[_candidate].isCandidate, "Already Candidate");
         _;
     }
 
     modifier onlyValidVote(address _candidate, uint256 _cap) {
         require(
             validatorsState[_candidate].voters[msg.sender] >= _cap,
-            "Invalid Vote"
+            "Insufficient Vote Cap"
         );
         if (validatorsState[_candidate].owner == msg.sender) {
             require(
                 validatorsState[_candidate].voters[msg.sender].sub(_cap) >=
                     minCandidateCap,
-                "Minimum cap should be maintained"
+                "Below Min Cap"
             );
         }
         _;
     }
 
-    modifier onlyValidWithdraw(uint256 _blockNumber, uint _index) {
-        require(!invalidOwner[msg.sender], "Invalid Owner");
-        require(_blockNumber > 0, "Invalid block number");
-        require(
-            block.number >= _blockNumber,
-            "Block number should be less than current block number"
-        );
+    modifier onlyValidWithdraw(uint256 _blockNumber, uint256 _index) {
+        require(_blockNumber > 0, "Invalid Block Number");
+        require(block.number >= _blockNumber, "Block Number Too High");
         require(
             withdrawsState[msg.sender].caps[_blockNumber] > 0,
-            "No cap to withdraw"
+            "Invalid Withdraw Cap"
         );
         require(
             withdrawsState[msg.sender].blockNumbers[_index] == _blockNumber,
-            "Invalid index"
+            "Mismatch Block Number"
         );
         _;
     }
@@ -136,8 +125,8 @@ contract XDCValidator {
     }
 
     constructor(
-        address[] _candidates,
-        uint256[] _caps,
+        address[] memory _candidates,
+        uint256[] memory _caps,
         address _firstOwner,
         uint256 _minCandidateCap,
         uint256 _minVoterCap,
@@ -147,21 +136,19 @@ contract XDCValidator {
         address[] memory _grandMasters,
         uint256 _minCandidateNum
     ) public {
+        minCandidateNum = _minCandidateNum;
         minCandidateCap = _minCandidateCap;
         minVoterCap = _minVoterCap;
         maxValidatorNumber = _maxValidatorNumber;
         candidateWithdrawDelay = _candidateWithdrawDelay;
         voterWithdrawDelay = _voterWithdrawDelay;
-        candidateCount = _candidates.length;
         owners.push(_firstOwner);
-        ownerCount++;
         for (uint256 i = 0; i < _candidates.length; i++) {
             candidates.push(_candidates[i]);
-            validatorsState[_candidates[i]] = ValidatorState({
-                owner: _firstOwner,
-                isCandidate: true,
-                cap: _caps[i]
-            });
+            ValidatorState storage vs = validatorsState[_candidates[i]];
+            vs.owner = _firstOwner;
+            vs.isCandidate = true;
+            vs.cap = _caps[i];
             voters[_candidates[i]].push(_firstOwner);
             ownerToCandidate[_firstOwner].push(_candidates[i]);
             validatorsState[_candidates[i]].voters[_firstOwner] = _caps[i];
@@ -170,6 +157,12 @@ contract XDCValidator {
             grandMasters.push(_grandMasters[i]);
             grandMasterMap[_grandMasters[i]] = true;
         }
+    }
+
+    // uploadKYC : anyone can upload a KYC; its not equivalent to becoming an owner.
+    function uploadKYC(string kychash) external {
+        kycString[msg.sender].push(kychash);
+        emit UploadedKYC(msg.sender, kychash);
     }
 
     // propose : any non-candidate who has uploaded its KYC can become an owner by proposing a candidate.
@@ -184,18 +177,16 @@ contract XDCValidator {
     {
         uint256 cap = validatorsState[_candidate].cap.add(msg.value);
         candidates.push(_candidate);
-        validatorsState[_candidate] = ValidatorState({
-            owner: msg.sender,
-            isCandidate: true,
-            cap: cap
-        });
+        ValidatorState storage vs = validatorsState[_candidate];
+        vs.owner = msg.sender;
+        vs.isCandidate = true;
+        vs.cap = cap;
         validatorsState[_candidate].voters[msg.sender] = validatorsState[
             _candidate
         ].voters[msg.sender].add(msg.value);
-        candidateCount = candidateCount.add(1);
+
         if (ownerToCandidate[msg.sender].length == 0) {
             owners.push(msg.sender);
-            ownerCount++;
         }
         ownerToCandidate[msg.sender].push(_candidate);
         voters[_candidate].push(msg.sender);
@@ -223,8 +214,12 @@ contract XDCValidator {
         emit Vote(msg.sender, _candidate, msg.value);
     }
 
-    function getCandidates() public view returns (address[]) {
+    function getCandidates() public view returns (address[] memory) {
         return candidates;
+    }
+
+    function getGrandMasters() public view returns (address[] memory) {
+        return grandMasters;
     }
 
     function getCandidateCap(address _candidate) public view returns (uint256) {
@@ -244,7 +239,9 @@ contract XDCValidator {
         return validatorsState[_candidate].voters[_voter];
     }
 
-    function getVoters(address _candidate) public view returns (address[]) {
+    function getVoters(
+        address _candidate
+    ) public view returns (address[] memory) {
         return voters[_candidate];
     }
 
@@ -252,7 +249,7 @@ contract XDCValidator {
         return validatorsState[_candidate].isCandidate;
     }
 
-    function getWithdrawBlockNumbers() public view returns (uint256[]) {
+    function getWithdrawBlockNumbers() public view returns (uint256[] memory) {
         return withdrawsState[msg.sender].blockNumbers;
     }
 
@@ -287,28 +284,14 @@ contract XDCValidator {
         address _candidate
     ) public onlyOwner(_candidate) onlyCandidate(_candidate) {
         validatorsState[_candidate].isCandidate = false;
-        candidateCount = candidateCount.sub(1);
-
-        deleteCandidate(_candidate);
-
-        // Cleanup the ownerToCandidate mapping for the resigning candidate's owner
-        address[] storage ownedCandidates = ownerToCandidate[msg.sender];
-        uint256 ownedCandidatesLength = ownedCandidates.length;
-        for (uint256 j = 0; j < ownedCandidatesLength; j++) {
-            if (ownedCandidates[j] == _candidate) {
-                ownedCandidates[j] = ownedCandidates[ownedCandidatesLength - 1];
-                delete ownedCandidates[ownedCandidatesLength - 1];
-                ownedCandidates.length--; // Manually decrease the array length
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i] == _candidate) {
+                delete candidates[i];
                 break;
             }
         }
-
-        // Optionally, consider adjusting ownerCount if needed
-        if (ownedCandidates.length == 0) {
-            // If specific logic is needed to manage the owners array, implement here
-            deleteOwner(msg.sender);
-        }
-
+        candidates = removeZeroAddresses(candidates);
+        checkMinCandidateNum();
         uint256 cap = validatorsState[_candidate].voters[msg.sender];
         validatorsState[_candidate].cap = validatorsState[_candidate].cap.sub(
             cap
@@ -323,80 +306,112 @@ contract XDCValidator {
         emit Resign(msg.sender, _candidate);
     }
 
+    function checkMinCandidateNum() private view {
+        require(candidates.length >= minCandidateNum, "Low Candidate Count");
+    }
+
     // voteInvalidKYC : any candidate can vote for invalid KYC i.e. a particular candidate's owner has uploaded a bad KYC.
     // On securing 75% votes against an owner ( not candidate ), owner & all its candidates will lose their funds.
     function voteInvalidKYC(
-        address _owner
-    ) public onlyValidCandidate(msg.sender) {
+        address _invalidCandidate
+    )
+        public
+        onlyValidCandidate(msg.sender)
+        onlyValidCandidate(_invalidCandidate)
+    {
         address candidateOwner = getCandidateOwner(msg.sender);
-
-        require(!hasVotedInvalid[candidateOwner][_owner], "Already voted");
-        hasVotedInvalid[candidateOwner][_owner] = true;
-        invalidKYCCount[_owner] += 1;
-        if ((invalidKYCCount[_owner] * 100) / getOwnerCount() >= 75) {
+        address _invalidMasternode = getCandidateOwner(_invalidCandidate);
+        require(
+            !hasVotedInvalid[candidateOwner][_invalidMasternode],
+            "Already Voted Invalid"
+        );
+        hasVotedInvalid[candidateOwner][_invalidMasternode] = true;
+        invalidKYCCount[_invalidMasternode]++;
+        if (
+            (invalidKYCCount[_invalidMasternode] * 100) / getOwnerCount() >= 75
+        ) {
             // 75% owners say that the KYC is invalid
-            invalidOwner[_owner] = true;
+            address[] memory allMasternodes = new address[](
+                candidates.length - 1
+            );
+            uint256 count = 0;
+            for (uint256 i = 0; i < candidates.length; i++) {
+                if (getCandidateOwner(candidates[i]) == _invalidMasternode) {
+                    // logic to remove cap.
 
-            (bool isOwnerNow, uint ownerIndex) = isOwner(_owner);
-            if (isOwnerNow) {
-                uint j = 0;
-                uint count = 0;
-                address[] memory allMasternodes = new address[](
-                    candidates.length
-                );
-                address[] memory newCandidates = new address[](
-                    candidates.length
-                );
+                    allMasternodes[count++] = candidates[i];
+                    delete candidates[i];
 
-                for (uint i = 0; i < candidates.length; i++) {
-                    address candidate = candidates[i];
-                    if (getCandidateOwner(candidate) == _owner) {
-                        // logic to remove cap.
-                        candidateCount = candidateCount.sub(1);
-                        allMasternodes[count++] = candidate;
-                        invalidCandidate[candidate] = true;
-                        delete validatorsState[candidate];
-                        delete ownerToCandidate[_owner];
-                        delete invalidKYCCount[_owner];
-                    } else {
-                        newCandidates[j++] = candidate;
-                    }
+                    delete validatorsState[candidates[i]];
+                    delete kycString[_invalidMasternode];
+                    delete ownerToCandidate[_invalidMasternode];
+                    delete invalidKYCCount[_invalidMasternode];
                 }
-
-                // Resize the array.
-                assembly {
-                    mstore(newCandidates, j)
-                    mstore(allMasternodes, count)
-                }
-                candidates = newCandidates;
-
-                removeOwnerByIndex(ownerIndex);
-                emit InvalidatedNode(_owner, allMasternodes);
             }
+            candidates = removeZeroAddresses(candidates);
+            checkMinCandidateNum();
+            for (uint256 k = 0; k < owners.length; k++) {
+                if (owners[k] == _invalidMasternode) {
+                    delete owners[k];
+
+                    break;
+                }
+            }
+            owners = removeZeroAddresses(owners);
+            emit InvalidatedNode(_invalidMasternode, allMasternodes);
         }
     }
 
     // invalidPercent : get votes against an owner in percentage.
     function invalidPercent(
-        address _owner
-    ) public view onlyValidCandidate(_owner) returns (uint) {
-        return ((invalidKYCCount[_owner] * 100) / getOwnerCount());
+        address _invalidCandidate
+    ) public view onlyValidCandidate(_invalidCandidate) returns (uint256) {
+        address _invalidMasternode = getCandidateOwner(_invalidCandidate);
+        return ((invalidKYCCount[_invalidMasternode] * 100) / getOwnerCount());
     }
 
     // getOwnerCount : get count of total owners; accounts who own atleast one masternode.
-    function getOwnerCount() public view returns (uint) {
-        return ownerCount;
+    function getOwnerCount() public view returns (uint256) {
+        return owners.length;
+    }
+
+    // getKYC : get KYC uploaded of the owner of the given masternode or the owner themselves
+    function getLatestKYC(
+        address _address
+    ) public view returns (string memory) {
+        if (isCandidate(_address)) {
+            return
+                kycString[getCandidateOwner(_address)][
+                    kycString[getCandidateOwner(_address)].length - 1
+                ];
+        } else {
+            return kycString[_address][kycString[_address].length - 1];
+        }
+    }
+
+    function getHashCount(address _address) public view returns (uint256) {
+        return kycString[_address].length;
     }
 
     function withdraw(
         uint256 _blockNumber,
-        uint _index
+        uint256 _index
     ) public onlyValidWithdraw(_blockNumber, _index) {
         uint256 cap = withdrawsState[msg.sender].caps[_blockNumber];
         delete withdrawsState[msg.sender].caps[_blockNumber];
         delete withdrawsState[msg.sender].blockNumbers[_index];
-        msg.sender.transfer(cap);
+        (msg.sender).transfer(cap);
         emit Withdraw(msg.sender, _blockNumber, cap);
+    }
+
+    function getOwnerToCandidateLength(
+        address _address
+    ) external view returns (uint256) {
+        return ownerToCandidate[_address].length;
+    }
+
+    function candidateCount() public view returns (uint256) {
+        return candidates.length;
     }
 
     function removeZeroAddresses(
@@ -415,89 +430,5 @@ contract XDCValidator {
             mstore(newAddresses, j)
         }
         return newAddresses;
-    }
-
-    function removeCandidatesZeroAddresses() external {
-        address[] memory newAddresses = new address[](candidates.length);
-        uint256 j = 0;
-        for (uint256 i = 0; i < candidates.length; i++) {
-            if (candidates[i] != address(0)) {
-                newAddresses[j] = candidates[i];
-                j++;
-            }
-        }
-        // Resize the array.
-        assembly {
-            mstore(newAddresses, j)
-        }
-        candidates = newAddresses;
-    }
-
-    function removeOwnersZeroAddresses() external {
-        address[] memory newAddresses = new address[](owners.length);
-        uint256 j = 0;
-        for (uint256 i = 0; i < owners.length; i++) {
-            if (owners[i] != address(0)) {
-                newAddresses[j] = owners[i];
-                j++;
-            }
-        }
-        // Resize the array.
-        assembly {
-            mstore(newAddresses, j)
-        }
-        owners = newAddresses;
-    }
-
-    // Efficiently remove _candidate from the candidates array
-    function deleteCandidate(address candidate) private {
-        uint256 candidatesLength = candidates.length;
-        for (uint256 i = 0; i < candidatesLength; i++) {
-            if (candidates[i] == candidate) {
-                candidates[i] = candidates[candidatesLength - 1];
-                delete candidates[candidatesLength - 1];
-                candidates.length--; // Manually decrease the array length
-                break;
-            }
-        }
-    }
-
-    // Efficiently remove the invalid owner from the owners array
-    function deleteOwner(address owner) private {
-        uint256 ownersLength = owners.length;
-        for (uint k = 0; k < ownersLength; k++) {
-            if (owners[k] == owner) {
-                owners[k] = owners[ownersLength - 1]; // Swap with the last element
-                delete owners[ownersLength - 1]; // Delete the last element
-                owners.length--; // Decrease the array size
-                ownerCount--; // Decrease the owner count
-                break;
-            }
-        }
-    }
-
-    // isOwner : check if the given address is an owner or not.
-    function isOwner(address owner) public view returns (bool, uint256) {
-        for (uint i = 0; i < owners.length; i++) {
-            if (owners[i] == owner) {
-                return (true, i);
-            }
-        }
-        return (false, 0);
-    }
-
-    function removeOwnerByIndex(uint256 index) private {
-        // no need to check: index <= lastIndex
-        uint256 lastIndex = owners.length - 1;
-        owners[index] = owners[lastIndex];
-        delete owners[lastIndex];
-        owners.length--;
-        ownerCount--;
-    }
-
-    function getOwnerToCandidateLength(
-        address _address
-    ) external view returns (uint256) {
-        return ownerToCandidate[_address].length;
     }
 }
