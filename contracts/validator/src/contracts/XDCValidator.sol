@@ -41,6 +41,7 @@ contract XDCValidator {
 
     uint256 public candidateCount = 0;
     uint256 public ownerCount = 0;
+    uint256 public minCandidateNum;
     uint256 public minCandidateCap;
     uint256 public minVoterCap;
     uint256 public maxValidatorNumber;
@@ -147,6 +148,7 @@ contract XDCValidator {
         address[] memory _grandMasters,
         uint256 _minCandidateNum
     ) public {
+        minCandidateNum = _minCandidateNum;
         minCandidateCap = _minCandidateCap;
         minVoterCap = _minVoterCap;
         maxValidatorNumber = _maxValidatorNumber;
@@ -291,6 +293,8 @@ contract XDCValidator {
 
         deleteCandidate(_candidate);
 
+        checkMinCandidateNum();
+
         // Cleanup the ownerToCandidate mapping for the resigning candidate's owner
         address[] storage ownedCandidates = ownerToCandidate[msg.sender];
         uint256 ownedCandidatesLength = ownedCandidates.length;
@@ -369,6 +373,8 @@ contract XDCValidator {
                     mstore(allMasternodes, count)
                 }
                 candidates = newCandidates;
+
+                checkMinCandidateNum();
 
                 removeOwnerByIndex(ownerIndex);
                 emit InvalidatedNode(_owner, allMasternodes);
@@ -499,5 +505,9 @@ contract XDCValidator {
         address _address
     ) external view returns (uint256) {
         return ownerToCandidate[_address].length;
+    }
+
+    function checkMinCandidateNum() private view {
+        require(candidates.length >= minCandidateNum, "Low Candidate Count");
     }
 }
