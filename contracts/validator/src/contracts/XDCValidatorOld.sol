@@ -3,7 +3,7 @@ pragma solidity =0.4.26;
 
 import {SafeMath} from "./libraries/SafeMath.sol";
 
-contract XDCValidator {
+contract XDCValidatorOld {
     using SafeMath for uint256;
 
     event Vote(address _voter, address _candidate, uint256 _cap);
