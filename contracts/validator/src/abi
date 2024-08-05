@@ -65,6 +65,29 @@
       "type": "function"
    },
    {
+      "constant": false,
+      "inputs": [],
+      "name": "removeCandidatesZeroAddresses",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+   },
+   {
+      "constant": true,
+      "inputs": [],
+      "name": "ownerCount",
+      "outputs": [
+         {
+            "name": "",
+            "type": "uint256"
+         }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+   },
+   {
       "constant": true,
       "inputs": [
          {
@@ -118,29 +141,6 @@
             "type": "uint256"
          }
       ],
-      "name": "kycString",
-      "outputs": [
-         {
-            "name": "",
-            "type": "string"
-         }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-   },
-   {
-      "constant": true,
-      "inputs": [
-         {
-            "name": "",
-            "type": "address"
-         },
-         {
-            "name": "",
-            "type": "uint256"
-         }
-      ],
       "name": "ownerToCandidate",
       "outputs": [
          {
@@ -165,6 +165,29 @@
          {
             "name": "",
             "type": "address[]"
+         }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+   },
+   {
+      "constant": true,
+      "inputs": [
+         {
+            "name": "owner",
+            "type": "address"
+         }
+      ],
+      "name": "isOwner",
+      "outputs": [
+         {
+            "name": "",
+            "type": "bool"
+         },
+         {
+            "name": "",
+            "type": "uint256"
          }
       ],
       "payable": false,
@@ -202,25 +225,6 @@
          {
             "name": "",
             "type": "uint256"
-         }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-   },
-   {
-      "constant": true,
-      "inputs": [
-         {
-            "name": "_address",
-            "type": "address"
-         }
-      ],
-      "name": "getLatestKYC",
-      "outputs": [
-         {
-            "name": "",
-            "type": "string"
          }
       ],
       "payable": false,
@@ -307,20 +311,6 @@
    },
    {
       "constant": true,
-      "inputs": [],
-      "name": "getGrandMasters",
-      "outputs": [
-         {
-            "name": "",
-            "type": "address[]"
-         }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-   },
-   {
-      "constant": true,
       "inputs": [
          {
             "name": "_candidate",
@@ -361,7 +351,7 @@
       "constant": true,
       "inputs": [
          {
-            "name": "_invalidCandidate",
+            "name": "_owner",
             "type": "address"
          }
       ],
@@ -435,6 +425,15 @@
       ],
       "payable": false,
       "stateMutability": "view",
+      "type": "function"
+   },
+   {
+      "constant": false,
+      "inputs": [],
+      "name": "removeOwnersZeroAddresses",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
       "type": "function"
    },
    {
@@ -516,15 +515,15 @@
       "constant": true,
       "inputs": [
          {
-            "name": "_candidate",
+            "name": "",
             "type": "address"
          }
       ],
-      "name": "getCandidateOwner",
+      "name": "invalidCandidate",
       "outputs": [
          {
             "name": "",
-            "type": "address"
+            "type": "bool"
          }
       ],
       "payable": false,
@@ -535,15 +534,15 @@
       "constant": true,
       "inputs": [
          {
-            "name": "_address",
+            "name": "_candidate",
             "type": "address"
          }
       ],
-      "name": "getHashCount",
+      "name": "getCandidateOwner",
       "outputs": [
          {
             "name": "",
-            "type": "uint256"
+            "type": "address"
          }
       ],
       "payable": false,
@@ -613,6 +612,25 @@
    },
    {
       "constant": true,
+      "inputs": [
+         {
+            "name": "",
+            "type": "address"
+         }
+      ],
+      "name": "invalidOwner",
+      "outputs": [
+         {
+            "name": "",
+            "type": "bool"
+         }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+   },
+   {
+      "constant": true,
       "inputs": [],
       "name": "getOwnerCount",
       "outputs": [
@@ -629,25 +647,11 @@
       "constant": false,
       "inputs": [
          {
-            "name": "_invalidCandidate",
+            "name": "_owner",
             "type": "address"
          }
       ],
       "name": "voteInvalidKYC",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-   },
-   {
-      "constant": false,
-      "inputs": [
-         {
-            "name": "kychash",
-            "type": "string"
-         }
-      ],
-      "name": "uploadKYC",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
