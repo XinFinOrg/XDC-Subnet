@@ -28,7 +28,7 @@ func TestYourTurnInitialV2(t *testing.T) {
 	t.Logf("Inserting block with propose at 11...")
 	blockCoinbaseA := "0xaaa0000000000000000000000000000000000011"
 	//Get from block validator error message
-	merkleRoot := "711be05c0b9d89bd511dd4c20ade1820b2c1fb13343ee0cedd3869150eb2d377"
+	merkleRoot := "c778a53427689109ddaedda8c5271caaf622da65dfbb1b38b47561d4b0c94ac3"
 	extraInBytes := generateV2Extra(11, parentBlock, signer, signFn, nil)
 
 	header := &types.Header{
@@ -79,7 +79,7 @@ func TestShouldMineOncePerRound(t *testing.T) {
 	_, err := adaptor.Seal(blockchain, block910, nil)
 	assert.Nil(t, err)
 	time.Sleep(time.Duration(minePeriod) * time.Second)
-	merkleRoot := "711be05c0b9d89bd511dd4c20ade1820b2c1fb13343ee0cedd3869150eb2d377"
+	merkleRoot := "c778a53427689109ddaedda8c5271caaf622da65dfbb1b38b47561d4b0c94ac3"
 
 	header := &types.Header{
 		Root:       common.HexToHash(merkleRoot),
