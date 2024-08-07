@@ -510,4 +510,8 @@ contract XDCValidator {
     function checkMinCandidateNum() private view {
         require(candidates.length >= minCandidateNum, "Low Candidate Count");
     }
+
+    function getGrandMasters() public view returns (address[] memory) {
+        return grandMasters;
+    }
 }
