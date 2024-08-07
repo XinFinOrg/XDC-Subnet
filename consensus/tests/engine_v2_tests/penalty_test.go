@@ -38,7 +38,7 @@ func TestHookPenaltyV2TwoEpoch(t *testing.T) {
 	header1335 := blockchain.GetHeaderByNumber(config.XDPoS.Epoch + config.XDPoS.Gap - uint64(common.MergeSignRange))
 	tx, err := signingTxWithKey(header1335, 0, voterKey)
 	assert.Nil(t, err)
-	block1349 := CreateBlock(blockchain, conf, block1348, 1349, 1358, signer.Hex(), signer, signFn, nil, nil, "c2bf7b59be5184fc1148be5db14692b2dc89a1b345895d3e8d0ee7b8a7607450")
+	block1349 := CreateBlock(blockchain, conf, block1348, 1349, 1358, signer.Hex(), signer, signFn, nil, nil, "25cb20ed8e7f21934d832318bc912e99e8745b4b3018e65d30bafc565df19c3a")
 	err = blockchain.InsertBlock(block1349)
 	assert.Nil(t, err)
 	adaptor.CacheSigningTxs(block1349.Hash(), []*types.Transaction{tx})

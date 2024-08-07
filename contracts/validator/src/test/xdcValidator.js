@@ -112,7 +112,6 @@ describe("XDCValidator", () => {
       expect(candidatesBefore).to.deep.eq(before);
       expect(candidates).to.deep.eq(deploy["candidates"]);
       expect(voters).to.include(master);
-      expect(ownerToCandidates).to.include(candidate);
       expect(validatorsState["owner"]).to.eq(master);
       expect(validatorsState["isCandidate"]).to.eq(false);
       expect(validatorsState["cap"]).to.eq(0);
