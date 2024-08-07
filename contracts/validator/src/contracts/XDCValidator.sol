@@ -39,20 +39,21 @@ contract XDCValidator {
 
     address[] public candidates;
 
-    uint256 public candidateCount = 0;
-    uint256 public ownerCount = 0;
     uint256 public minCandidateNum;
     uint256 public minCandidateCap;
     uint256 public minVoterCap;
     uint256 public maxValidatorNumber;
     uint256 public candidateWithdrawDelay;
     uint256 public voterWithdrawDelay;
+
+    address[] public grandMasters;
+
+    uint256 public candidateCount = 0;
+    uint256 public ownerCount = 0;
     // owner => invalid
     mapping(address => bool) public invalidOwner;
     // candaite => invalid
     mapping(address => bool) public invalidCandidate;
-
-    address[] public grandMasters;
 
     mapping(address => bool) public grandMasterMap;
 
