@@ -66,7 +66,7 @@ func TestGetMissedRoundsInEpochByBlockNum(t *testing.T) {
 	startingBlockNum := currentBlock.Number().Int64() + 1
 	// Skipped the round
 	roundNumber := startingBlockNum + 2
-	block := CreateBlock(blockchain, chainConfig, currentBlock, int(startingBlockNum), roundNumber, blockCoinBase, signer, signFn, nil, nil, "c2bf7b59be5184fc1148be5db14692b2dc89a1b345895d3e8d0ee7b8a7607450")
+	block := CreateBlock(blockchain, chainConfig, currentBlock, int(startingBlockNum), roundNumber, blockCoinBase, signer, signFn, nil, nil, "25cb20ed8e7f21934d832318bc912e99e8745b4b3018e65d30bafc565df19c3a")
 	err := blockchain.InsertBlock(block)
 	if err != nil {
 		t.Fatal(err)
