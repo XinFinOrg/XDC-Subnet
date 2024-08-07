@@ -346,7 +346,7 @@ contract XDCValidator {
             if (isOwnerNow) {
                 uint j = 0;
                 uint count = 0;
-                address[] memory allMasternodes = new address[](
+                address[] memory allInvalidMasternodes = new address[](
                     candidates.length
                 );
                 address[] memory newCandidates = new address[](
@@ -358,7 +358,7 @@ contract XDCValidator {
                     if (getCandidateOwner(candidate) == _owner) {
                         // logic to remove cap.
                         candidateCount = candidateCount.sub(1);
-                        allMasternodes[count++] = candidate;
+                        allInvalidMasternodes[count++] = candidate;
                         invalidCandidate[candidate] = true;
                         delete validatorsState[candidate];
                         delete ownerToCandidate[_owner];
@@ -371,14 +371,14 @@ contract XDCValidator {
                 // Resize the array.
                 assembly {
                     mstore(newCandidates, j)
-                    mstore(allMasternodes, count)
+                    mstore(allInvalidMasternodes, count)
                 }
                 candidates = newCandidates;
 
                 checkMinCandidateNum();
 
                 removeOwnerByIndex(ownerIndex);
-                emit InvalidatedNode(_owner, allMasternodes);
+                emit InvalidatedNode(_owner, allInvalidMasternodes);
             }
         }
     }
