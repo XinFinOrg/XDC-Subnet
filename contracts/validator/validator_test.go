@@ -330,6 +330,7 @@ func TestStatedbUtils(t *testing.T) {
 		t.Fatalf("can't get candidates: %v", err)
 	}
 	candidates_statedb := state.GetCandidates(statedb)
+
 	if !reflect.DeepEqual(candidates, candidates_statedb) {
 		t.Fatalf("candidates not equal, statedb utils is wrong,\nbind calling result\n%v\nstatedb result\n%v", candidates, candidates_statedb)
 	}
@@ -389,6 +390,7 @@ func TestStatedbUtils(t *testing.T) {
 	if len(grandMasters) != 2 {
 		t.Fatalf("get grand master wrong result")
 	}
+
 	if !reflect.DeepEqual(grandMasters, grandMasters_statedb) {
 		t.Fatalf("voters not equal, statedb utils is wrong,\nbind calling result\n%v\nstatedb result\n%v", voters, voters_statedb)
 	}
