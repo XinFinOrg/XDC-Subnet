@@ -9,7 +9,7 @@ on:
 
 jobs:
   test_golang:
-    name: Test, build and push image to registry
+    name: Test (unit tests) 
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
