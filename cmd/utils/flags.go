@@ -1144,6 +1144,10 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	}
 	if ctx.GlobalIsSet(GasPriceFlag.Name) {
 		cfg.GasPrice = GlobalBig(ctx, GasPriceFlag.Name)
+		if len(cfg.GasPrice.Bits()) == 0 { //IsUint64() && cfg.GasPrice.Uint64() == 0 {
+			common.Gasless = true
+			log.Info("Gasless enabled. You can run transactions with zero gas fee.")
+		}
 	}
 	if ctx.GlobalIsSet(VMEnableDebugFlag.Name) {
 		// TODO(fjl): force-enable this in --dev mode

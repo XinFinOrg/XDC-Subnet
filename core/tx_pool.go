@@ -664,7 +664,9 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 
 		// Check zero gas price.
 		if tx.GasPrice().Cmp(new(big.Int).SetInt64(0)) == 0 {
-			return ErrZeroGasPrice
+			if !common.Gasless {
+				return ErrZeroGasPrice
+			}
 		}
 
 		// under min gas price
