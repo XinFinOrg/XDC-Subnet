@@ -84,6 +84,15 @@ else
   echo "No RPC API is enabled. If you wanna enable any API calls, provide values to RPC_API. Available options are admin,db,eth,debug,miner,net,shh,txpool,personal,web3,XDPoS"
 fi
 
+# Subnet gasprice config
+if [[ ! -z $GASPRICE ]]; then
+  echo "Set Gasprice ${GASPRICE}"
+  params="$params --gasprice ${GASPRICE}"
+else
+  params="$params --gasprice 1"
+  echo "Set Gasprice default"
+fi
+
 if [ ! -d $DATA_DIR/XDC/chaindata ]
 then
   if test -z "$PRIVATE_KEY" 
@@ -142,7 +151,6 @@ XDC $params \
 --rpcaddr 0.0.0.0 \
 --rpcvhosts "*" \
 --password /work/.pwd \
---gasprice "1" \
 --targetgaslimit "420000000" \
 --ws --wsaddr=0.0.0.0 \
 --mine \
