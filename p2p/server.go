@@ -585,6 +585,7 @@ func (srv *Server) run(dialstate dialer) {
 
 running:
 	for {
+		log.Info("PEERCHECK server loop")
 		scheduleTasks()
 
 		select {
@@ -809,8 +810,10 @@ func (srv *Server) SetupConn(fd net.Conn, flags connFlag, dialDest *discover.Nod
 		return errors.New("shutdown")
 	}
 	c := &conn{fd: fd, transport: srv.newTransport(fd), flags: flags, cont: make(chan error)}
+	log.Info("PEERCHECK [SetupConn]", "dialDest", dialDest, "flags", flags, "c",c)
 	err := srv.setupConn(c, flags, dialDest)
 	if err != nil {
+		log.Info("PEERCHECK [SetupConn] error", "dialDest", dialDest, "err", err, "c",c)
 		c.close(err)
 		srv.log.Trace("Setting up connection failed", "id", c.id, "err", err)
 	}

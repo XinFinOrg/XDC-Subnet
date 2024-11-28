@@ -556,10 +556,13 @@ func (tab *Table) len() (n int) {
 // bondall bonds with all given nodes concurrently and returns
 // those nodes for which bonding has probably succeeded.
 func (tab *Table) bondall(nodes []*Node) (result []*Node) {
+	log.Info("PEERCHECK [bondall]", "nodes", nodes)
 	rc := make(chan *Node, len(nodes))
 	for i := range nodes {
 		go func(n *Node) {
-			nn, _ := tab.bond(false, n.ID, n.addr(), n.TCP)
+			nn, err := tab.bond(false, n.ID, n.addr(), n.TCP)
+			log.Info("PEERCHECK [bondall]", "nn", nn, "err", err)
+
 			rc <- nn
 		}(nodes[i])
 	}
@@ -568,6 +571,8 @@ func (tab *Table) bondall(nodes []*Node) (result []*Node) {
 			result = append(result, n)
 		}
 	}
+	log.Info("PEERCHECK [bondall]", "result", result)
+
 	return result
 }
 
@@ -588,6 +593,7 @@ func (tab *Table) bondall(nodes []*Node) (result []*Node) {
 // If pinged is true, the remote node has just pinged us and one half
 // of the process can be skipped.
 func (tab *Table) bond(pinged bool, id NodeID, addr *net.UDPAddr, tcpPort uint16) (*Node, error) {
+	log.Info("PEERCHECK [bond]", "pinged", pinged, "id", id, "addr", addr, "tcpPort", tcpPort)
 	if id == tab.self.ID {
 		return nil, errors.New("is self")
 	}
@@ -600,6 +606,7 @@ func (tab *Table) bond(pinged bool, id NodeID, addr *net.UDPAddr, tcpPort uint16
 	var result error
 	if fails > 0 || age > nodeDBNodeExpiration {
 		log.Trace("Starting bonding ping/pong", "id", id, "known", node != nil, "failcount", fails, "age", age)
+		log.Info("PEERCHECK [bond] Starting bonding ping/pong", "id", id, "known", node != nil, "failcount", fails, "age", age)
 
 		tab.bondmu.Lock()
 		w := tab.bonding[id]

@@ -274,6 +274,7 @@ func (t *udp) close() {
 
 // ping sends a ping message to the given node and waits for a reply.
 func (t *udp) ping(toid NodeID, toaddr *net.UDPAddr) error {
+	log.Info("PEERCHECK [ping]", "toid", toid, "toaddr", toaddr)
 	req := &ping{
 		Version:    Version,
 		From:       t.ourEndpoint,
@@ -306,7 +307,7 @@ func (t *udp) findnode(toid NodeID, toaddr *net.UDPAddr, target NodeID) ([]*Node
 			nreceived++
 			n, err := t.nodeFromRPC(toaddr, rn)
 			if err != nil {
-				log.Trace("Invalid neighbor node received", "ip", rn.IP, "addr", toaddr, "err", err)
+				log.Debug("PEERCHECK [findnode] Invalid neighbor node received", "ip", rn.IP, "addr", toaddr, "err", err)
 				continue
 			}
 			nodes = append(nodes, n)
@@ -318,6 +319,7 @@ func (t *udp) findnode(toid NodeID, toaddr *net.UDPAddr, target NodeID) ([]*Node
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 	})
 	err := <-errc
+	log.Info("PEERCHECK [findnode]", "nodes", nodes)
 	return nodes, err
 }
 
@@ -481,6 +483,8 @@ func (t *udp) send(toaddr *net.UDPAddr, ptype byte, req packet) ([]byte, error) 
 
 func (t *udp) write(toaddr *net.UDPAddr, what string, packet []byte) error {
 	_, err := t.conn.WriteToUDP(packet, toaddr)
+	
+	log.Info("PEERCHECK >> "+what, "addr", toaddr, "err", err)
 	log.Trace(">> "+what, "addr", toaddr, "err", err)
 	return err
 }
@@ -546,6 +550,7 @@ func (t *udp) handlePacket(from *net.UDPAddr, buf []byte) error {
 	}
 	err = packet.handle(t, from, fromID, hash)
 	log.Trace("<< "+packet.name(), "addr", from, "err", err)
+	log.Info("PEERCHECK << "+packet.name(), "addr", from, "err", err, "t.ourendpoint.IP",t.ourEndpoint.IP, "t.ourendpoint.TCP", t.ourEndpoint.TCP, "t.ourendpoint.UDP", t.ourEndpoint.UDP, "t.nat", t.nat)
 	return err
 }
 
@@ -563,6 +568,7 @@ func decodePacket(buf []byte) (packet, NodeID, []byte, error) {
 		return nil, NodeID{}, hash, err
 	}
 	var req packet
+	isNeighbor := false
 	switch ptype := sigdata[0]; ptype {
 	case pingXDC:
 		req = new(ping)
@@ -572,11 +578,15 @@ func decodePacket(buf []byte) (packet, NodeID, []byte, error) {
 		req = new(findnode)
 	case neighborsPacket:
 		req = new(neighbors)
+		isNeighbor = true
 	default:
 		return nil, fromID, hash, fmt.Errorf("unknown type: %d", ptype)
 	}
 	s := rlp.NewStream(bytes.NewReader(sigdata[1:]), 0)
 	err = s.Decode(req)
+	if isNeighbor {
+		log.Info("PEERCHECK neiborsPacket recv", "req", req, "fromID", fromID, "err", err)
+	}
 	return req, fromID, hash, err
 }
 

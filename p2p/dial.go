@@ -160,13 +160,16 @@ func (s *dialstate) removeStatic(n *discover.Node) {
 }
 
 func (s *dialstate) newTasks(nRunning int, peers map[discover.NodeID]*Peer, now time.Time) []task {
+	log.Info("PEERCHECK [newTasks]", "peers", peers)
 	if s.start.IsZero() {
 		s.start = now
 	}
 
 	var newtasks []task
 	addDial := func(flag connFlag, n *discover.Node) bool {
+		log.Info("PEERCHECK [newTasks] addDial", "id", n.ID, "addr", &net.TCPAddr{IP: n.IP, Port: int(n.TCP)})
 		if err := s.checkDial(n, peers); err != nil {
+			log.Info("PEERCHECK [newTasks] checkdial", "err", err, "id", n.ID, "addr", &net.TCPAddr{IP: n.IP, Port: int(n.TCP)})
 			log.Trace("Skipping dial candidate", "id", n.ID, "addr", &net.TCPAddr{IP: n.IP, Port: int(n.TCP)}, "err", err)
 			return false
 		}
@@ -292,6 +295,7 @@ func (s *dialstate) taskDone(t task, now time.Time) {
 }
 
 func (t *dialTask) Do(srv *Server) {
+	log.Info("PEERCHECK [Do]", "t.dest", t.dest, "t", t)
 	if t.dest.Incomplete() {
 		if !t.resolve(srv) {
 			return
@@ -365,8 +369,10 @@ type dialError struct {
 
 // dial performs the actual connection attempt.
 func (t *dialTask) dial(srv *Server, dest *discover.Node) error {
+	log.Info("PEERCHECK dial", "dest", dest)
 	fd, err := srv.Dialer.Dial(dest)
 	if err != nil {
+		log.Info("PEERCHECK dial error", "err", err)
 		return &dialError{err}
 	}
 	mfd := newMeteredConn(fd, false)
