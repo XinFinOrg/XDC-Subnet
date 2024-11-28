@@ -65,6 +65,9 @@ func Parse(spec string) (Interface, error) {
 		mech  = strings.ToLower(parts[0])
 		ip    net.IP
 	)
+
+	log.Error("PEERCHECK [Parse]", "spec", spec)
+
 	if len(parts) > 1 {
 		ip = net.ParseIP(parts[1])
 		if ip == nil {
@@ -80,6 +83,7 @@ func Parse(spec string) (Interface, error) {
 		if ip == nil {
 			return nil, errors.New("missing IP address")
 		}
+		log.Error("[Parse]", "returning extip", ExtIP(ip) )
 		return ExtIP(ip), nil
 	case "upnp":
 		return UPnP(), nil

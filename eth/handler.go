@@ -346,6 +346,7 @@ func (pm *ProtocolManager) Stop() {
 }
 
 func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
+	log.Info("PEERCHECK [newPeer]", "peer", p)
 	return newPeer(pv, p, newMeteredMsgWriter(rw))
 }
 

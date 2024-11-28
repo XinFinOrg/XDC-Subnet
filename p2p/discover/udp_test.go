@@ -482,6 +482,8 @@ func TestForwardCompatibility(t *testing.T) {
 			t.Fatalf("invalid hex: %s", test.input)
 		}
 		packet, nodeid, _, err := decodePacket(input)
+		fmt.Println(packet)
+		fmt.Println(nodeid)
 		if err != nil {
 			t.Errorf("did not accept packet %s\n%v", test.input, err)
 			continue
