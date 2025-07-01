@@ -147,3 +147,6 @@ XDC $params \
 --ws --wsaddr=0.0.0.0 \
 --mine \
 --wsorigins "*" 2>&1 >>$DATA_DIR/xdc.log | tee --append $DATA_DIR/xdc.log
+
+
+
