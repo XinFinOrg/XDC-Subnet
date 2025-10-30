@@ -1,7 +1,10 @@
 # XDC Subnet
 Documentation for XDC Subnet can be found here
-https://xinfinorg.github.io/xdc-subnet-docs/
+https://docs.xdc.network/subnet/
 
-## Run the subnet image
+## Deploying the Subnet
 Below is the guide to deploying the subnet
-https://xinfinorg.github.io/xdc-subnet-docs/category/deployment-guide
+https://docs.xdc.network/subnet/install_guide/launch_subnet/
+
+Video Demo
+https://www.youtube.com/watch?v=-SXsRbn6hN8
