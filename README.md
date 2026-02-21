@@ -1,6 +1,6 @@
 # XDC Subnet
-Build private chains with XDC Subnet: Total data & transaction privacy, access restricted to authorized users only. No public exposure – checkpoints borrow XDC mainnet security. Perfect for banks, governments, healthcare & confidential enterprise apps. 
-Guide: https://docs.xdc.network/subnet/"
+Build private Block chains with XDC Subnet: Total data & transaction privacy, access restricted to authorized users only. No public exposure – checkpoints borrow XDC mainnet security. Perfect for banks, governments, healthcare & confidential enterprise apps. 
+Guide: https://docs.xdc.network/subnet/overview/ 
 
 ## Deploying the Subnet
 Below is the guide to deploying the subnet
