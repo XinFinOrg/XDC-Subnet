@@ -1,0 +1,21 @@
+services:
+  bootnode:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: xinfinorg/xdcsubnets:local
+    container_name: xdc-subnet-bootnode
+    entrypoint: ["bash", "/work/start-bootnode.sh"]
+    restart: unless-stopped
+    ports:
+      - "30301:30301"
+      - "30301:30301/udp"
+    volumes:
+      - ./bootnode:/work/bootnode
+    environment:
+      NODEKEY_FILE: /work/bootnode/bootnode.key
+      BOOTNODE_ENODE_OUT: /work/bootnode/bootnode.enode
+      LOG_FILE: /work/bootnode/bootnode.log
+      BOOTNODES_FILE: /work/bootnode/bootnodes.list
+      EXTIP: ${EXTIP:-}
+      VERBOSITY: ${VERBOSITY:-5}

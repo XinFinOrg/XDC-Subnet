@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/XinFinOrg/XDC-Subnet/cmd/utils"
 	"github.com/XinFinOrg/XDC-Subnet/crypto"
@@ -35,16 +36,18 @@ import (
 
 func main() {
 	var (
-		listenAddr  = flag.String("addr", ":30301", "listen address")
-		genKey      = flag.String("genkey", "", "generate a node key")
-		writeAddr   = flag.Bool("writeaddress", false, "write out the node's pubkey hash and quit")
-		nodeKeyFile = flag.String("nodekey", "", "private key filename")
-		nodeKeyHex  = flag.String("nodekeyhex", "", "private key as hex (for testing)")
-		natdesc     = flag.String("nat", "none", "port mapping mechanism (any|none|upnp|pmp|extip:<IP>)")
-		netrestrict = flag.String("netrestrict", "", "restrict network communication to the given IP networks (CIDR masks)")
-		runv5       = flag.Bool("v5", false, "run a v5 topic discovery bootnode")
-		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
-		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
+		listenAddr    = flag.String("addr", ":30301", "listen address")
+		genKey        = flag.String("genkey", "", "generate a node key")
+		writeAddr     = flag.Bool("writeaddress", false, "write out the node's pubkey hash and quit")
+		nodeKeyFile   = flag.String("nodekey", "", "private key filename")
+		nodeKeyHex    = flag.String("nodekeyhex", "", "private key as hex (for testing)")
+		bootnodes     = flag.String("bootnodes", "", "comma-separated bootstrap node enode URLs")
+		bootnodesFile = flag.String("bootnodesfile", "", "file containing bootstrap node enode URLs")
+		natdesc       = flag.String("nat", "none", "port mapping mechanism (any|none|upnp|pmp|extip:<IP>)")
+		netrestrict   = flag.String("netrestrict", "", "restrict network communication to the given IP networks (CIDR masks)")
+		runv5         = flag.Bool("v5", false, "run a v5 topic discovery bootnode")
+		verbosity     = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
+		vmodule       = flag.String("vmodule", "", "log verbosity pattern")
 
 		nodeKey *ecdsa.PrivateKey
 		err     error
@@ -97,6 +100,31 @@ func main() {
 		}
 	}
 
+	var bootnodeList []*discover.Node
+	if *bootnodesFile != "" {
+		data, err := os.ReadFile(*bootnodesFile)
+		if err != nil {
+			utils.Fatalf("-bootnodesfile: %v", err)
+		}
+		if *bootnodes != "" {
+			*bootnodes += ","
+		}
+		*bootnodes += string(data)
+	}
+	if *bootnodes != "" {
+		urls := strings.FieldsFunc(*bootnodes, func(r rune) bool {
+			return r == ',' || r == '\n' || r == '\r' || r == '\t' || r == ' '
+		})
+		bootnodeList = make([]*discover.Node, 0, len(urls))
+		for _, url := range urls {
+			node, err := discover.ParseNode(url)
+			if err != nil {
+				utils.Fatalf("invalid bootnode %q: %v", url, err)
+			}
+			bootnodeList = append(bootnodeList, node)
+		}
+	}
+
 	addr, err := net.ResolveUDPAddr("udp", *listenAddr)
 	if err != nil {
 		utils.Fatalf("-ResolveUDPAddr: %v", err)
@@ -126,6 +154,7 @@ func main() {
 			PrivateKey:   nodeKey,
 			AnnounceAddr: realaddr,
 			NetRestrict:  restrictList,
+			Bootnodes:    bootnodeList,
 		}
 		if _, err := discover.ListenUDP(conn, cfg); err != nil {
 			utils.Fatalf("%v", err)

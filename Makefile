@@ -1,4 +1,4 @@
-.PHONY: XDC XDC-cross evm all test clean
+.PHONY: XDC bootnode puppeth gc XDC-cross evm all test clean
 .PHONY: XDC-linux XDC-linux-386 XDC-linux-amd64 XDC-linux-mips64 XDC-linux-mips64le
 .PHONY: XDC-darwin XDC-darwin-386 XDC-darwin-amd64
 
