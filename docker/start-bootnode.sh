@@ -2,9 +2,21 @@
 
 params=""
 
-if [[ ! -z $EXTIP ]]; then
+if [[ -z "${EXTIP:-}" ]]; then
+  if command -v curl >/dev/null 2>&1; then
+    EXTIP=$(curl -fsS --max-time 10 https://checkip.amazonaws.com 2>/dev/null | tr -d '[:space:]')
+    if [[ -n "$EXTIP" ]]; then
+      echo "Auto-detected public IP (EXTIP): ${EXTIP}"
+      export EXTIP
+    fi
+  fi
+fi
+
+if [[ -n "${EXTIP:-}" ]]; then
   echo "Set the NAT to extip:${EXTIP}"
   params="$params -nat extip:${EXTIP}"
+else
+  echo "WARN: EXTIP not set and auto-detection failed; enode will use container/local IP"
 fi
 
 if [[ ! -z $NET_RESTRICTING ]]; then
@@ -45,7 +57,7 @@ if [[ ! -z $VERBOSITY ]]; then
 fi
 
 host=$(hostname -i | awk '{print $1}')
-if [[ ! -z $EXTIP ]]; then
+if [[ -n "${EXTIP:-}" ]]; then
   host=$EXTIP
 fi
 address="enode://$(bootnode -nodekey ${NODEKEY_FILE} -writeaddress)@${host}:${BOOTNODE_PORT}"

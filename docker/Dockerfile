@@ -1,6 +1,7 @@
 FROM golang:1.21 as builder
 
-RUN apt-get update && apt-get install -y git build-essential
+RUN apt-get update && apt-get install -y git build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . /builder
 
@@ -10,7 +11,8 @@ RUN cd /builder && make XDC && make bootnode && make puppeth && test -f build/bi
 # The actual image for subnet containers
 FROM golang:1.21
 
-RUN apt-get update && apt-get install -y git build-essential
+RUN apt-get update && apt-get install -y git build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /work
 
