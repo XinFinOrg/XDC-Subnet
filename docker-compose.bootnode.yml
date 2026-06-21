@@ -18,4 +18,5 @@ services:
       LOG_FILE: /work/bootnode/bootnode.log
       BOOTNODES_FILE: /work/bootnode/bootnodes.list
       EXTIP: ${EXTIP:-}
+      DISABLE_EXTIP: ${DISABLE_EXTIP:-}
       VERBOSITY: ${VERBOSITY:-5}
