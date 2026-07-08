@@ -1,21 +1,33 @@
 #!/bin/bash
 
-# Variables
 params=""
 
-# extip
-if [[ ! -z $EXTIP ]]; then
-echo "Set the NAT to extip:${EXTIP}"
+if [[ -n "${DISABLE_EXTIP:-}" ]]; then
+  echo "DISABLE_EXTIP set; starting without -nat extip"
+elif [[ -z "${EXTIP:-}" ]]; then
+  if command -v curl >/dev/null 2>&1; then
+    EXTIP=$(curl -fsS --max-time 10 https://checkip.amazonaws.com 2>/dev/null | tr -d '[:space:]')
+    if [[ -n "$EXTIP" ]]; then
+      echo "Auto-detected public IP (EXTIP): ${EXTIP}"
+      export EXTIP
+    fi
+  fi
+fi
+
+if [[ -n "${DISABLE_EXTIP:-}" ]]; then
+  :
+elif [[ -n "${EXTIP:-}" ]]; then
+  echo "Set the NAT to extip:${EXTIP}"
   params="$params -nat extip:${EXTIP}"
+else
+  echo "WARN: EXTIP not set and auto-detection failed; enode will use container/local IP"
 fi
 
-# extip
 if [[ ! -z $NET_RESTRICTING ]]; then
-echo "Restricting the network to: ${NET_RESTRICTING}"
-  params="$params -netrestrict NET_RESTRICTING"
+  echo "Restricting the network to: ${NET_RESTRICTING}"
+  params="$params -netrestrict ${NET_RESTRICTING}"
 fi
 
-# file to env
 for env in PRIVATE_KEY; do
   file=$(eval echo "\$${env}_FILE")
   if [[ -f $file ]] && [[ ! -z $file ]]; then
@@ -24,30 +36,43 @@ for env in PRIVATE_KEY; do
   fi
 done
 
-# private key
+NODEKEY_FILE="${NODEKEY_FILE:-bootnode/bootnode.key}"
 if [[ ! -z "$PRIVATE_KEY" ]]; then
-  echo "$PRIVATE_KEY" > bootnode.key
-elif [[ ! -f ./bootnode.key ]]; then
-  bootnode -genkey bootnode.key
+  echo "$PRIVATE_KEY" > "$NODEKEY_FILE"
+elif [[ ! -f "${NODEKEY_FILE}" ]]; then
+  mkdir -p "$(dirname "${NODEKEY_FILE}")"
+  bootnode -genkey "$NODEKEY_FILE"
 fi
 
-# listen port
 if [[ ! -z "$BOOTNODE_PORT" ]]; then
-  params="$params --addr :${BOOTNODE_PORT}"
+  params="$params -addr :${BOOTNODE_PORT}"
 else
   BOOTNODE_PORT=30301
-  params="$params --addr :${BOOTNODE_PORT}"
+  params="$params -addr :${BOOTNODE_PORT}"
 fi
 
-# dump address
-address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@$(hostname -i):${BOOTNODE_PORT}"
-if [[ ! -z $EXTIP ]]; then
-  address="enode://$(bootnode -nodekey bootnode.key -writeaddress)@$EXTIP:${BOOTNODE_PORT}"
+BOOTNODES_FILE="${BOOTNODES_FILE:-bootnode/bootnodes.list}"
+if [[ -f "${BOOTNODES_FILE}" ]]; then
+  params="$params -bootnodesfile ${BOOTNODES_FILE}"
 fi
 
-echo "🥾 Starting the bootnode with address at $address"
-echo $address > ./bootnodes/bootnodes.list
+if [[ ! -z $VERBOSITY ]]; then
+  params="$params -verbosity ${VERBOSITY}"
+fi
 
+host=$(hostname -i | awk '{print $1}')
+if [[ -z "${DISABLE_EXTIP:-}" && -n "${EXTIP:-}" ]]; then
+  host=$EXTIP
+fi
+address="enode://$(bootnode -nodekey ${NODEKEY_FILE} -writeaddress)@${host}:${BOOTNODE_PORT}"
+echo "Starting the bootnode with address at $address"
+BOOTNODE_ENODE_OUT="${BOOTNODE_ENODE_OUT:-bootnode/bootnode.enode}"
+echo $address > "$BOOTNODE_ENODE_OUT"
 
+LOG_FILE="${LOG_FILE:-bootnode/bootnode.log}"
+if [[ -n "$LOG_FILE" && "$LOG_FILE" != "-" ]]; then
+  touch "$LOG_FILE"
+  exec > >(tee -a "$LOG_FILE") 2>&1
+fi
 
-exec bootnode "$@" $params
+exec bootnode -nodekey "$NODEKEY_FILE" $params "$@"
